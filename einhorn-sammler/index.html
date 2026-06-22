@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Unicorn Collector | GeorgeFejer.com</title>
+  <title>Unicorn Forest Run | GeorgeFejer.com</title>
   <style>
     :root {
       color-scheme: light;
@@ -128,28 +128,67 @@
     }
 
     .board-wrap {
+      position: relative;
+      min-height: min(66svh, 470px);
+      display: grid;
+      place-items: end center;
+      padding: clamp(10px, 2.4vw, 18px);
       border: 1px solid #96bd87;
       border-radius: 8px;
-      background:
-        linear-gradient(rgb(255 255 255 / 30%), rgb(255 255 255 / 0)),
-        var(--field);
+      background: #060913;
       overflow: hidden;
       box-shadow: 0 10px 28px rgb(24 32 42 / 14%);
+      touch-action: none;
+    }
+
+    .board-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgb(104 218 255 / 18%), transparent 34%),
+        linear-gradient(rgb(6 9 19 / 0), rgb(6 9 19 / 46%));
+      pointer-events: none;
+    }
+
+    #world {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: clamp(8px, 2.2vw, 16px);
+      overflow: hidden;
+      color: #caf6e9;
+      background:
+        linear-gradient(#081124 0%, #142a3d 38%, #1d3c2d 39%, #07100b 100%);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: clamp(8px, 1.75vw, 14px);
+      line-height: 0.95;
+      letter-spacing: 0;
+      white-space: pre;
+      text-shadow:
+        0 0 4px rgb(91 225 218 / 58%),
+        0 0 11px rgb(242 182 50 / 18%);
+      user-select: none;
     }
 
     #screen {
-      width: 100%;
-      min-height: min(66svh, 470px);
+      position: relative;
+      z-index: 1;
+      width: min(100%, 360px);
       margin: 0;
-      display: grid;
-      place-items: center;
-      padding: clamp(10px, 3vw, 20px);
-      color: var(--ink);
+      padding: 10px 12px;
+      border: 1px solid rgb(255 255 255 / 34%);
+      border-radius: 8px;
+      background: rgb(4 8 16 / 72%);
+      color: #fffdf9;
       font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, sans-serif;
-      font-size: clamp(21px, 7vw, 42px);
-      line-height: 1.15;
+      font-size: clamp(20px, 4.8vw, 30px);
+      line-height: 1.12;
       letter-spacing: 0;
       white-space: pre;
+      text-align: center;
+      box-shadow: 0 10px 26px rgb(0 0 0 / 32%);
+      text-shadow: 0 1px 2px rgb(0 0 0 / 78%);
       user-select: none;
       touch-action: none;
     }
@@ -231,9 +270,19 @@
         font-size: 14px;
       }
 
-      #screen {
+      .board-wrap {
         min-height: min(44svh, 330px);
-        font-size: clamp(19px, 6vw, 30px);
+        padding: 8px;
+      }
+
+      #world {
+        font-size: clamp(7px, 2.2vw, 10px);
+      }
+
+      #screen {
+        width: min(100%, 310px);
+        padding: 8px 10px;
+        font-size: clamp(18px, 5.3vw, 25px);
       }
 
       .controls {
@@ -248,7 +297,7 @@
     <header>
       <div>
         <div class="site">GeorgeFejer.com</div>
-        <h1>Unicorn Collector</h1>
+        <h1>Unicorn Forest Run</h1>
       </div>
       <div class="actions">
         <a class="home-link" href="../">Home</a>
@@ -264,7 +313,8 @@
     </section>
 
     <section class="board-wrap" aria-label="Game field">
-      <pre id="screen" role="img" aria-label="Text-rendered unicorn collection game"></pre>
+      <pre id="world" aria-hidden="true"></pre>
+      <pre id="screen" role="img" aria-label="Text-rendered unicorn forest game"></pre>
     </section>
 
     <div class="status" id="status">Ready</div>
@@ -282,6 +332,8 @@
       const width = 11;
       const height = 8;
       const roundSeconds = 60;
+      const board = document.querySelector('.board-wrap');
+      const world = document.getElementById('world');
       const screen = document.getElementById('screen');
       const scoreEl = document.getElementById('score');
       const livesEl = document.getElementById('lives');
@@ -292,9 +344,9 @@
       const glyph = {
         empty: '\u22c5',
         player: '\ud83e\udd84',
-        star: '\u2b50',
-        crystal: '\ud83d\udc8e',
-        storm: '\ud83c\udf29\ufe0f',
+        star: '\u2728',
+        crystal: '\ud83c\udf44',
+        storm: '\ud83c\udf32',
         flower: '\ud83c\udf38'
       };
       const state = {
@@ -368,7 +420,7 @@
         addItem('crystal');
         addStorm();
         addStorm();
-        statusEl.textContent = 'Ready';
+        statusEl.textContent = 'Find forest magic';
         updateHud();
         render();
       }
@@ -390,6 +442,74 @@
         }
         grid[state.player.y][state.player.x] = state.lives > 0 ? glyph.player : glyph.flower;
         screen.textContent = grid.map((row) => row.join(' ')).join('\n');
+        renderWorld();
+      }
+
+      function renderWorld() {
+        const cols = window.innerWidth <= 560 ? 48 : 72;
+        const rows = window.innerWidth <= 560 ? 24 : 29;
+        const horizon = Math.floor(rows * 0.42);
+        const center = Math.round(cols / 2 + (state.player.x - width / 2) * 1.1);
+        const sway = Math.sin(Date.now() / 850) * 2;
+        const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
+
+        for (let y = 0; y < rows; y += 1) {
+          for (let x = 0; x < cols; x += 1) {
+            if (y < horizon) {
+              const sparkle = (x * 13 + y * 17 + state.score) % 47 === 0;
+              grid[y][x] = sparkle ? '.' : ' ';
+            } else {
+              const d = (y - horizon + 1) / (rows - horizon);
+              const pathWidth = Math.max(3, Math.floor(Math.pow(d, 1.55) * cols * 0.52));
+              const pathCenter = Math.round(center + sway * (1 - d));
+              const edge = Math.abs(x - pathCenter);
+              if (edge < pathWidth / 2) {
+                grid[y][x] = (x + y + state.score) % 7 === 0 ? ',' : '.';
+              } else if (Math.abs(edge - pathWidth / 2) < 1.4) {
+                grid[y][x] = x < pathCenter ? '/' : '\\';
+              } else {
+                grid[y][x] = (x * 5 + y * 3) % 9 === 0 ? '"' : '^';
+              }
+            }
+          }
+        }
+
+        function put(row, col, text) {
+          if (row < 0 || row >= rows) return;
+          for (let i = 0; i < text.length; i += 1) {
+            const x = col + i;
+            if (x >= 0 && x < cols) grid[row][x] = text[i];
+          }
+        }
+
+        put(1, Math.floor(cols * 0.72), ' .  *');
+        put(2, Math.floor(cols * 0.72), '  \\ | /');
+        put(3, Math.floor(cols * 0.72), ' -- O --');
+        put(horizon - 5, Math.floor(cols * 0.08), '        /\\        /\\');
+        put(horizon - 4, Math.floor(cols * 0.08), '   /\\  /  \\__/\\__/  \\  /\\');
+        put(horizon - 3, Math.floor(cols * 0.08), '__/  \\/_/\\_/  \\_/\\_\\/  \\__');
+        put(horizon - 5, Math.floor(cols * 0.54), '       /\\   /\\');
+        put(horizon - 4, Math.floor(cols * 0.54), '  ____/  \\_/  \\____');
+        put(horizon - 3, Math.floor(cols * 0.54), ' /_[]_[]_[]_[]_[]_\\');
+        put(horizon - 2, Math.floor(cols * 0.54), '   | FOREST KEEP |');
+
+        for (let i = 0; i < 12; i += 1) {
+          const d = (i + 1) / 12;
+          const y = horizon + Math.floor(d * (rows - horizon - 2));
+          const side = i % 2 === 0 ? -1 : 1;
+          const offset = Math.floor(Math.pow(d, 1.35) * cols * 0.46);
+          const drift = Math.floor(Math.sin(i * 1.7 + Date.now() / 1200) * (1 + d * 3));
+          const x = center + side * offset + drift;
+          const trunk = d > 0.62 ? '||' : '|';
+          const leaves = d > 0.62 ? '/YY\\' : '/Y\\';
+          put(y - 2, x - Math.floor(leaves.length / 2), leaves);
+          put(y - 1, x - Math.floor(leaves.length / 2), leaves);
+          put(y, x - Math.floor(trunk.length / 2), trunk);
+        }
+
+        put(rows - 4, 2, 'HP ' + state.lives + '  SCORE ' + state.score);
+        put(rows - 3, 2, 'ARROWS / WASD / SWIPE');
+        world.textContent = grid.map((row) => row.join('')).join('\n');
       }
 
       function end(text) {
@@ -408,17 +528,17 @@
         state.score += item.points;
         state.items.splice(index, 1);
         addItem(Math.random() < 0.72 ? 'star' : 'crystal');
-        statusEl.textContent = '+' + item.points;
+        statusEl.textContent = item.kind === 'crystal' ? 'Moon mushroom +' + item.points : 'Forest sparkle +' + item.points;
       }
 
       function hitStorm() {
         const storm = state.storms.find((cell) => same(cell, state.player));
         if (!storm) return;
         state.lives -= 1;
-        statusEl.textContent = 'Life lost';
+        statusEl.textContent = 'Tree collision';
         state.player = { x: 1, y: 5 };
         if (state.lives <= 0) {
-          end('Game over. Score ' + state.score);
+          end('Lost in the forest. Score ' + state.score);
         }
       }
 
@@ -460,7 +580,7 @@
           moveStorms();
         }
         if (state.time <= 0) {
-          end('Time up. Score ' + state.score);
+          end('The forest fades. Score ' + state.score);
         }
         updateHud();
         render();
@@ -496,11 +616,11 @@
       });
 
       let touchStart = null;
-      screen.addEventListener('pointerdown', (event) => {
+      board.addEventListener('pointerdown', (event) => {
         touchStart = { x: event.clientX, y: event.clientY };
-        screen.setPointerCapture(event.pointerId);
+        board.setPointerCapture(event.pointerId);
       });
-      screen.addEventListener('pointerup', (event) => {
+      board.addEventListener('pointerup', (event) => {
         if (!touchStart) return;
         const dx = event.clientX - touchStart.x;
         const dy = event.clientY - touchStart.y;
@@ -514,6 +634,7 @@
       });
 
       restartBtn.addEventListener('click', reset);
+      window.addEventListener('resize', render);
       reset();
       setInterval(tick, 250);
     })();
