@@ -61,6 +61,7 @@
       const secondWitchStartCell = { c: 1, r: grid.rows - 2 };
       const defaultStartLevel = 2;
       const evilTreeTestMode = new URLSearchParams(window.location.search).has('eviltest');
+      const leafTreeTestMode = new URLSearchParams(window.location.search).has('leaftest');
       const dirs = [
         { dc: 1, dr: 0 },
         { dc: -1, dr: 0 },
@@ -183,6 +184,29 @@
       const isOpen = (cell) => state.maze[cell.r] && state.maze[cell.r][cell.c] === 1;
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+      function isOccupiedByEvilTree(cell) {
+        return state.evilTrees.some((tree) => cellsMatch(tree.occupiedCell, cell) || cellsMatch(cellOf(tree.x, tree.y), cell));
+      }
+
+      function isWavingTreePathCell(cell) {
+        return state.maze[cell.r]
+          && cell.c > 0
+          && cell.r > 0
+          && cell.c < grid.cols - 1
+          && cell.r < grid.rows - 1
+          && state.maze[cell.r][cell.c] === 0
+          && isWavingTreeCell(cell.c, cell.r)
+          && !isOccupiedByEvilTree(cell);
+      }
+
+      function leafTreePassActive(now) {
+        return state.activeTreat === 'leaf' && now < state.activeUntil;
+      }
+
+      function isPlayerPassable(cell, now = performance.now()) {
+        return isOpen(cell) || (leafTreePassActive(now) && isWavingTreePathCell(cell));
+      }
+
       function clampCamera() {
         const halfW = state.vw / (2 * state.zoom);
         const halfH = state.vh / (2 * state.zoom);
@@ -261,8 +285,8 @@
         return cells;
       }
 
-      function findPath(from, to) {
-        if (!isOpen(from) || !isOpen(to)) return [];
+      function findPath(from, to, passable = isOpen) {
+        if (!passable(from) || !passable(to)) return [];
         const queue = [from];
         const seen = new Set([cellKey(from)]);
         const prev = new Map();
@@ -281,7 +305,7 @@
           for (const dir of dirs) {
             const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
             const k = cellKey(next);
-            if (seen.has(k) || !isOpen(next)) continue;
+            if (seen.has(k) || !passable(next)) continue;
             seen.add(k);
             prev.set(k, cur);
             queue.push(next);
@@ -290,9 +314,9 @@
         return [];
       }
 
-      function nearestOpenCell(x, y) {
+      function nearestPassableCell(x, y, passable = isOpen) {
         const start = cellOf(x, y);
-        if (isOpen(start)) return start;
+        if (passable(start)) return start;
         const queue = [start];
         const seen = new Set([cellKey(start)]);
         while (queue.length) {
@@ -301,7 +325,7 @@
             const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
             const k = cellKey(next);
             if (next.c < 0 || next.r < 0 || next.c >= grid.cols || next.r >= grid.rows || seen.has(k)) continue;
-            if (isOpen(next)) return next;
+            if (passable(next)) return next;
             seen.add(k);
             queue.push(next);
           }
@@ -309,16 +333,20 @@
         return startCell;
       }
 
-      function directionalNeighbor(pos, current) {
+      function nearestOpenCell(x, y) {
+        return nearestPassableCell(x, y, isOpen);
+      }
+
+      function directionalNeighbor(pos, current, passable = isOpen) {
         const origin = centerOf(current);
         const dx = pos.x - origin.x;
         const dy = pos.y - origin.y;
         const options = dirs
           .map((dir) => ({ cell: { c: current.c + dir.dc, r: current.r + dir.dr }, score: dx * dir.dc + dy * dir.dr }))
-          .filter((option) => option.score > 0 && isOpen(option.cell))
+          .filter((option) => option.score > 0 && passable(option.cell))
           .sort((a, b) => b.score - a.score);
         if (options.length) return options[0].cell;
-        return dirs.map((dir) => ({ c: current.c + dir.dc, r: current.r + dir.dr })).find(isOpen) || null;
+        return dirs.map((dir) => ({ c: current.c + dir.dc, r: current.r + dir.dr })).find(passable) || null;
       }
 
       function chooseFarCell(cells, reference, minDistance) {
@@ -333,7 +361,7 @@
           const key = cellKey(cell);
           return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell) && key !== cellKey(secondWitchStartCell);
         });
-        const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink'];
+        const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink', 'leaf'];
         for (let i = 0; i < 20; i += 1) {
           const cell = chooseFarCell(cells, startCell, 8);
           const p = centerOf(cell);
@@ -362,17 +390,19 @@
           reset();
           return;
         }
+        const now = performance.now();
+        const passable = (cell) => isPlayerPassable(cell, now);
         const pos = screenToWorldPoint(clientX, clientY);
-        const target = nearestOpenCell(pos.x, pos.y);
+        const target = nearestPassableCell(pos.x, pos.y, passable);
         const current = cellOf(state.player.x, state.player.y);
-        const path = findPath(current, target);
+        const path = findPath(current, target, passable);
         state.lastTarget = cellKey(target);
         state.lastPathLength = path.length;
         if (path.length > 1) {
           state.player.path = path.slice(1).map(centerOf);
           showMessage('Unicorn path set: ' + (path.length - 1) + ' steps.', 1200);
         } else {
-          const next = directionalNeighbor(pos, current);
+          const next = directionalNeighbor(pos, current, passable);
           if (next) {
             state.player.path = [centerOf(next)];
             state.lastTarget = cellKey(next);
@@ -399,6 +429,7 @@
         canvas.dataset.lives = String(state.lives);
         canvas.dataset.treat = active;
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
+        canvas.dataset.leafTreats = String(state.treats.filter((item) => !item.taken && item.type === 'leaf').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
@@ -420,6 +451,7 @@
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
         canvas.dataset.witchesPassable = String(mushroomPassThroughActive(now));
+        canvas.dataset.leafTreePass = String(leafTreePassActive(now));
         canvas.dataset.lastInput = state.lastInput || 'none';
         canvas.dataset.lastTarget = state.lastTarget || 'none';
         canvas.dataset.lastPathLength = String(state.lastPathLength || 0);
@@ -490,6 +522,11 @@
         state.over = false;
         state.last = performance.now();
         showMessage(level === 1 ? 'Level 1. Reach B and avoid the witch.' : 'Level 2. Two witches are chasing now.', 2200);
+        if (leafTreeTestMode) {
+          state.activeTreat = 'leaf';
+          state.activeUntil = performance.now() + 60000;
+          showMessage('Green leaf test: waving trees are paths.', 2200);
+        }
         updateHud();
       }
 
@@ -505,6 +542,28 @@
 
       function mushroomPassThroughActive(now) {
         return state.activeTreat === 'freeze' && now < state.activeUntil;
+      }
+
+      function clearInvalidPlayerPath(now) {
+        const passable = (cell) => isPlayerPassable(cell, now);
+        const current = cellOf(state.player.x, state.player.y);
+        if (!passable(current) && isWavingTreePathCell(current)) {
+          const escape = nearestOpenCell(state.player.x, state.player.y);
+          state.player.path = [centerOf(escape)];
+          state.lastTarget = cellKey(escape);
+          state.lastPathLength = 2;
+          return;
+        }
+        if (!state.player.path.length || pathPointsAreOpen(state.player.path, passable)) return;
+        const target = parseCellKey(state.lastTarget);
+        if (target && passable(target)) {
+          const path = findPath(current, target, passable);
+          state.player.path = path.length > 1 ? path.slice(1).map(centerOf) : [];
+          state.lastPathLength = path.length;
+        } else {
+          state.player.path = [];
+          state.lastPathLength = 0;
+        }
       }
 
       function moveAlongPath(actor, speed, dt) {
@@ -566,8 +625,8 @@
         return protectedMazeCells().some((protectedCell) => cellDistance(cell, protectedCell) <= radius);
       }
 
-      function pathPointsAreOpen(path) {
-        return path.every((point) => isOpen(cellOf(point.x, point.y)));
+      function pathPointsAreOpen(path, passable = isOpen) {
+        return path.every((point) => passable(cellOf(point.x, point.y)));
       }
 
       function openNeighborCount(cell) {
@@ -584,11 +643,13 @@
       }
 
       function refreshActorPathsAfterMazeChange() {
-        if (state.player.path.length && !pathPointsAreOpen(state.player.path)) {
+        const now = performance.now();
+        const playerPassable = (cell) => isPlayerPassable(cell, now);
+        if (state.player.path.length && !pathPointsAreOpen(state.player.path, playerPassable)) {
           const target = parseCellKey(state.lastTarget);
           const current = cellOf(state.player.x, state.player.y);
-          if (target && isOpen(target)) {
-            const path = findPath(current, target);
+          if (target && playerPassable(target)) {
+            const path = findPath(current, target, playerPassable);
             state.player.path = path.length > 1 ? path.slice(1).map(centerOf) : [];
             state.lastPathLength = path.length;
           } else {
@@ -866,7 +927,7 @@
       function applyTreat(type) {
         const now = performance.now();
         state.activeTreat = type;
-        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' ? 9000 : 7000);
+        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' || type === 'leaf' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
         if (type === 'freeze') {
           for (const witch of activeWitches()) witch.frozenUntil = now + 3500;
@@ -881,7 +942,8 @@
           shield: 'Moon shield: the witch bounces off.',
           freeze: 'Sleep mushroom: witch slowed.',
           spark: 'Star treat: bonus magic.',
-          stink: 'Rotten strawberry: stinky bubbles trail behind.'
+          stink: 'Rotten strawberry: stinky bubbles trail behind.',
+          leaf: 'Green leaf: waving trees become paths.'
         }[type];
         showMessage(label, 1700);
       }
@@ -1006,6 +1068,7 @@
 
       function update(dt, now) {
         if (!state.over && !state.won) {
+          clearInvalidPlayerPath(now);
           moveAlongPath(state.player, currentPlayerSpeed(now), dt);
           updateStench(dt, now);
           updateEvilTrees(dt, now);
@@ -1074,6 +1137,7 @@
 
       function drawMaze() {
         const now = performance.now();
+        const leafActive = leafTreePassActive(now);
         const halfW = state.vw / (2 * state.zoom);
         const halfH = state.vh / (2 * state.zoom);
         const startC = clamp(Math.floor((state.camera.x - halfW) / grid.tile) - 2, 0, grid.cols - 1);
@@ -1099,10 +1163,25 @@
               ctx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.34, grid.tile * 0.22, 0.4, 0, Math.PI * 2);
               ctx.fill();
             } else {
-              ctx.fillStyle = '#0d2818';
+              const waving = isWavingTreeCell(c, r);
+              ctx.fillStyle = leafActive && waving ? '#335c2a' : '#0d2818';
               ctx.fillRect(x, y, grid.tile, grid.tile);
-              if (isWavingTreeCell(c, r)) drawWavingTreeTile(x, y, c, r, now);
-              else drawPineTreeTile(x, y);
+              if (waving) {
+                if (leafActive) {
+                  ctx.fillStyle = 'rgb(200 255 121 / 21%)';
+                  ctx.beginPath();
+                  ctx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.38, grid.tile * 0.24, 0, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.save();
+                  ctx.globalAlpha = 0.54;
+                  drawWavingTreeTile(x, y, c, r, now);
+                  ctx.restore();
+                } else {
+                  drawWavingTreeTile(x, y, c, r, now);
+                }
+              } else {
+                drawPineTreeTile(x, y);
+              }
             }
           }
         }
@@ -1185,7 +1264,7 @@
         ctx.translate(s.x, s.y);
         ctx.scale(state.zoom, state.zoom);
         ctx.shadowBlur = 18;
-        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b' };
+        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b', leaf: '#9dff65' };
         ctx.fillStyle = colors[treat.type];
         ctx.shadowColor = colors[treat.type];
         if (treat.type === 'speed') {
@@ -1218,7 +1297,7 @@
             ctx.ellipse(Math.cos(a) * 11 * pulse, Math.sin(a) * 11 * pulse, 4 * pulse, 10 * pulse, a, 0, Math.PI * 2);
             ctx.fill();
           }
-        } else {
+        } else if (treat.type === 'stink') {
           ctx.shadowBlur = 10;
           ctx.fillStyle = '#cc2a24';
           ctx.strokeStyle = '#2a1110';
@@ -1266,6 +1345,25 @@
           ctx.quadraticCurveTo(-4 * pulse, 4 * pulse, 0, 0);
           ctx.moveTo(5 * pulse, 0);
           ctx.quadraticCurveTo(10 * pulse, 4 * pulse, 15 * pulse, 0);
+          ctx.stroke();
+        } else {
+          ctx.shadowBlur = 16;
+          ctx.fillStyle = '#9dff65';
+          ctx.strokeStyle = '#17461e';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 13 * pulse, 25 * pulse, -0.72, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = '#e2ffd1';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-10 * pulse, 16 * pulse);
+          ctx.quadraticCurveTo(-1 * pulse, 1 * pulse, 13 * pulse, -17 * pulse);
+          ctx.moveTo(-2 * pulse, 4 * pulse);
+          ctx.lineTo(-13 * pulse, 0);
+          ctx.moveTo(4 * pulse, -4 * pulse);
+          ctx.lineTo(-6 * pulse, -10 * pulse);
           ctx.stroke();
         }
         ctx.restore();
@@ -2364,7 +2462,7 @@
         else if (event.key === 'ArrowDown' || event.key === 's') next = { c: current.c, r: current.r + 1 };
         else return;
         event.preventDefault();
-        if (next && isOpen(next)) state.player.path = [centerOf(next)];
+        if (next && isPlayerPassable(next, performance.now())) state.player.path = [centerOf(next)];
       });
 
       window.addEventListener('resize', resize);
@@ -2387,12 +2485,38 @@
         over: state.over,
         treatsLeft: state.treats.filter((item) => !item.taken).length,
         stinkTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'stink').length,
+        leafTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'leaf').length,
         crumbsLeft: state.crumbs.filter((item) => !item.taken).length,
         stenchBubbles: state.stenchTrail.length,
         stenchFogs: state.stenchFogs.length,
         stenchActive: performance.now() < state.stenchUntil,
         witchSlowed: performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil,
         witchesPassable: mushroomPassThroughActive(performance.now()),
+        leafTreePass: leafTreePassActive(performance.now()),
+        leafTreePassableCells: (() => {
+          let total = 0;
+          for (let r = 1; r < grid.rows - 1; r += 1) {
+            for (let c = 1; c < grid.cols - 1; c += 1) {
+              if (isWavingTreePathCell({ c, r })) total += 1;
+            }
+          }
+          return total;
+        })(),
+        normalPathToExitLength: findPath(cellOf(state.player.x, state.player.y), exitCell).length,
+        leafPathToExitLength: findPath(cellOf(state.player.x, state.player.y), exitCell, (cell) => isOpen(cell) || isWavingTreePathCell(cell)).length,
+        reachableLeafTreeCell: (() => {
+          const player = cellOf(state.player.x, state.player.y);
+          const passable = (cell) => isOpen(cell) || isWavingTreePathCell(cell);
+          for (let r = 1; r < grid.rows - 1; r += 1) {
+            for (let c = 1; c < grid.cols - 1; c += 1) {
+              const cell = { c, r };
+              if (!isWavingTreePathCell(cell)) continue;
+              const path = findPath(player, cell, passable);
+              if (path.length) return { cell, pathLength: path.length };
+            }
+          }
+          return null;
+        })(),
         evilTrees: state.evilTrees.length,
         evilTreeEvents: state.evilTreeEventCount,
         evilTreeChanges: state.evilTreeChanges,
