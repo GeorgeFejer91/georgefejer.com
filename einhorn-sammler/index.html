@@ -59,9 +59,11 @@
       const exitCell = { c: grid.cols - 2, r: grid.rows - 2 };
       const witchStartCell = { c: grid.cols - 2, r: 1 };
       const secondWitchStartCell = { c: 1, r: grid.rows - 2 };
-      const defaultStartLevel = 2;
-      const evilTreeTestMode = new URLSearchParams(window.location.search).has('eviltest');
-      const leafTreeTestMode = new URLSearchParams(window.location.search).has('leaftest');
+      const urlParams = new URLSearchParams(window.location.search);
+      const princessTestMode = urlParams.has('princesstest');
+      const defaultStartLevel = princessTestMode ? 2 : 1;
+      const evilTreeTestMode = urlParams.has('eviltest');
+      const leafTreeTestMode = urlParams.has('leaftest');
       const dirs = [
         { dc: 1, dr: 0 },
         { dc: -1, dr: 0 },
@@ -78,6 +80,7 @@
         minZoom: 0.55,
         maxZoom: 1.35,
         player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0, facing: 1 },
+        playerForm: 'unicorn',
         witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
         witch2: { x: 0, y: 0, path: [], speed: 210, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: 1, active: false },
         level: defaultStartLevel,
@@ -109,10 +112,12 @@
         evilTreeWaveTarget: 0,
         evilTreeWaveRemaining: 0,
         nextEvilTreeWalkerAt: 0,
-        mazeRevision: 0
+        mazeRevision: 0,
+        transformUntil: 0
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
+        princess: loadSprite('assets/princess-run.png', 190, 230, 0.43, 30),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
@@ -431,7 +436,9 @@
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.leafTreats = String(state.treats.filter((item) => !item.taken && item.type === 'leaf').length);
         canvas.dataset.best = String(state.best);
-        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
+        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
+        canvas.dataset.playerForm = state.playerForm;
+        canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
         canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
         canvas.dataset.frogSprites = scenerySprites.frog.ready ? 'ready' : scenerySprites.frog.failed ? 'failed' : 'loading';
@@ -492,6 +499,7 @@
 
       function startLevel(level) {
         state.level = level;
+        state.playerForm = level >= 2 ? 'princess' : 'unicorn';
         generateMaze();
         placeTreats();
         resetPositions();
@@ -517,11 +525,12 @@
         state.evilTreeWaveRemaining = 0;
         state.nextEvilTreeWalkerAt = 0;
         state.mazeRevision = 0;
+        state.transformUntil = 0;
         scheduleNextEvilTree(performance.now(), true);
         state.won = false;
         state.over = false;
         state.last = performance.now();
-        showMessage(level === 1 ? 'Level 1. Reach B and avoid the witch.' : 'Level 2. Two witches are chasing now.', 2200);
+        showMessage(level === 1 ? 'Level 1. Reach B as the unicorn.' : 'Level 2. Princess maze run: two witches are chasing.', 2600);
         if (leafTreeTestMode) {
           state.activeTreat = 'leaf';
           state.activeUntil = performance.now() + 60000;
@@ -1033,10 +1042,11 @@
           localStorage.setItem(storageKey, String(state.best));
           if (state.level < state.maxLevel) {
             startLevel(state.level + 1);
-            showMessage('Level 2 begins. Two witches are chasing.', 2600);
+            state.transformUntil = performance.now() + 2800;
+            showMessage('Magic at B: the unicorn becomes a princess.', 3200);
           } else {
             state.won = true;
-            showMessage('You cleared level 2. The unicorn escaped both witches!', 5000);
+            showMessage('You cleared level 2. The princess escaped both witches!', 5000);
           }
         }
         if (state.over || state.won) return;
@@ -1789,6 +1799,85 @@
         ctx.restore();
       }
 
+      function drawPrincess(now) {
+        const s = worldToScreen(state.player.x, state.player.y);
+        const moving = state.player.path.length > 0;
+        const frameIndex = moving ? Math.abs(Math.floor(state.player.step * 1.35)) % 8 : 1;
+        const bob = moving ? Math.sin(state.player.step * 1.15) * 3 : Math.sin(now / 520) * 1.2;
+        const shield = now < state.shieldUntil;
+        ctx.save();
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
+        if (shield) {
+          ctx.strokeStyle = 'rgb(255 196 232 / 78%)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(0, -18, 47, 0, Math.PI * 2);
+          ctx.stroke();
+          drawStarMark(32, -58 + Math.sin(now / 180) * 4, 5, '#ffe767');
+          drawStarMark(-35, -44 + Math.cos(now / 220) * 4, 4, '#ffaad5');
+        }
+        if (now < state.transformUntil) {
+          const t = (state.transformUntil - now) / 2800;
+          ctx.strokeStyle = 'rgb(255 231 103 / 78%)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, -25, 58 - t * 16, 0, Math.PI * 2);
+          ctx.stroke();
+          for (let i = 0; i < 7; i += 1) {
+            const a = now / 260 + i * Math.PI * 2 / 7;
+            drawStarMark(Math.cos(a) * 46, -27 + Math.sin(a) * 46, 4.2, i % 2 ? '#ff8fc6' : '#ffe767');
+          }
+        }
+        ctx.fillStyle = 'rgb(0 0 0 / 25%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 25, 37, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (drawSpriteFrame(characterSprites.princess, frameIndex, state.player.facing || 1)) {
+          ctx.restore();
+          return;
+        }
+
+        ctx.fillStyle = '#f28abd';
+        ctx.strokeStyle = '#26131d';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -76);
+        ctx.lineTo(16, -47);
+        ctx.lineTo(32, 23);
+        ctx.lineTo(-32, 23);
+        ctx.lineTo(-16, -47);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffe767';
+        ctx.beginPath();
+        ctx.moveTo(-21, -76);
+        ctx.lineTo(-11, -99);
+        ctx.lineTo(0, -78);
+        ctx.lineTo(12, -99);
+        ctx.lineTo(22, -76);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffd3a1';
+        ctx.beginPath();
+        ctx.arc(0, -62, 19, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-7, -64, 4, 0, Math.PI * 2);
+        ctx.arc(7, -64, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawHero(now) {
+        if (state.playerForm === 'princess') drawPrincess(now);
+        else drawUnicorn(now);
+      }
+
       const witchRunFrames = [
         {
           robe: -2,
@@ -2341,7 +2430,7 @@
         drawStench(performance.now());
         const now = performance.now();
         const actors = [
-          { y: state.player.y, draw: () => drawUnicorn(now) },
+          { y: state.player.y, draw: () => drawHero(now) },
           { y: state.witch.y, draw: () => drawWitch(now, state.witch, characterSprites.witch) }
         ];
         if (state.witch2.active) {
@@ -2479,6 +2568,7 @@
         witchCell: cellOf(state.witch.x, state.witch.y),
         witch2Cell: state.witch2.active ? cellOf(state.witch2.x, state.witch2.y) : null,
         level: state.level,
+        playerForm: state.playerForm,
         score: state.score,
         lives: state.lives,
         won: state.won,
@@ -2528,6 +2618,7 @@
         evilTreeWaveRemaining: state.evilTreeWaveRemaining,
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
+        princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,
         playerPath: state.player.path.length,
