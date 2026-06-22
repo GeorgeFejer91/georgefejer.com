@@ -647,6 +647,25 @@
             line-height: 1.6;
         }
 
+        .card-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--accent-secondary);
+            border-radius: 8px;
+            color: var(--accent-secondary);
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .card-link:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.25);
+        }
+
         /* ---- SKILLS SECTION ---- */
         .skills-list {
             display: flex;
@@ -945,6 +964,15 @@
                         <span class="sprocket-left-1"></span>
                         <span class="sprocket-left-2"></span>
                         <span class="sprocket-left-3"></span>
+                        <a href="einhorn-sammler/">Game</a>
+                        <span class="sprocket-right-1"></span>
+                        <span class="sprocket-right-2"></span>
+                        <span class="sprocket-right-3"></span>
+                    </li>
+                    <li>
+                        <span class="sprocket-left-1"></span>
+                        <span class="sprocket-left-2"></span>
+                        <span class="sprocket-left-3"></span>
                         <a href="#publications">Publications</a>
                         <span class="sprocket-right-1"></span>
                         <span class="sprocket-right-2"></span>
@@ -994,6 +1022,13 @@
                         <span class="sprocket-top-1"></span>
                         <span class="sprocket-top-2"></span>
                         <a href="#projects">Projects</a>
+                        <span class="sprocket-bottom-1"></span>
+                        <span class="sprocket-bottom-2"></span>
+                    </li>
+                    <li>
+                        <span class="sprocket-top-1"></span>
+                        <span class="sprocket-top-2"></span>
+                        <a href="einhorn-sammler/">Game</a>
                         <span class="sprocket-bottom-1"></span>
                         <span class="sprocket-bottom-2"></span>
                     </li>
@@ -1069,6 +1104,11 @@
                     <div class="card">
                         <h3>Multisensory Integration & VR</h3>
                         <p>Investigating audiovisual speech perception and temporal binding windows in altered states. Using Unity-based VR paradigms combined with EEG to explore how consciousness modulates sensory integration processes.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Unicorn Collector</h3>
+                        <p>A tiny text-rendered browser game built as a lightweight HTML subpage. It uses keyboard, touch buttons, and swipe controls for desktop and smartphone play.</p>
+                        <a class="card-link" href="einhorn-sammler/">Play Game</a>
                     </div>
                 </div>
             </section>

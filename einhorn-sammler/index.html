@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Unicorn Collector | GeorgeFejer.com</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18202a;
+      --muted: #596673;
+      --paper: #fffdf9;
+      --line: #d6dce1;
+      --field: #e9f7df;
+      --field-edge: #87bb6d;
+      --blue: #69c4e8;
+      --rose: #e55f8e;
+      --gold: #f2b632;
+      --violet: #8067c9;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      overscroll-behavior: none;
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      background:
+        linear-gradient(#dff6ff 0 42%, transparent 42%),
+        linear-gradient(160deg, #fff9e8, #e8f8f5 44%, #eef0ff);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      touch-action: manipulation;
+    }
+
+    .game {
+      width: min(100%, 700px);
+      display: grid;
+      gap: 10px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .site {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 7vw, 42px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .pill,
+    button,
+    .home-link {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgb(255 255 255 / 88%);
+      color: var(--ink);
+      box-shadow: 0 2px 9px rgb(24 32 42 / 10%);
+      font: 700 15px/1 Arial, Helvetica, sans-serif;
+    }
+
+    .pill {
+      display: grid;
+      place-items: center;
+      padding: 0 8px;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: end;
+    }
+
+    button,
+    .home-link {
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .home-link {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      padding: 0 12px;
+      text-decoration: none;
+    }
+
+    button:active,
+    .home-link:active {
+      transform: translateY(1px);
+    }
+
+    button:focus-visible,
+    .home-link:focus-visible {
+      outline: 3px solid #2358ff;
+      outline-offset: 2px;
+    }
+
+    .board-wrap {
+      border: 1px solid #96bd87;
+      border-radius: 8px;
+      background:
+        linear-gradient(rgb(255 255 255 / 30%), rgb(255 255 255 / 0)),
+        var(--field);
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgb(24 32 42 / 14%);
+    }
+
+    #screen {
+      width: 100%;
+      min-height: min(66svh, 470px);
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: clamp(10px, 3vw, 20px);
+      color: var(--ink);
+      font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, sans-serif;
+      font-size: clamp(21px, 7vw, 42px);
+      line-height: 1.15;
+      letter-spacing: 0;
+      white-space: pre;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .status {
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgb(255 255 255 / 88%);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px 10px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(58px, 74px));
+      grid-template-rows: repeat(2, minmax(54px, 64px));
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .controls button {
+      font-size: 24px;
+      background: #ffffff;
+    }
+
+    .controls .up {
+      grid-column: 2;
+    }
+
+    .controls .left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .controls .down {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .controls .right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        align-items: start;
+      }
+
+      .hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      header {
+        align-items: start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .actions > * {
+        flex: 1;
+      }
+
+      .pill,
+      button,
+      .home-link {
+        min-height: 40px;
+        font-size: 14px;
+      }
+
+      #screen {
+        min-height: min(44svh, 330px);
+        font-size: clamp(19px, 6vw, 30px);
+      }
+
+      .controls {
+        grid-template-columns: repeat(3, minmax(54px, 66px));
+        grid-template-rows: repeat(2, minmax(48px, 58px));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header>
+      <div>
+        <div class="site">GeorgeFejer.com</div>
+        <h1>Unicorn Collector</h1>
+      </div>
+      <div class="actions">
+        <a class="home-link" href="../">Home</a>
+        <button id="restart" type="button">Restart</button>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Scoreboard">
+      <div class="pill" id="score">Score 0</div>
+      <div class="pill" id="lives">Lives 3</div>
+      <div class="pill" id="time">Time 60</div>
+      <div class="pill" id="best">Best 0</div>
+    </section>
+
+    <section class="board-wrap" aria-label="Game field">
+      <pre id="screen" role="img" aria-label="Text-rendered unicorn collection game"></pre>
+    </section>
+
+    <div class="status" id="status">Ready</div>
+
+    <nav class="controls" aria-label="Controls">
+      <button class="up" type="button" data-move="up" aria-label="Up">&uarr;</button>
+      <button class="left" type="button" data-move="left" aria-label="Left">&larr;</button>
+      <button class="down" type="button" data-move="down" aria-label="Down">&darr;</button>
+      <button class="right" type="button" data-move="right" aria-label="Right">&rarr;</button>
+    </nav>
+  </main>
+
+  <script>
+    (() => {
+      const width = 11;
+      const height = 8;
+      const roundSeconds = 60;
+      const screen = document.getElementById('screen');
+      const scoreEl = document.getElementById('score');
+      const livesEl = document.getElementById('lives');
+      const timeEl = document.getElementById('time');
+      const bestEl = document.getElementById('best');
+      const statusEl = document.getElementById('status');
+      const restartBtn = document.getElementById('restart');
+      const glyph = {
+        empty: '\u22c5',
+        player: '\ud83e\udd84',
+        star: '\u2b50',
+        crystal: '\ud83d\udc8e',
+        storm: '\ud83c\udf29\ufe0f',
+        flower: '\ud83c\udf38'
+      };
+      const state = {
+        player: { x: 1, y: 5 },
+        items: [],
+        storms: [],
+        score: 0,
+        lives: 3,
+        best: Number(localStorage.getItem('unicornBest') || 0),
+        time: roundSeconds,
+        running: true,
+        startedAt: Date.now(),
+        lastStormStep: Date.now()
+      };
+
+      function randomCell() {
+        return {
+          x: Math.floor(Math.random() * width),
+          y: Math.floor(Math.random() * height)
+        };
+      }
+
+      function same(a, b) {
+        return a.x === b.x && a.y === b.y;
+      }
+
+      function occupied(cell) {
+        return same(cell, state.player) ||
+          state.items.some((item) => same(cell, item)) ||
+          state.storms.some((storm) => same(cell, storm));
+      }
+
+      function freeCell() {
+        let cell = randomCell();
+        let guard = 0;
+        while (occupied(cell) && guard < 200) {
+          cell = randomCell();
+          guard += 1;
+        }
+        return cell;
+      }
+
+      function addItem(kind) {
+        const cell = freeCell();
+        state.items.push({
+          x: cell.x,
+          y: cell.y,
+          kind,
+          points: kind === 'crystal' ? 25 : 10
+        });
+      }
+
+      function addStorm() {
+        const cell = freeCell();
+        state.storms.push({ x: cell.x, y: cell.y });
+      }
+
+      function reset() {
+        state.player = { x: 1, y: 5 };
+        state.items = [];
+        state.storms = [];
+        state.score = 0;
+        state.lives = 3;
+        state.time = roundSeconds;
+        state.running = true;
+        state.startedAt = Date.now();
+        state.lastStormStep = Date.now();
+        addItem('star');
+        addItem('star');
+        addItem('star');
+        addItem('crystal');
+        addStorm();
+        addStorm();
+        statusEl.textContent = 'Ready';
+        updateHud();
+        render();
+      }
+
+      function updateHud() {
+        scoreEl.textContent = 'Score ' + state.score;
+        livesEl.textContent = 'Lives ' + state.lives;
+        timeEl.textContent = 'Time ' + state.time;
+        bestEl.textContent = 'Best ' + state.best;
+      }
+
+      function render() {
+        const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => glyph.empty));
+        for (const item of state.items) {
+          grid[item.y][item.x] = item.kind === 'crystal' ? glyph.crystal : glyph.star;
+        }
+        for (const storm of state.storms) {
+          grid[storm.y][storm.x] = glyph.storm;
+        }
+        grid[state.player.y][state.player.x] = state.lives > 0 ? glyph.player : glyph.flower;
+        screen.textContent = grid.map((row) => row.join(' ')).join('\n');
+      }
+
+      function end(text) {
+        state.running = false;
+        state.best = Math.max(state.best, state.score);
+        localStorage.setItem('unicornBest', String(state.best));
+        statusEl.textContent = text;
+        updateHud();
+        render();
+      }
+
+      function collect() {
+        const index = state.items.findIndex((item) => same(item, state.player));
+        if (index === -1) return;
+        const item = state.items[index];
+        state.score += item.points;
+        state.items.splice(index, 1);
+        addItem(Math.random() < 0.72 ? 'star' : 'crystal');
+        statusEl.textContent = '+' + item.points;
+      }
+
+      function hitStorm() {
+        const storm = state.storms.find((cell) => same(cell, state.player));
+        if (!storm) return;
+        state.lives -= 1;
+        statusEl.textContent = 'Life lost';
+        state.player = { x: 1, y: 5 };
+        if (state.lives <= 0) {
+          end('Game over. Score ' + state.score);
+        }
+      }
+
+      function move(dx, dy) {
+        if (!state.running) {
+          reset();
+          return;
+        }
+        state.player.x = Math.max(0, Math.min(width - 1, state.player.x + dx));
+        state.player.y = Math.max(0, Math.min(height - 1, state.player.y + dy));
+        collect();
+        hitStorm();
+        updateHud();
+        render();
+      }
+
+      function moveStorms() {
+        for (const storm of state.storms) {
+          const options = [
+            { x: storm.x + 1, y: storm.y },
+            { x: storm.x - 1, y: storm.y },
+            { x: storm.x, y: storm.y + 1 },
+            { x: storm.x, y: storm.y - 1 },
+            { x: storm.x, y: storm.y }
+          ].filter((cell) => cell.x >= 0 && cell.x < width && cell.y >= 0 && cell.y < height);
+          const next = options[Math.floor(Math.random() * options.length)];
+          storm.x = next.x;
+          storm.y = next.y;
+        }
+        hitStorm();
+      }
+
+      function tick() {
+        if (!state.running) return;
+        const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+        state.time = Math.max(0, roundSeconds - elapsed);
+        if (Date.now() - state.lastStormStep > 950) {
+          state.lastStormStep = Date.now();
+          moveStorms();
+        }
+        if (state.time <= 0) {
+          end('Time up. Score ' + state.score);
+        }
+        updateHud();
+        render();
+      }
+
+      const keyMoves = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+        a: [-1, 0],
+        d: [1, 0],
+        w: [0, -1],
+        s: [0, 1]
+      };
+
+      window.addEventListener('keydown', (event) => {
+        const step = keyMoves[event.key];
+        if (!step) return;
+        event.preventDefault();
+        move(step[0], step[1]);
+      });
+
+      document.querySelectorAll('[data-move]').forEach((button) => {
+        const name = button.dataset.move;
+        const map = {
+          left: [-1, 0],
+          right: [1, 0],
+          up: [0, -1],
+          down: [0, 1]
+        };
+        button.addEventListener('click', () => move(map[name][0], map[name][1]));
+      });
+
+      let touchStart = null;
+      screen.addEventListener('pointerdown', (event) => {
+        touchStart = { x: event.clientX, y: event.clientY };
+        screen.setPointerCapture(event.pointerId);
+      });
+      screen.addEventListener('pointerup', (event) => {
+        if (!touchStart) return;
+        const dx = event.clientX - touchStart.x;
+        const dy = event.clientY - touchStart.y;
+        touchStart = null;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          move(dx > 0 ? 1 : -1, 0);
+        } else {
+          move(0, dy > 0 ? 1 : -1);
+        }
+      });
+
+      restartBtn.addEventListener('click', reset);
+      reset();
+      setInterval(tick, 250);
+    })();
+  </script>
+</body>
+</html>
