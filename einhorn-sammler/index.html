@@ -43,181 +43,15 @@
       cursor: crosshair;
     }
 
-    .topbar,
-    .hud,
-    .message {
-      position: fixed;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    .topbar {
-      top: max(10px, env(safe-area-inset-top));
-      left: max(10px, env(safe-area-inset-left));
-      right: max(10px, env(safe-area-inset-right));
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand,
-    .restart,
-    .hud,
-    .message,
-    .title {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
-      backdrop-filter: blur(12px);
-    }
-
-    .brand,
-    .restart {
-      min-height: 42px;
-      display: grid;
-      place-items: center;
-      padding: 0 13px;
-      color: var(--text);
-      font-weight: 800;
-      text-decoration: none;
-      pointer-events: auto;
-    }
-
-    .title {
-      min-width: 0;
-      padding: 9px 12px;
-      background: var(--panel-strong);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(18px, 4vw, 28px);
-      line-height: 1.05;
-      letter-spacing: 0;
-    }
-
-    .title p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .restart {
-      appearance: none;
-      border-color: var(--line);
-      cursor: pointer;
-      font: 800 14px/1 Arial, Helvetica, sans-serif;
-    }
-
-    .restart:focus-visible,
-    .brand:focus-visible {
-      outline: 3px solid var(--glow);
-      outline-offset: 2px;
-    }
-
-    .hud {
-      top: calc(max(10px, env(safe-area-inset-top)) + 64px);
-      left: max(10px, env(safe-area-inset-left));
-      display: grid;
-      grid-template-columns: repeat(4, minmax(76px, auto));
-      gap: 8px;
-      padding: 9px;
-      color: var(--text);
-      font-weight: 800;
-    }
-
-    .hud div {
-      min-height: 34px;
-      display: grid;
-      place-items: center;
-      padding: 0 10px;
-      border-radius: 7px;
-      background: rgb(255 255 255 / 8%);
-      white-space: nowrap;
-    }
-
-    .message {
-      left: 50%;
-      bottom: max(12px, env(safe-area-inset-bottom));
-      transform: translateX(-50%);
-      max-width: min(92vw, 720px);
-      padding: 10px 14px;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 800;
-      text-align: center;
-    }
-
-    @media (max-width: 680px) {
-      .topbar {
-        grid-template-columns: 1fr auto;
-      }
-
-      .brand {
-        display: none;
-      }
-
-      .title {
-        padding: 8px 10px;
-      }
-
-      .title p {
-        font-size: 12px;
-      }
-
-      .hud {
-        top: calc(max(10px, env(safe-area-inset-top)) + 75px);
-        right: max(10px, env(safe-area-inset-right));
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        font-size: 13px;
-      }
-
-      .hud div {
-        min-height: 32px;
-        padding: 0 6px;
-      }
-
-      .message {
-        font-size: 13px;
-      }
-    }
   </style>
 </head>
 <body>
   <canvas id="world" aria-label="2D unicorn forest labyrinth chase game"></canvas>
 
-  <header class="topbar">
-    <a class="brand" href="../">GeorgeFejer.com</a>
-    <div class="title">
-      <h1>Unicorn Labyrinth Chase</h1>
-      <p>Guide the unicorn from A to B. Tap paths to move. The witch is hunting.</p>
-    </div>
-    <button class="restart" id="restart" type="button">Restart</button>
-  </header>
-
-  <section class="hud" aria-label="Game status">
-    <div id="score">Score 0</div>
-    <div id="lives">Lives 3</div>
-    <div id="treat">Treat none</div>
-    <div id="best">Best 0</div>
-  </section>
-
-  <div class="message" id="message">Tap any forest path. Reach B before the witch catches you.</div>
-
   <script>
     (() => {
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
-      const scoreEl = document.getElementById('score');
-      const livesEl = document.getElementById('lives');
-      const treatEl = document.getElementById('treat');
-      const bestEl = document.getElementById('best');
-      const messageEl = document.getElementById('message');
-      const restartBtn = document.getElementById('restart');
       const storageKey = 'unicornLabyrinthBest';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -236,8 +70,8 @@
         vh: 0,
         maze: [],
         camera: { x: 0, y: 0 },
-        player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0 },
-        witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0 },
+        player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0, facing: 1 },
+        witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, facing: -1 },
         score: 0,
         lives: 3,
         best: Number(localStorage.getItem(storageKey) || 0),
@@ -251,6 +85,51 @@
         treats: [],
         crumbs: []
       };
+      const characterSprites = {
+        unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
+        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35)
+      };
+
+      function loadSprite(src, frameW, frameH, scale, ground) {
+        const image = new Image();
+        const sprite = { image, frameW, frameH, scale, ground, ready: false, failed: false };
+        image.onload = () => {
+          sprite.ready = true;
+          if (canvas.width) {
+            updateHud();
+            draw();
+          }
+        };
+        image.onerror = () => {
+          sprite.failed = true;
+          if (canvas.width) updateHud();
+        };
+        image.src = src;
+        return sprite;
+      }
+
+      function drawSpriteFrame(sprite, frameIndex, facing) {
+        if (!sprite.ready) return false;
+        const sourceFacesLeft = true;
+        const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
+        const dx = -sprite.frameW * sprite.scale / 2;
+        const dy = -sprite.frameH * sprite.scale + sprite.ground;
+        ctx.save();
+        ctx.scale(flip, 1);
+        ctx.drawImage(
+          sprite.image,
+          frameIndex * sprite.frameW,
+          0,
+          sprite.frameW,
+          sprite.frameH,
+          dx,
+          dy,
+          sprite.frameW * sprite.scale,
+          sprite.frameH * sprite.scale
+        );
+        ctx.restore();
+        return true;
+      }
 
       function rng(seed) {
         let value = seed >>> 0;
@@ -426,20 +305,18 @@
 
       function showMessage(text, ms) {
         state.messageUntil = performance.now() + ms;
-        messageEl.textContent = text;
       }
 
       function updateHud() {
         const now = performance.now();
         const active = state.activeTreat && now < state.activeUntil ? state.activeTreat + ' ' + Math.ceil((state.activeUntil - now) / 1000) + 's' : 'none';
-        scoreEl.textContent = 'Score ' + state.score;
-        livesEl.textContent = 'Lives ' + state.lives;
-        treatEl.textContent = 'Treat ' + active;
-        bestEl.textContent = 'Best ' + state.best;
         canvas.dataset.playerCell = cellKey(cellOf(state.player.x, state.player.y));
         canvas.dataset.witchCell = cellKey(cellOf(state.witch.x, state.witch.y));
         canvas.dataset.score = String(state.score);
         canvas.dataset.lives = String(state.lives);
+        canvas.dataset.treat = active;
+        canvas.dataset.best = String(state.best);
+        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready ? 'ready' : 'loading';
         canvas.dataset.won = String(state.won);
         canvas.dataset.over = String(state.over);
       }
@@ -451,10 +328,12 @@
         state.player.y = p.y;
         state.player.path = [];
         state.player.step = 0;
+        state.player.facing = 1;
         state.witch.x = w.x;
         state.witch.y = w.y;
         state.witch.path = [];
         state.witch.repath = 0;
+        state.witch.facing = -1;
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
       }
@@ -494,6 +373,7 @@
         }
         const step = Math.min(speed * dt, d);
         actor.angle = Math.atan2(dy, dx);
+        if (actor.facing !== undefined && Math.abs(dx) > 1) actor.facing = dx < 0 ? -1 : 1;
         actor.step += dt * 8;
         actor.x += (dx / d) * step;
         actor.y += (dy / d) * step;
@@ -594,7 +474,6 @@
         state.camera.y = clamp(state.camera.y, state.vh / 2, world.h - state.vh / 2);
         if (state.messageUntil && now > state.messageUntil && !state.over && !state.won) {
           state.messageUntil = 0;
-          messageEl.textContent = 'Tap a corridor. Carrots speed up, shields protect, mushrooms slow the witch.';
         }
         updateHud();
       }
@@ -740,53 +619,749 @@
         ctx.fill();
       }
 
+      const unicornRunFrames = [
+        {
+          tail: -5,
+          mane: 2,
+          wing: -2,
+          legs: [
+            [[19, 14], [34, 24], [44, 31], 0.28, true],
+            [[7, 14], [0, 29], [-9, 37], -0.18, true],
+            [[-22, 14], [-36, 27], [-48, 33], -0.2, false],
+            [[-10, 14], [2, 28], [15, 35], 0.24, false]
+          ]
+        },
+        {
+          tail: 1,
+          mane: -1,
+          wing: 1,
+          legs: [
+            [[19, 14], [22, 31], [20, 39], 0, true],
+            [[7, 14], [22, 25], [35, 31], 0.28, true],
+            [[-22, 14], [-18, 31], [-15, 39], 0.05, false],
+            [[-10, 14], [-26, 24], [-39, 31], -0.32, false]
+          ]
+        },
+        {
+          tail: 5,
+          mane: -2,
+          wing: 2,
+          legs: [
+            [[19, 14], [8, 29], [-4, 36], -0.28, true],
+            [[7, 14], [22, 27], [38, 35], 0.35, true],
+            [[-22, 14], [-12, 30], [3, 35], 0.24, false],
+            [[-10, 14], [-28, 29], [-43, 35], -0.28, false]
+          ]
+        },
+        {
+          tail: 0,
+          mane: 2,
+          wing: -1,
+          legs: [
+            [[19, 14], [30, 28], [38, 38], 0.18, true],
+            [[7, 14], [1, 29], [-12, 34], -0.2, true],
+            [[-22, 14], [-35, 27], [-46, 31], -0.25, false],
+            [[-10, 14], [-2, 29], [11, 38], 0.18, false]
+          ]
+        }
+      ];
+      const unicornManeColors = ['#ff4da8', '#ff9d2e', '#ffd957', '#45c7f7', '#8b55d9'];
+
+      function drawHeartMark(x, y, scale, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, 6);
+        ctx.bezierCurveTo(-12, -2, -7, -13, 0, -7);
+        ctx.bezierCurveTo(7, -13, 12, -2, 0, 6);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawStarMark(x, y, radius, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i += 1) {
+          const a = -Math.PI / 2 + i * Math.PI / 5;
+          const r = i % 2 === 0 ? radius : radius * 0.42;
+          const px = Math.cos(a) * r;
+          const py = Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawHoof(x, y, tilt, faded) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(tilt);
+        ctx.fillStyle = faded ? '#f7a4cf' : '#ff67af';
+        ctx.strokeStyle = '#b83175';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 11, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgb(255 255 255 / 48%)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-5, -2);
+        ctx.lineTo(4, -4);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawLeg(frameLeg) {
+        const [hip, knee, hoof, tilt, faded] = frameLeg;
+        ctx.save();
+        ctx.globalAlpha = faded ? 0.72 : 1;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = faded ? '#f5e9f3' : '#fffaff';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(hip[0], hip[1]);
+        ctx.quadraticCurveTo(knee[0], knee[1], hoof[0], hoof[1] - 2);
+        ctx.stroke();
+        ctx.strokeStyle = faded ? '#dcacc4' : '#d98aaf';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        drawHoof(hoof[0], hoof[1], tilt, faded);
+        ctx.restore();
+      }
+
+      function unicornArcLeg(hipX, phase, faded) {
+        const swing = Math.cos(phase);
+        const lift = Math.max(0, Math.sin(phase));
+        const hip = [hipX, 14];
+        const knee = [hipX + swing * 13, 28 - lift * 11];
+        const hoof = [hipX + swing * 31, 39 - lift * 17];
+        return [hip, knee, hoof, swing * 0.34, faded];
+      }
+
+      function unicornAnimatedLegs(step, moving, frame) {
+        if (!moving) return frame.legs;
+        const phase = step * 1.45;
+        return [
+          unicornArcLeg(18, phase + Math.PI, true),
+          unicornArcLeg(7, phase, false),
+          unicornArcLeg(-24, phase, true),
+          unicornArcLeg(-10, phase + Math.PI, false)
+        ];
+      }
+
+      function drawRainbowTail(frame) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        unicornManeColors.forEach((color, i) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 7;
+          ctx.beginPath();
+          ctx.moveTo(-36, -5 + i * 2);
+          ctx.bezierCurveTo(-54, -22 + frame.tail + i * 4, -72, -4 + frame.tail, -92, 2 + i * 5);
+          ctx.bezierCurveTo(-79, 18 + i, -62, 22 + frame.tail, -52, 12 + i * 2);
+          ctx.stroke();
+        });
+        ctx.strokeStyle = 'rgb(255 255 255 / 55%)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-64, -15 + frame.tail);
+        ctx.quadraticCurveTo(-73, -7 + frame.tail, -86, -1);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawWing(frame) {
+        ctx.save();
+        ctx.translate(-4, -18 + frame.wing);
+        ctx.fillStyle = 'rgb(255 255 255 / 88%)';
+        ctx.strokeStyle = '#ee9cc4';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(0, 8);
+        ctx.bezierCurveTo(13, -18, 36, -26, 48, -12);
+        ctx.bezierCurveTo(36, -9, 31, -2, 23, 7);
+        ctx.bezierCurveTo(15, 1, 8, 4, 0, 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#f0a6c7';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 4; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(8 + i * 8, -4 + i * 1.2);
+          ctx.quadraticCurveTo(18 + i * 7, 3 + i, 13 + i * 5, 11);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawMane(frame) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        unicornManeColors.forEach((color, i) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 7;
+          ctx.beginPath();
+          ctx.moveTo(37, -34 + i * 2);
+          ctx.bezierCurveTo(20, -47 + frame.mane, 7, -27 + i * 2, 18, -10 + i * 2);
+          ctx.bezierCurveTo(26, 4 + frame.mane, 5, 13 + i * 2, -9, 3 + i);
+          ctx.stroke();
+        });
+        ctx.strokeStyle = 'rgb(255 255 255 / 42%)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(28, -39 + frame.mane);
+        ctx.quadraticCurveTo(11, -29, 18, -13);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawUnicornFace() {
+        ctx.fillStyle = '#fffaff';
+        ctx.strokeStyle = '#d98aaf';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.ellipse(55, -24, 25, 17, -0.16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(73, -18, 13, 9, 0.05, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(45, -36);
+        ctx.quadraticCurveTo(45, -61, 60, -42);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ff8fca';
+        ctx.beginPath();
+        ctx.moveTo(51, -40);
+        ctx.quadraticCurveTo(51, -53, 57, -43);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffd33d';
+        ctx.strokeStyle = '#bd7f13';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(60, -39);
+        ctx.lineTo(77, -67);
+        ctx.lineTo(71, -35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgb(255 255 255 / 60%)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 4; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(65 + i * 3, -46 - i * 5);
+          ctx.lineTo(72 - i, -43 - i * 5);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#20102e';
+        ctx.beginPath();
+        ctx.ellipse(62, -25, 6.5, 8, -0.12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#8b55d9';
+        ctx.beginPath();
+        ctx.ellipse(64, -24, 3.8, 5.2, -0.12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(60, -29, 2.4, 0, Math.PI * 2);
+        ctx.arc(65, -22, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#15101e';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 3; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(56 + i * 4, -33);
+          ctx.quadraticCurveTo(54 + i * 5, -38, 50 + i * 4, -39);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#9a526f';
+        ctx.beginPath();
+        ctx.arc(79, -18, 1.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#b46884';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(70, -12);
+        ctx.quadraticCurveTo(75, -8, 81, -12);
+        ctx.stroke();
+        drawHeartMark(66, -14, 0.42, '#ff68a8');
+      }
+
       function drawUnicorn(now) {
         const s = worldToScreen(state.player.x, state.player.y);
-        const bob = state.player.path.length ? Math.sin(state.player.step) * 3 : Math.sin(now / 500) * 1.5;
+        const moving = state.player.path.length > 0;
+        const frameIndex = moving ? Math.floor(state.player.step * 1.65) % unicornRunFrames.length : 1;
+        const frame = unicornRunFrames[frameIndex];
+        const legs = unicornAnimatedLegs(state.player.step, moving, frame);
+        const bob = moving ? Math.sin(state.player.step * 1.3) * 3.4 : Math.sin(now / 520) * 1.4;
+        const lean = moving ? Math.sin(state.player.step * 0.72) * 0.035 : Math.sin(now / 950) * 0.018;
         const shield = now < state.shieldUntil;
         ctx.save();
         ctx.translate(s.x, s.y + bob);
-        ctx.rotate(state.player.angle || 0);
         if (shield) {
           ctx.strokeStyle = 'rgb(145 234 255 / 78%)';
           ctx.lineWidth = 5;
           ctx.beginPath();
-          ctx.arc(0, 0, 35, 0, Math.PI * 2);
+          ctx.arc(0, -2, 40, 0, Math.PI * 2);
           ctx.stroke();
+          drawStarMark(28, -33 + Math.sin(now / 180) * 4, 5, '#9af1ff');
+          drawStarMark(-31, -25 + Math.cos(now / 220) * 4, 4, '#e9faff');
         }
-        ctx.fillStyle = 'rgb(0 0 0 / 24%)';
+        ctx.fillStyle = 'rgb(0 0 0 / 25%)';
         ctx.beginPath();
-        ctx.ellipse(0, 18, 30, 11, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 25, 39, 11, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#fff9ff';
-        ctx.strokeStyle = '#344051';
-        ctx.lineWidth = 3;
+
+        if (drawSpriteFrame(characterSprites.unicorn, frameIndex, state.player.facing || 1)) {
+          ctx.restore();
+          return;
+        }
+
+        ctx.rotate(lean * (state.player.facing || 1));
+        ctx.scale((state.player.facing || 1) * 0.62, 0.62);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        drawRainbowTail(frame);
+        legs.forEach(drawLeg);
+
+        ctx.fillStyle = '#fffaff';
+        ctx.strokeStyle = '#d98aaf';
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 30, 18, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, -1, 40, 24, 0.02, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+
+        drawWing(frame);
+
+        ctx.fillStyle = '#fffaff';
+        ctx.strokeStyle = '#d98aaf';
+        ctx.lineWidth = 2.4;
         ctx.beginPath();
-        ctx.arc(27, -9, 13, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#ffd866';
-        ctx.beginPath();
-        ctx.moveTo(36, -19);
-        ctx.lineTo(54, -34);
-        ctx.lineTo(45, -12);
+        ctx.moveTo(24, -6);
+        ctx.bezierCurveTo(33, -28, 45, -35, 58, -31);
+        ctx.bezierCurveTo(55, -12, 42, 6, 27, 10);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-        ctx.strokeStyle = '#ff78c8';
+
+        drawMane(frame);
+        drawUnicornFace();
+
+        drawHeartMark(-16, -2, 0.5, '#ff68a8');
+        drawStarMark(-28, -12, 5, '#ffd33d');
+        drawStarMark(-6, -13, 4, '#8b55d9');
+        drawStarMark(-2, 6, 3.5, '#45c7f7');
+
+        ctx.fillStyle = 'rgb(255 255 255 / 70%)';
+        ctx.beginPath();
+        ctx.arc(10, -19, 2, 0, Math.PI * 2);
+        ctx.arc(-29, -7, 1.6, 0, Math.PI * 2);
+        ctx.arc(29, 6, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const witchRunFrames = [
+        {
+          robe: -2,
+          hat: -2,
+          hair: -3,
+          staff: -0.08,
+          claw: 0.2,
+          feet: [
+            [[-15, 33], [-30, 39], -0.18, false],
+            [[13, 34], [31, 38], 0.22, true]
+          ]
+        },
+        {
+          robe: 1,
+          hat: 1,
+          hair: 0,
+          staff: 0.04,
+          claw: -0.08,
+          feet: [
+            [[-15, 34], [-10, 42], 0.06, false],
+            [[13, 33], [29, 37], 0.28, true]
+          ]
+        },
+        {
+          robe: 3,
+          hat: 2,
+          hair: 3,
+          staff: 0.1,
+          claw: -0.22,
+          feet: [
+            [[-15, 33], [2, 38], 0.2, true],
+            [[13, 34], [33, 41], 0.24, false]
+          ]
+        },
+        {
+          robe: 0,
+          hat: -1,
+          hair: 1,
+          staff: -0.02,
+          claw: 0.08,
+          feet: [
+            [[-15, 34], [-29, 40], -0.22, true],
+            [[13, 34], [14, 42], 0.04, false]
+          ]
+        }
+      ];
+
+      function witchPalette(frozen) {
+        return frozen ? {
+          robe: '#345f76',
+          robeDark: '#183347',
+          robeLight: '#80d8f2',
+          outline: '#0d1b24',
+          skin: '#d9f7ff',
+          skinLine: '#79bcd0',
+          hair: '#e8fbff',
+          eye: '#aee8ff',
+          crystal: '#79dfff',
+          boot: '#102432'
+        } : {
+          robe: '#4c2a78',
+          robeDark: '#24153f',
+          robeLight: '#a87ad0',
+          outline: '#160b21',
+          skin: '#b8bd7a',
+          skinLine: '#556036',
+          hair: '#c9c3ca',
+          eye: '#f2d763',
+          crystal: '#9a47ff',
+          boot: '#171023'
+        };
+      }
+
+      function drawCrescentMark(x, y, scale, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, Math.PI * 0.35, Math.PI * 1.65, false);
+        ctx.arc(5, -1, 8, Math.PI * 1.65, Math.PI * 0.35, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawCrystal(x, y, scale, frozen, palette) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        const glow = frozen ? '#dffaff' : '#d8b6ff';
+        ctx.fillStyle = palette.crystal;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -14);
+        ctx.lineTo(10, -2);
+        ctx.lineTo(5, 14);
+        ctx.lineTo(-6, 14);
+        ctx.lineTo(-11, -2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = glow;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -12);
+        ctx.lineTo(0, 12);
+        ctx.moveTo(-8, -2);
+        ctx.lineTo(8, -2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawWitchStaff(frame, frozen, palette) {
+        ctx.save();
+        ctx.translate(47, 10);
+        ctx.rotate(frame.staff);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = frozen ? '#234b5d' : '#2c201c';
         ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(10, -14);
-        ctx.quadraticCurveTo(-6, -31, -25, -13);
+        ctx.moveTo(0, 35);
+        ctx.bezierCurveTo(-3, 7, 2, -20, 0, -44);
         ctx.stroke();
-        ctx.strokeStyle = '#77d8ff';
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.strokeStyle = frozen ? '#356d82' : '#34241d';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(12, -7);
-        ctx.quadraticCurveTo(-3, -22, -27, 2);
+        ctx.moveTo(0, -43);
+        ctx.bezierCurveTo(10, -55, 16, -63, 13, -72);
+        ctx.moveTo(0, -43);
+        ctx.bezierCurveTo(-11, -54, -15, -63, -11, -73);
+        ctx.stroke();
+        drawCrystal(1, -55, 0.78, frozen, palette);
+        ctx.restore();
+      }
+
+      function drawWitchBoot(ankle, toe, tilt, faded, palette) {
+        ctx.save();
+        ctx.globalAlpha = faded ? 0.74 : 1;
+        ctx.translate(toe[0], toe[1]);
+        ctx.rotate(tilt);
+        ctx.fillStyle = palette.boot;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-15, -1);
+        ctx.quadraticCurveTo(-5, 9, 13, 6);
+        ctx.quadraticCurveTo(25, 4, 22, -7);
+        ctx.quadraticCurveTo(12, 0, 3, -2);
+        ctx.quadraticCurveTo(-8, -7, -15, -1);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#d9a83e';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(4, -2, 9, 6);
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalAlpha = faded ? 0.48 : 0.7;
+        ctx.strokeStyle = palette.robeDark;
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ankle[0], ankle[1]);
+        ctx.lineTo(toe[0] - 4, toe[1] - 4);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function witchArcFoot(anchorX, phase, faded) {
+        const swing = Math.cos(phase);
+        const lift = Math.max(0, Math.sin(phase));
+        const ankle = [anchorX + swing * 7, 31 - lift * 8];
+        const toe = [anchorX + swing * 26, 42 - lift * 13];
+        return [ankle, toe, swing * 0.32, faded];
+      }
+
+      function witchAnimatedFeet(step, moving, frame) {
+        if (!moving) return frame.feet;
+        const phase = step * 1.35;
+        return [
+          witchArcFoot(-16, phase, false),
+          witchArcFoot(13, phase + Math.PI, true)
+        ];
+      }
+
+      function drawWitchCape(frame, palette) {
+        ctx.fillStyle = palette.robeDark;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-12, -20);
+        ctx.bezierCurveTo(-42, -12 + frame.hair, -53, 12, -45, 36 + frame.robe);
+        ctx.lineTo(-31, 31 + frame.robe);
+        ctx.lineTo(-24, 43 + frame.robe);
+        ctx.lineTo(-9, 36 + frame.robe);
+        ctx.bezierCurveTo(5, 20, 5, -4, -12, -20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      function drawWitchRobe(frame, palette) {
+        ctx.fillStyle = palette.robe;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2.7;
+        ctx.beginPath();
+        ctx.moveTo(-23, -18);
+        ctx.bezierCurveTo(-35, -1, -41, 24 + frame.robe, -34, 42);
+        ctx.lineTo(-18, 35 + frame.robe);
+        ctx.lineTo(-9, 45 + frame.robe);
+        ctx.lineTo(3, 36 + frame.robe);
+        ctx.lineTo(16, 45 + frame.robe);
+        ctx.lineTo(25, 35 + frame.robe);
+        ctx.lineTo(37, 40 + frame.robe);
+        ctx.bezierCurveTo(38, 15, 31, -6, 19, -20);
+        ctx.bezierCurveTo(6, -25, -11, -24, -23, -18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = palette.robeDark;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(2, -16);
+        ctx.bezierCurveTo(7, 5, 5, 26, 2, 42);
+        ctx.stroke();
+        drawCrescentMark(-18, 5, 0.62, palette.robeLight);
+        drawCrescentMark(16, 9, 0.58, palette.robeLight);
+        drawCrescentMark(-2, 26, 0.68, palette.robeLight);
+      }
+
+      function drawWitchHair(frame, palette) {
+        ctx.save();
+        ctx.fillStyle = palette.hair;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(2, -40);
+        ctx.lineTo(-18, -28 + frame.hair);
+        ctx.lineTo(-8, -26 + frame.hair);
+        ctx.lineTo(-28, -15 + frame.hair);
+        ctx.lineTo(-7, -19 + frame.hair);
+        ctx.lineTo(-24, -4 + frame.hair);
+        ctx.lineTo(0, -12 + frame.hair);
+        ctx.lineTo(20, -6 + frame.hair);
+        ctx.lineTo(12, -21 + frame.hair);
+        ctx.lineTo(31, -18 + frame.hair);
+        ctx.lineTo(13, -30 + frame.hair);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawWitchHead(frame, palette) {
+        ctx.fillStyle = palette.skin;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.ellipse(19, -31 + frame.hat * 0.2, 19, 22, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(31, -34);
+        ctx.quadraticCurveTo(48, -31, 33, -20);
+        ctx.quadraticCurveTo(26, -22, 31, -34);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = palette.eye;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.ellipse(25, -38, 5.5, 4.3, -0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(18, -43);
+        ctx.lineTo(30, -39);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1b0a12';
+        ctx.beginPath();
+        ctx.moveTo(25, -22);
+        ctx.quadraticCurveTo(34, -18, 37, -27);
+        ctx.quadraticCurveTo(31, -24, 25, -22);
+        ctx.fill();
+        ctx.fillStyle = '#f5f0bd';
+        ctx.beginPath();
+        ctx.moveTo(30, -21);
+        ctx.lineTo(33, -14);
+        ctx.lineTo(36, -22);
+        ctx.fill();
+        ctx.fillStyle = palette.skinLine;
+        for (const p of [[13, -33], [17, -22], [29, -45]]) {
+          ctx.beginPath();
+          ctx.arc(p[0], p[1], 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawWitchHat(frame, palette) {
+        ctx.save();
+        ctx.translate(0, frame.hat);
+        ctx.fillStyle = palette.robeDark;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(-29, -46);
+        ctx.quadraticCurveTo(10, -57, 52, -45);
+        ctx.quadraticCurveTo(24, -36, -29, -46);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = palette.robe;
+        ctx.beginPath();
+        ctx.moveTo(-2, -47);
+        ctx.bezierCurveTo(2, -76, 15, -91, 33, -89);
+        ctx.lineTo(49, -67);
+        ctx.lineTo(66, -63);
+        ctx.lineTo(47, -55);
+        ctx.lineTo(34, -72);
+        ctx.bezierCurveTo(22, -63, 17, -54, 15, -44);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#d7aa45';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(10, -58, 14, 11);
+        ctx.restore();
+      }
+
+      function drawWitchArms(frame, palette) {
+        ctx.save();
+        ctx.strokeStyle = palette.robe;
+        ctx.lineWidth = 12;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(16, -7);
+        ctx.quadraticCurveTo(31, -1 + frame.claw * 8, 43, 4);
+        ctx.stroke();
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = palette.skin;
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(43, 4);
+        ctx.quadraticCurveTo(52, 0 + frame.claw * 5, 58, 4);
+        ctx.quadraticCurveTo(53, 8, 47, 8);
+        ctx.quadraticCurveTo(51, 13, 45, 15);
+        ctx.quadraticCurveTo(41, 11, 43, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = palette.robe;
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(-18, -4);
+        ctx.quadraticCurveTo(2, 7, 31, 10);
+        ctx.stroke();
+        ctx.strokeStyle = palette.outline;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = palette.skin;
+        ctx.beginPath();
+        ctx.ellipse(36, 10, 8, 5, 0.15, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
         ctx.restore();
       }
@@ -794,43 +1369,60 @@
       function drawWitch(now) {
         const s = worldToScreen(state.witch.x, state.witch.y);
         const frozen = now < state.witch.frozenUntil;
+        const moving = state.witch.path.length > 0 && !frozen;
+        const frameIndex = moving ? Math.floor(state.witch.step * 1.35) % witchRunFrames.length : 1;
+        const frame = witchRunFrames[frameIndex];
+        const feet = witchAnimatedFeet(state.witch.step, moving, frame);
+        const palette = witchPalette(frozen);
+        const bob = moving ? Math.sin(state.witch.step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
+        const lean = moving ? Math.sin(state.witch.step * 0.65) * 0.035 : 0;
         ctx.save();
-        ctx.translate(s.x, s.y + Math.sin(now / 180) * 3);
-        ctx.fillStyle = frozen ? '#aee8ff' : '#4c255f';
-        ctx.strokeStyle = '#1c0d27';
-        ctx.lineWidth = 3;
+        ctx.translate(s.x, s.y + bob);
+        ctx.fillStyle = 'rgb(0 0 0 / 26%)';
         ctx.beginPath();
-        ctx.moveTo(0, -34);
-        ctx.lineTo(-22, 8);
-        ctx.lineTo(22, 8);
-        ctx.closePath();
+        ctx.ellipse(0, 29, 34, 10, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = frozen ? '#e7fbff' : '#7f3ca1';
-        ctx.beginPath();
-        ctx.arc(0, 2, 19, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.strokeStyle = '#2a140d';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(-27, 20);
-        ctx.lineTo(31, 29);
-        ctx.stroke();
-        ctx.fillStyle = frozen ? '#79dfff' : '#ffcf63';
-        ctx.beginPath();
-        ctx.arc(7, -2, 3, 0, Math.PI * 2);
-        ctx.fill();
+
+        if (drawSpriteFrame(characterSprites.witch, frameIndex, state.witch.facing || -1)) {
+          if (frozen) {
+            ctx.strokeStyle = 'rgb(200 249 255 / 70%)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, -22, 45, 0.2, Math.PI * 1.6);
+            ctx.stroke();
+          }
+          ctx.restore();
+          return;
+        }
+
+        ctx.rotate(lean * (state.witch.facing || -1));
+        ctx.scale((state.witch.facing || -1) * 0.58, 0.58);
+        drawWitchBoot(feet[1][0], feet[1][1], feet[1][2], true, palette);
+        drawWitchStaff(frame, frozen, palette);
+        drawWitchCape(frame, palette);
+        drawWitchRobe(frame, palette);
+        drawWitchBoot(feet[0][0], feet[0][1], feet[0][2], false, palette);
+        drawWitchHair(frame, palette);
+        drawWitchArms(frame, palette);
+        drawWitchHead(frame, palette);
+        drawWitchHat(frame, palette);
+        if (frozen) {
+          ctx.strokeStyle = 'rgb(200 249 255 / 70%)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(9, -22, 54, 0.2, Math.PI * 1.6);
+          ctx.stroke();
+        }
         ctx.restore();
       }
 
       function drawMinimap() {
-        const size = Math.min(156, Math.max(110, state.vw * 0.18));
-        const x = state.vw - size - 14;
-        const y = state.vh - size - 14;
+        const size = Math.min(96, Math.max(72, Math.min(state.vw, state.vh) * 0.22));
+        const x = 10;
+        const y = 10;
         ctx.save();
-        ctx.fillStyle = 'rgb(3 10 8 / 70%)';
-        ctx.strokeStyle = 'rgb(223 255 236 / 32%)';
+        ctx.fillStyle = 'rgb(3 10 8 / 58%)';
+        ctx.strokeStyle = 'rgb(223 255 236 / 34%)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.roundRect ? ctx.roundRect(x, y, size, size, 8) : ctx.rect(x, y, size, size);
@@ -845,16 +1437,16 @@
           }
         }
         ctx.fillStyle = '#9df7d0';
-        ctx.fillRect(x + startCell.c * grid.tile * sx - 2, y + startCell.r * grid.tile * sy - 2, 4, 4);
+        ctx.fillRect(x + startCell.c * grid.tile * sx - 1.5, y + startCell.r * grid.tile * sy - 1.5, 3, 3);
         ctx.fillStyle = '#ffd866';
-        ctx.fillRect(x + exitCell.c * grid.tile * sx - 2, y + exitCell.r * grid.tile * sy - 2, 4, 4);
+        ctx.fillRect(x + exitCell.c * grid.tile * sx - 1.5, y + exitCell.r * grid.tile * sy - 1.5, 3, 3);
         ctx.fillStyle = '#ff78c8';
         ctx.beginPath();
-        ctx.arc(x + state.player.x * sx, y + state.player.y * sy, 4, 0, Math.PI * 2);
+        ctx.arc(x + state.player.x * sx, y + state.player.y * sy, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#bd77ff';
         ctx.beginPath();
-        ctx.arc(x + state.witch.x * sx, y + state.witch.y * sy, 4, 0, Math.PI * 2);
+        ctx.arc(x + state.witch.x * sx, y + state.witch.y * sy, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -886,10 +1478,25 @@
         state.last = now;
         update(dt, now);
         draw();
+        requestAnimationFrame(frame);
       }
 
+      let lastPointerInput = 0;
+
       canvas.addEventListener('pointerdown', (event) => {
-        canvas.setPointerCapture(event.pointerId);
+        lastPointerInput = performance.now();
+        if (event.pointerId !== undefined) {
+          try {
+            canvas.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // Some embedded browsers do not expose pointer capture for synthetic taps.
+          }
+        }
+        setDestination(event.clientX, event.clientY);
+      });
+
+      canvas.addEventListener('click', (event) => {
+        if (performance.now() - lastPointerInput < 120) return;
         setDestination(event.clientX, event.clientY);
       });
 
@@ -905,11 +1512,11 @@
         if (next && isOpen(next)) state.player.path = [centerOf(next)];
       });
 
-      restartBtn.addEventListener('click', reset);
       window.addEventListener('resize', resize);
       resize();
       reset();
-      setInterval(() => frame(performance.now()), 16);
+      draw();
+      requestAnimationFrame(frame);
       window.__unicornMazeDebug = () => ({
         playerCell: cellOf(state.player.x, state.player.y),
         witchCell: cellOf(state.witch.x, state.witch.y),
@@ -921,6 +1528,10 @@
         crumbsLeft: state.crumbs.filter((item) => !item.taken).length,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
+        playerStep: state.player.step,
+        witchStep: state.witch.step,
+        playerFacing: state.player.facing,
+        witchFacing: state.witch.facing,
         canvas: { width: canvas.width, height: canvas.height, dpr: state.dpr },
         viewport: { width: state.vw, height: state.vh }
       });
