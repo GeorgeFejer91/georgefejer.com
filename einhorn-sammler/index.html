@@ -110,9 +110,11 @@
       };
       const scenerySprites = {
         wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0),
-        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0)
+        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0),
+        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0)
       };
       const evilTreeFrameCount = 8;
+      const frogFrameCount = 6;
 
       function loadSprite(src, frameW, frameH, scale, ground) {
         const image = new Image();
@@ -394,6 +396,7 @@
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
         canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
+        canvas.dataset.frogSprites = scenerySprites.frog.ready ? 'ready' : scenerySprites.frog.failed ? 'failed' : 'loading';
         canvas.dataset.evilTrees = String(state.evilTrees.length);
         canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
         canvas.dataset.evilTreeChanges = String(state.evilTreeChanges);
@@ -617,26 +620,50 @@
         return false;
       }
 
+      function horizontalEvilTreeRuns(playerCell) {
+        const runs = [];
+        const flush = (run) => {
+          if (run.length >= (evilTreeTestMode ? 7 : 9)) runs.push([...run]);
+        };
+        for (let r = 1; r < grid.rows - 1; r += 1) {
+          let run = [];
+          for (let c = 1; c < grid.cols - 1; c += 1) {
+            const cell = { c, r };
+            const allowed = isOpen(cell)
+              && editableMazeCell(cell)
+              && !isProtectedMazeCell(cell, 1)
+              && cellDistance(cell, playerCell) >= (evilTreeTestMode ? 5 : 9)
+              && cellDistance(cell, exitCell) >= 4
+              && openNeighborCount(cell) >= 2;
+            if (allowed) run.push(cell);
+            else {
+              flush(run);
+              run = [];
+            }
+          }
+          flush(run);
+        }
+        return runs;
+      }
+
       function spawnEvilTree(now, forced = false) {
         if (!forced && state.evilTrees.length) return false;
         const playerCell = cellOf(state.player.x, state.player.y);
-        const candidates = openCells().filter((cell) => {
-          if (!editableMazeCell(cell) || isProtectedMazeCell(cell, 1)) return false;
-          if (cellDistance(cell, playerCell) < (evilTreeTestMode ? 5 : 9)) return false;
-          if (cellDistance(cell, exitCell) < 4) return false;
-          return openNeighborCount(cell) >= 2;
-        });
-        if (candidates.length < 2) return false;
+        const runs = horizontalEvilTreeRuns(playerCell);
+        if (!runs.length) return false;
         for (let attempt = 0; attempt < 70; attempt += 1) {
-          const start = candidates[Math.floor(random() * candidates.length)];
-          const endOptions = candidates.filter((cell) => {
-            const d = cellDistance(cell, start);
-            return d >= 6 && d <= 18;
-          });
-          const end = endOptions[Math.floor(random() * endOptions.length)];
-          if (!end) continue;
-          const path = findPath(start, end);
-          if (path.length < 7 || path.length > 18) continue;
+          const run = runs[Math.floor(random() * runs.length)];
+          const direction = random() < 0.5 ? -1 : 1;
+          const minSpan = evilTreeTestMode ? 6 : 8;
+          const maxSpan = Math.min(18, run.length - 1);
+          if (maxSpan < minSpan) continue;
+          const span = minSpan + Math.floor(random() * (maxSpan - minSpan + 1));
+          const startIndex = direction > 0
+            ? Math.floor(random() * (run.length - span))
+            : span + Math.floor(random() * (run.length - span));
+          const path = [];
+          for (let i = 0; i <= span; i += 1) path.push(run[startIndex + i * direction]);
+          const start = path[0];
           const p = centerOf(start);
           state.evilTrees.push({
             x: p.x,
@@ -644,7 +671,7 @@
             path: path.slice(1).map(centerOf),
             speed: evilTreeTestMode ? 175 : 105,
             step: random() * 6,
-            facing: end.c < start.c ? -1 : 1,
+            facing: direction,
             currentCell: start,
             changes: 0,
             born: now,
@@ -930,11 +957,44 @@
             }
           }
         }
-        drawStartExit();
+        drawStartExit(now);
         ctx.restore();
       }
 
-      function drawStartExit() {
+      function drawExitFrog(center, now) {
+        const sprite = scenerySprites.frog;
+        const drawW = grid.tile * 1.46;
+        const drawH = grid.tile * 1.46;
+        ctx.save();
+        ctx.fillStyle = 'rgb(255 216 102 / 38%)';
+        ctx.beginPath();
+        ctx.ellipse(center.x, center.y + grid.tile * 0.25, grid.tile * 0.42, grid.tile * 0.21, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (sprite.ready) {
+          const frameIndex = Math.floor(now / 170) % frogFrameCount;
+          ctx.drawImage(
+            sprite.image,
+            frameIndex * sprite.frameW,
+            0,
+            sprite.frameW,
+            sprite.frameH,
+            center.x - drawW / 2,
+            center.y + grid.tile * 0.52 - drawH,
+            drawW,
+            drawH
+          );
+        } else {
+          ctx.fillStyle = '#ffd866';
+          ctx.beginPath();
+          ctx.arc(center.x, center.y, 34, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#37260a';
+          ctx.fillText('B', center.x, center.y + 1);
+        }
+        ctx.restore();
+      }
+
+      function drawStartExit(now) {
         const a = centerOf(startCell);
         const b = centerOf(exitCell);
         ctx.save();
@@ -947,12 +1007,7 @@
         ctx.fill();
         ctx.fillStyle = '#0b291b';
         ctx.fillText('A', a.x, a.y + 1);
-        ctx.fillStyle = '#ffd866';
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 34, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#37260a';
-        ctx.fillText('B', b.x, b.y + 1);
+        drawExitFrog(b, now);
         ctx.restore();
       }
 
@@ -1940,7 +1995,7 @@
         ctx.fill();
         if (sprite.ready) {
           ctx.save();
-          ctx.scale(tree.facing || 1, 1);
+          ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
             sprite.image,
             frameIndex * sprite.frameW,
@@ -2190,6 +2245,7 @@
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
+        frogSpriteReady: scenerySprites.frog.ready,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
         witch2Path: state.witch2.path.length,
