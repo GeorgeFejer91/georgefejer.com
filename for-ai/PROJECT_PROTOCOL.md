@@ -30,6 +30,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Reaching B should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
 - Level forms alternate: unicorn, princess, unicorn, princess, unicorn.
 - Every level-to-level transition must use the morph sprite as a foreground travel animation from the lower-right screen quadrant toward the upper-left screen quadrant. The forms alternate every time: unicorn to princess, princess to unicorn, and so on.
+- Level-to-level form transitions and the final win transformation must stay at least 8 seconds long so the unicorn/princess morph is clearly visible on phones.
 - Witches chase the player. Level 2 and later use two witches.
 - Mushrooms/freeze treats make witches passable for the player while active.
 - Rotten strawberries create green stench bubbles/fog that slow witches.

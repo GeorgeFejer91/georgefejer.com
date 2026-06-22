@@ -53,7 +53,8 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-assets-v1';
+      const assetVersion = '20260623-morph-8s-v1';
+      const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -996,7 +997,7 @@
       }
 
       function startLevelTravelMorph(from, to) {
-        startHeroMorph(from, to, 3800, { travel: true, facing: -1 });
+        startHeroMorph(from, to, levelTransitionMorphDuration, { travel: true, facing: -1 });
       }
 
       function updateHud() {
@@ -1032,6 +1033,7 @@
         canvas.dataset.morphActive = String(Boolean(state.morphUntil && now < state.morphUntil));
         canvas.dataset.morphFrom = state.morphFrom || 'none';
         canvas.dataset.morphTo = state.morphTo || 'none';
+        canvas.dataset.morphDuration = String(state.morphDuration);
         canvas.dataset.levelTransition = String(levelTransitionActive(now));
         canvas.dataset.morphTravel = String(Boolean(state.morphTravel));
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
@@ -2174,7 +2176,7 @@
               : 'Magie bei B: Die Gestalt wechselt.', 3400);
           } else {
             const finalForm = oppositeHeroForm(state.playerForm);
-            startHeroMorph(state.playerForm, finalForm, 3600);
+            startHeroMorph(state.playerForm, finalForm, levelTransitionMorphDuration);
             state.playerForm = finalForm;
             state.won = true;
             playSfx('win');
