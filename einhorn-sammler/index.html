@@ -101,6 +101,12 @@
         nextEvilTreeAt: 0,
         evilTreeEventCount: 0,
         evilTreeChanges: 0,
+        evilTreeArchChanges: 0,
+        lastEvilTreeArch: 'none',
+        lastEvilTreeRouteDelta: 0,
+        evilTreeWaveTarget: 0,
+        evilTreeWaveRemaining: 0,
+        nextEvilTreeWalkerAt: 0,
         mazeRevision: 0
       };
       const characterSprites = {
@@ -400,6 +406,12 @@
         canvas.dataset.evilTrees = String(state.evilTrees.length);
         canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
         canvas.dataset.evilTreeChanges = String(state.evilTreeChanges);
+        canvas.dataset.evilTreeArchChanges = String(state.evilTreeArchChanges);
+        canvas.dataset.lastEvilTreeArch = state.lastEvilTreeArch;
+        canvas.dataset.lastEvilTreeRouteDelta = String(state.lastEvilTreeRouteDelta);
+        canvas.dataset.evilTreeWaveTarget = String(state.evilTreeWaveTarget);
+        canvas.dataset.evilTreeWaveRemaining = String(state.evilTreeWaveRemaining);
+        canvas.dataset.nextEvilTreeWalker = state.nextEvilTreeWalkerAt ? Math.max(0, Math.ceil((state.nextEvilTreeWalkerAt - now) / 1000)) + 's' : 'none';
         canvas.dataset.mazeRevision = String(state.mazeRevision);
         canvas.dataset.nextEvilTree = state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - now) / 1000)) + 's' : 'none';
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
@@ -462,6 +474,12 @@
         state.evilTrees = [];
         state.evilTreeEventCount = 0;
         state.evilTreeChanges = 0;
+        state.evilTreeArchChanges = 0;
+        state.lastEvilTreeArch = 'none';
+        state.lastEvilTreeRouteDelta = 0;
+        state.evilTreeWaveTarget = 0;
+        state.evilTreeWaveRemaining = 0;
+        state.nextEvilTreeWalkerAt = 0;
         state.mazeRevision = 0;
         scheduleNextEvilTree(performance.now(), true);
         state.won = false;
@@ -582,6 +600,21 @@
         state.nextEvilTreeAt = now + delay;
       }
 
+      function beginEvilTreeWave(now) {
+        const target = evilTreeTestMode ? 3 : 3 + Math.floor(random() * 4);
+        state.evilTreeWaveTarget = target;
+        state.evilTreeWaveRemaining = target;
+        state.nextEvilTreeWalkerAt = now;
+        state.nextEvilTreeAt = 0;
+      }
+
+      function finishEvilTreeWave(now) {
+        state.evilTreeWaveTarget = 0;
+        state.evilTreeWaveRemaining = 0;
+        state.nextEvilTreeWalkerAt = 0;
+        scheduleNextEvilTree(now);
+      }
+
       function canCloseForEvilTree(cell, movingCell) {
         if (!editableMazeCell(cell) || !isOpen(cell)) return false;
         if (cellsMatch(cell, movingCell) || isProtectedMazeCell(cell, 0)) return false;
@@ -620,50 +653,145 @@
         return false;
       }
 
-      function horizontalEvilTreeRuns(playerCell) {
-        const runs = [];
-        const flush = (run) => {
-          if (run.length >= (evilTreeTestMode ? 7 : 9)) runs.push([...run]);
-        };
-        for (let r = 1; r < grid.rows - 1; r += 1) {
-          let run = [];
-          for (let c = 1; c < grid.cols - 1; c += 1) {
-            const cell = { c, r };
-            const allowed = isOpen(cell)
-              && editableMazeCell(cell)
-              && !isProtectedMazeCell(cell, 1)
-              && cellDistance(cell, playerCell) >= (evilTreeTestMode ? 5 : 9)
-              && cellDistance(cell, exitCell) >= 4
-              && openNeighborCount(cell) >= 2;
-            if (allowed) run.push(cell);
-            else {
-              flush(run);
-              run = [];
-            }
-          }
-          flush(run);
+      function routeIncludesCell(route, cell) {
+        return route.some((routeCell) => cellsMatch(routeCell, cell));
+      }
+
+      function routeUsesAny(route, cells) {
+        return cells.some((cell) => routeIncludesCell(route, cell));
+      }
+
+      function withTemporaryMazeChange(closeCell, openCells, test) {
+        const previous = [
+          { cell: closeCell, value: state.maze[closeCell.r][closeCell.c] },
+          ...openCells.map((cell) => ({ cell, value: state.maze[cell.r][cell.c] }))
+        ];
+        for (const cell of openCells) state.maze[cell.r][cell.c] = 1;
+        state.maze[closeCell.r][closeCell.c] = 0;
+        const result = test();
+        for (const entry of previous) state.maze[entry.cell.r][entry.cell.c] = entry.value;
+        return result;
+      }
+
+      function buildArchPlan(route, index) {
+        const prev = route[index - 1];
+        const closeCell = route[index];
+        const next = route[index + 1];
+        if (!prev || !next || prev.r !== closeCell.r || next.r !== closeCell.r) return null;
+        if (Math.abs(prev.c - closeCell.c) !== 1 || Math.abs(next.c - closeCell.c) !== 1 || prev.c === next.c) return null;
+        if (!canCloseForEvilTree(closeCell, null)) return null;
+        const ordered = [prev, closeCell, next].sort((a, b) => a.c - b.c);
+        const sides = shuffle([-1, 1]);
+        const oldLength = route.length;
+        for (const dr of sides) {
+          const archCells = ordered.map((cell) => ({ c: cell.c, r: cell.r + dr }));
+          if (archCells.some((cell) => !editableMazeCell(cell) || isProtectedMazeCell(cell, 0) || cellsMatch(cell, closeCell))) continue;
+          const hasNewOpening = archCells.some((cell) => !isOpen(cell));
+          if (!hasNewOpening) continue;
+          const plan = withTemporaryMazeChange(closeCell, archCells, () => {
+            if (!hasPlayableRoutes()) return null;
+            const newRoute = findPath(cellOf(state.player.x, state.player.y), exitCell);
+            if (!newRoute.length || routeIncludesCell(newRoute, closeCell) || !routeUsesAny(newRoute, archCells)) return null;
+            const delta = newRoute.length - oldLength;
+            const archUse = archCells.filter((cell) => routeIncludesCell(newRoute, cell)).length;
+            return {
+              closeCell,
+              openCells: archCells,
+              oldLength,
+              newLength: newRoute.length,
+              score: archUse * 12 + Math.max(0, delta) * 2 + index / Math.max(1, route.length)
+            };
+          });
+          if (plan) return plan;
         }
-        return runs;
+        return null;
+      }
+
+      function findStrategicEvilTreePlan() {
+        const playerCell = cellOf(state.player.x, state.player.y);
+        const route = findPath(playerCell, exitCell);
+        if (route.length < 12) return null;
+        const startIndex = Math.min(route.length - 4, evilTreeTestMode ? 5 : 8);
+        const endIndex = Math.max(startIndex, route.length - 6);
+        const indices = [];
+        for (let i = startIndex; i <= endIndex; i += 1) indices.push(i);
+        shuffle(indices);
+        let best = null;
+        for (const index of indices) {
+          const plan = buildArchPlan(route, index);
+          if (!plan) continue;
+          if (!best || plan.score > best.score) best = plan;
+        }
+        return best;
+      }
+
+      function horizontalRunThrough(cell) {
+        let left = cell.c;
+        while (left > 1) {
+          const next = { c: left - 1, r: cell.r };
+          if (!isOpen(next) || isProtectedMazeCell(next, 0)) break;
+          left -= 1;
+        }
+        let right = cell.c;
+        while (right < grid.cols - 2) {
+          const next = { c: right + 1, r: cell.r };
+          if (!isOpen(next) || isProtectedMazeCell(next, 0)) break;
+          right += 1;
+        }
+        const run = [];
+        for (let c = left; c <= right; c += 1) run.push({ c, r: cell.r });
+        return run;
+      }
+
+      function buildStrategicTreeWalkPath(plan) {
+        const run = horizontalRunThrough(plan.closeCell);
+        const closeIndex = run.findIndex((cell) => cellsMatch(cell, plan.closeCell));
+        if (closeIndex <= 0 || closeIndex >= run.length - 1) return null;
+        const reach = Math.min(evilTreeTestMode ? 4 : 5, Math.max(2, run.length - 1));
+        const leftIndex = Math.max(0, closeIndex - reach);
+        const rightIndex = Math.min(run.length - 1, closeIndex + reach);
+        if (leftIndex >= closeIndex || rightIndex <= closeIndex) return null;
+        const direction = random() < 0.5 ? -1 : 1;
+        return direction > 0
+          ? run.slice(leftIndex, rightIndex + 1)
+          : run.slice(leftIndex, rightIndex + 1).reverse();
+      }
+
+      function applyStrategicEvilTreePlan(plan) {
+        if (!plan || !canCloseForEvilTree(plan.closeCell, null)) return false;
+        const previous = [
+          { cell: plan.closeCell, value: state.maze[plan.closeCell.r][plan.closeCell.c] },
+          ...plan.openCells.map((cell) => ({ cell, value: state.maze[cell.r][cell.c] }))
+        ];
+        for (const cell of plan.openCells) state.maze[cell.r][cell.c] = 1;
+        state.maze[plan.closeCell.r][plan.closeCell.c] = 0;
+        const newRoute = findPath(cellOf(state.player.x, state.player.y), exitCell);
+        const valid = hasPlayableRoutes()
+          && newRoute.length
+          && !routeIncludesCell(newRoute, plan.closeCell)
+          && routeUsesAny(newRoute, plan.openCells);
+        if (valid) {
+          state.mazeRevision += 1;
+          state.evilTreeChanges += 1;
+          state.evilTreeArchChanges += 1;
+          state.lastEvilTreeArch = cellKey(plan.closeCell) + '->' + plan.openCells.map(cellKey).join('|');
+          state.lastEvilTreeRouteDelta = newRoute.length - plan.oldLength;
+          refreshActorPathsAfterMazeChange();
+          return true;
+        }
+        for (const entry of previous) state.maze[entry.cell.r][entry.cell.c] = entry.value;
+        return false;
       }
 
       function spawnEvilTree(now, forced = false) {
         if (!forced && state.evilTrees.length) return false;
-        const playerCell = cellOf(state.player.x, state.player.y);
-        const runs = horizontalEvilTreeRuns(playerCell);
-        if (!runs.length) return false;
+        const plan = findStrategicEvilTreePlan();
+        if (!plan) return false;
         for (let attempt = 0; attempt < 70; attempt += 1) {
-          const run = runs[Math.floor(random() * runs.length)];
-          const direction = random() < 0.5 ? -1 : 1;
-          const minSpan = evilTreeTestMode ? 6 : 8;
-          const maxSpan = Math.min(18, run.length - 1);
-          if (maxSpan < minSpan) continue;
-          const span = minSpan + Math.floor(random() * (maxSpan - minSpan + 1));
-          const startIndex = direction > 0
-            ? Math.floor(random() * (run.length - span))
-            : span + Math.floor(random() * (run.length - span));
-          const path = [];
-          for (let i = 0; i <= span; i += 1) path.push(run[startIndex + i * direction]);
+          const path = buildStrategicTreeWalkPath(plan);
+          if (!path || path.length < 3) continue;
           const start = path[0];
+          const end = path[path.length - 1];
           const p = centerOf(start);
           state.evilTrees.push({
             x: p.x,
@@ -671,8 +799,10 @@
             path: path.slice(1).map(centerOf),
             speed: evilTreeTestMode ? 175 : 105,
             step: random() * 6,
-            facing: direction,
+            facing: end.c < start.c ? -1 : 1,
             currentCell: start,
+            plan,
+            planApplied: false,
             changes: 0,
             born: now,
             expires: now + (evilTreeTestMode ? 9000 : 17000)
@@ -685,20 +815,39 @@
       }
 
       function updateEvilTrees(dt, now) {
-        if (state.nextEvilTreeAt && now >= state.nextEvilTreeAt) {
-          spawnEvilTree(now);
-          scheduleNextEvilTree(now);
+        if (state.nextEvilTreeAt && now >= state.nextEvilTreeAt && !state.evilTrees.length && !state.evilTreeWaveRemaining) {
+          beginEvilTreeWave(now);
+        }
+        if (state.evilTreeWaveRemaining && !state.evilTrees.length && now >= state.nextEvilTreeWalkerAt) {
+          if (spawnEvilTree(now, true)) {
+            state.evilTreeWaveRemaining -= 1;
+            state.nextEvilTreeWalkerAt = state.evilTreeWaveRemaining
+              ? now + (evilTreeTestMode ? 1200 : 2600 + random() * 1500)
+              : 0;
+          } else {
+            finishEvilTreeWave(now);
+          }
         }
         for (const tree of state.evilTrees) {
           const before = tree.currentCell || cellOf(tree.x, tree.y);
           moveAlongPath(tree, tree.speed, dt);
           const current = cellOf(tree.x, tree.y);
           if (!cellsMatch(before, current)) {
-            if (tree.changes < 5 && tryEvilTreeMazeChange(before, current)) tree.changes += 1;
+            if (tree.plan) {
+              if (!tree.planApplied && cellsMatch(before, tree.plan.closeCell) && applyStrategicEvilTreePlan(tree.plan)) {
+                tree.planApplied = true;
+                tree.changes += 1;
+              }
+            } else if (tree.changes < 5 && tryEvilTreeMazeChange(before, current)) {
+              tree.changes += 1;
+            }
             tree.currentCell = current;
           }
         }
         state.evilTrees = state.evilTrees.filter((tree) => tree.path.length || (now - tree.born < 1600 && now < tree.expires));
+        if (!state.evilTrees.length && state.evilTreeWaveTarget && !state.evilTreeWaveRemaining) {
+          finishEvilTreeWave(now);
+        }
       }
 
       function updateWitch(actor, dt, now) {
@@ -2242,6 +2391,11 @@
         evilTrees: state.evilTrees.length,
         evilTreeEvents: state.evilTreeEventCount,
         evilTreeChanges: state.evilTreeChanges,
+        evilTreeArchChanges: state.evilTreeArchChanges,
+        lastEvilTreeArch: state.lastEvilTreeArch,
+        lastEvilTreeRouteDelta: state.lastEvilTreeRouteDelta,
+        evilTreeWaveTarget: state.evilTreeWaveTarget,
+        evilTreeWaveRemaining: state.evilTreeWaveRemaining,
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
