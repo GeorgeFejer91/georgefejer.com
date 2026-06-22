@@ -60,6 +60,7 @@
       const witchStartCell = { c: grid.cols - 2, r: 1 };
       const secondWitchStartCell = { c: 1, r: grid.rows - 2 };
       const defaultStartLevel = 2;
+      const evilTreeTestMode = new URLSearchParams(window.location.search).has('eviltest');
       const dirs = [
         { dc: 1, dr: 0 },
         { dc: -1, dr: 0 },
@@ -95,7 +96,12 @@
         stenchTrail: [],
         stenchFogs: [],
         stenchUntil: 0,
-        stenchEmit: 0
+        stenchEmit: 0,
+        evilTrees: [],
+        nextEvilTreeAt: 0,
+        evilTreeEventCount: 0,
+        evilTreeChanges: 0,
+        mazeRevision: 0
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
@@ -103,7 +109,8 @@
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
       const scenerySprites = {
-        wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0)
+        wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0),
+        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0)
       };
 
       function loadSprite(src, frameW, frameH, scale, ground) {
@@ -385,6 +392,12 @@
         canvas.dataset.best = String(state.best);
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
+        canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
+        canvas.dataset.evilTrees = String(state.evilTrees.length);
+        canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
+        canvas.dataset.evilTreeChanges = String(state.evilTreeChanges);
+        canvas.dataset.mazeRevision = String(state.mazeRevision);
+        canvas.dataset.nextEvilTree = state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - now) / 1000)) + 's' : 'none';
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
@@ -442,6 +455,11 @@
         state.stenchEmit = 0;
         state.stenchTrail = [];
         state.stenchFogs = [];
+        state.evilTrees = [];
+        state.evilTreeEventCount = 0;
+        state.evilTreeChanges = 0;
+        state.mazeRevision = 0;
+        scheduleNextEvilTree(performance.now(), true);
         state.won = false;
         state.over = false;
         state.last = performance.now();
@@ -481,6 +499,178 @@
 
       function activeWitches() {
         return state.witch2.active ? [state.witch, state.witch2] : [state.witch];
+      }
+
+      function cellsMatch(a, b) {
+        return a && b && a.c === b.c && a.r === b.r;
+      }
+
+      function cellDistance(a, b) {
+        return Math.abs(a.c - b.c) + Math.abs(a.r - b.r);
+      }
+
+      function editableMazeCell(cell) {
+        return cell.c > 0 && cell.r > 0 && cell.c < grid.cols - 1 && cell.r < grid.rows - 1;
+      }
+
+      function parseCellKey(key) {
+        if (!key || typeof key !== 'string' || !key.includes(',')) return null;
+        const parts = key.split(',').map(Number);
+        if (parts.length !== 2 || parts.some((part) => !Number.isFinite(part))) return null;
+        return { r: parts[0], c: parts[1] };
+      }
+
+      function protectedMazeCells() {
+        return [
+          startCell,
+          exitCell,
+          witchStartCell,
+          secondWitchStartCell,
+          cellOf(state.player.x, state.player.y),
+          ...activeWitches().map((witch) => cellOf(witch.x, witch.y))
+        ];
+      }
+
+      function isProtectedMazeCell(cell, radius = 0) {
+        return protectedMazeCells().some((protectedCell) => cellDistance(cell, protectedCell) <= radius);
+      }
+
+      function pathPointsAreOpen(path) {
+        return path.every((point) => isOpen(cellOf(point.x, point.y)));
+      }
+
+      function openNeighborCount(cell) {
+        return dirs.reduce((count, dir) => count + (isOpen({ c: cell.c + dir.dc, r: cell.r + dir.dr }) ? 1 : 0), 0);
+      }
+
+      function hasPlayableRoutes() {
+        const playerCell = cellOf(state.player.x, state.player.y);
+        if (!isOpen(playerCell) || !findPath(playerCell, exitCell).length) return false;
+        return activeWitches().every((witch) => {
+          const witchCell = cellOf(witch.x, witch.y);
+          return isOpen(witchCell) && findPath(witchCell, playerCell).length > 0;
+        });
+      }
+
+      function refreshActorPathsAfterMazeChange() {
+        if (state.player.path.length && !pathPointsAreOpen(state.player.path)) {
+          const target = parseCellKey(state.lastTarget);
+          const current = cellOf(state.player.x, state.player.y);
+          if (target && isOpen(target)) {
+            const path = findPath(current, target);
+            state.player.path = path.length > 1 ? path.slice(1).map(centerOf) : [];
+            state.lastPathLength = path.length;
+          } else {
+            state.player.path = [];
+            state.lastPathLength = 0;
+          }
+        }
+        for (const witch of activeWitches()) {
+          witch.path = [];
+          witch.repath = 0;
+        }
+      }
+
+      function scheduleNextEvilTree(now, first = false) {
+        const delay = evilTreeTestMode
+          ? (first ? 900 : 2600 + random() * 2200)
+          : (first ? 18000 + random() * 7000 : 28000 + random() * 18000);
+        state.nextEvilTreeAt = now + delay;
+      }
+
+      function canCloseForEvilTree(cell, movingCell) {
+        if (!editableMazeCell(cell) || !isOpen(cell)) return false;
+        if (cellsMatch(cell, movingCell) || isProtectedMazeCell(cell, 0)) return false;
+        if (cellDistance(cell, cellOf(state.player.x, state.player.y)) < 3) return false;
+        if (state.player.path.slice(0, 3).some((point) => cellsMatch(cell, cellOf(point.x, point.y)))) return false;
+        return openNeighborCount(cell) >= 2;
+      }
+
+      function canOpenForEvilTree(cell, closingCell) {
+        if (!editableMazeCell(cell) || isOpen(cell) || isProtectedMazeCell(cell, 1)) return false;
+        return dirs.some((dir) => {
+          const neighbor = { c: cell.c + dir.dc, r: cell.r + dir.dr };
+          return !cellsMatch(neighbor, closingCell) && isOpen(neighbor);
+        });
+      }
+
+      function tryEvilTreeMazeChange(closingCell, movingCell) {
+        if (!canCloseForEvilTree(closingCell, movingCell)) return false;
+        const openings = shuffle(dirs
+          .map((dir) => ({ c: closingCell.c + dir.dc, r: closingCell.r + dir.dr }))
+          .filter((cell) => canOpenForEvilTree(cell, closingCell)));
+        for (const opening of openings) {
+          const wasClosingOpen = state.maze[closingCell.r][closingCell.c];
+          const wasOpeningOpen = state.maze[opening.r][opening.c];
+          state.maze[opening.r][opening.c] = 1;
+          state.maze[closingCell.r][closingCell.c] = 0;
+          if (hasPlayableRoutes()) {
+            state.mazeRevision += 1;
+            state.evilTreeChanges += 1;
+            refreshActorPathsAfterMazeChange();
+            return true;
+          }
+          state.maze[closingCell.r][closingCell.c] = wasClosingOpen;
+          state.maze[opening.r][opening.c] = wasOpeningOpen;
+        }
+        return false;
+      }
+
+      function spawnEvilTree(now, forced = false) {
+        if (!forced && state.evilTrees.length) return false;
+        const playerCell = cellOf(state.player.x, state.player.y);
+        const candidates = openCells().filter((cell) => {
+          if (!editableMazeCell(cell) || isProtectedMazeCell(cell, 1)) return false;
+          if (cellDistance(cell, playerCell) < (evilTreeTestMode ? 5 : 9)) return false;
+          if (cellDistance(cell, exitCell) < 4) return false;
+          return openNeighborCount(cell) >= 2;
+        });
+        if (candidates.length < 2) return false;
+        for (let attempt = 0; attempt < 70; attempt += 1) {
+          const start = candidates[Math.floor(random() * candidates.length)];
+          const endOptions = candidates.filter((cell) => {
+            const d = cellDistance(cell, start);
+            return d >= 6 && d <= 18;
+          });
+          const end = endOptions[Math.floor(random() * endOptions.length)];
+          if (!end) continue;
+          const path = findPath(start, end);
+          if (path.length < 7 || path.length > 18) continue;
+          const p = centerOf(start);
+          state.evilTrees.push({
+            x: p.x,
+            y: p.y,
+            path: path.slice(1).map(centerOf),
+            speed: evilTreeTestMode ? 175 : 105,
+            step: random() * 6,
+            facing: end.c < start.c ? -1 : 1,
+            currentCell: start,
+            changes: 0,
+            born: now,
+            expires: now + (evilTreeTestMode ? 9000 : 17000)
+          });
+          state.evilTreeEventCount += 1;
+          showMessage('An evil tree is shifting the labyrinth.', 1800);
+          return true;
+        }
+        return false;
+      }
+
+      function updateEvilTrees(dt, now) {
+        if (state.nextEvilTreeAt && now >= state.nextEvilTreeAt) {
+          spawnEvilTree(now);
+          scheduleNextEvilTree(now);
+        }
+        for (const tree of state.evilTrees) {
+          const before = tree.currentCell || cellOf(tree.x, tree.y);
+          moveAlongPath(tree, tree.speed, dt);
+          const current = cellOf(tree.x, tree.y);
+          if (!cellsMatch(before, current)) {
+            if (tree.changes < 5 && tryEvilTreeMazeChange(before, current)) tree.changes += 1;
+            tree.currentCell = current;
+          }
+        }
+        state.evilTrees = state.evilTrees.filter((tree) => tree.path.length || (now - tree.born < 1600 && now < tree.expires));
       }
 
       function updateWitch(actor, dt, now) {
@@ -641,6 +831,7 @@
         if (!state.over && !state.won) {
           moveAlongPath(state.player, currentPlayerSpeed(now), dt);
           updateStench(dt, now);
+          updateEvilTrees(dt, now);
           for (const witch of activeWitches()) updateWitch(witch, dt, now);
           updatePickups(now);
           updateWinLose(now);
@@ -1731,6 +1922,56 @@
         ctx.restore();
       }
 
+      function drawEvilTree(now, tree) {
+        const s = worldToScreen(tree.x, tree.y);
+        const sprite = scenerySprites.evilTree;
+        const step = Number.isFinite(tree.step) ? tree.step : 0;
+        const frameIndex = Math.abs(Math.floor(step * 0.82)) % 6;
+        const drawW = grid.tile * 1.68;
+        const drawH = grid.tile * 1.68;
+        const bob = Math.sin(step * 1.1) * 1.6;
+        ctx.save();
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
+        ctx.fillStyle = 'rgb(0 0 0 / 34%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 31, 40, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (sprite.ready) {
+          ctx.save();
+          ctx.scale(tree.facing || 1, 1);
+          ctx.drawImage(
+            sprite.image,
+            frameIndex * sprite.frameW,
+            0,
+            sprite.frameW,
+            sprite.frameH,
+            -drawW / 2,
+            -drawH + 26,
+            drawW,
+            drawH
+          );
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#2b1a36';
+          ctx.strokeStyle = '#050406';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.ellipse(0, -34, 42, 36, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#51341f';
+          ctx.fillRect(-21, -34, 42, 62);
+          ctx.strokeRect(-21, -34, 42, 62);
+          ctx.fillStyle = '#f0e8a6';
+          ctx.beginPath();
+          ctx.arc(-10, -12, 5, 0, Math.PI * 2);
+          ctx.arc(10, -12, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
       function drawMinimap() {
         const size = Math.min(96, Math.max(72, Math.min(state.vw, state.vh) * 0.22));
         const x = 10;
@@ -1769,6 +2010,12 @@
           ctx.arc(x + state.witch2.x * sx, y + state.witch2.y * sy, 3, 0, Math.PI * 2);
           ctx.fill();
         }
+        ctx.fillStyle = '#2b102f';
+        for (const tree of state.evilTrees) {
+          ctx.beginPath();
+          ctx.arc(x + tree.x * sx, y + tree.y * sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
 
@@ -1792,6 +2039,9 @@
         ];
         if (state.witch2.active) {
           actors.push({ y: state.witch2.y, draw: () => drawWitch(now, state.witch2, characterSprites.witch2) });
+        }
+        for (const tree of state.evilTrees) {
+          actors.push({ y: tree.y, draw: () => drawEvilTree(now, tree) });
         }
         actors.sort((a, b) => a.y - b.y);
         for (const actor of actors) actor.draw();
@@ -1933,6 +2183,12 @@
         stenchFogs: state.stenchFogs.length,
         stenchActive: performance.now() < state.stenchUntil,
         witchSlowed: performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil,
+        evilTrees: state.evilTrees.length,
+        evilTreeEvents: state.evilTreeEventCount,
+        evilTreeChanges: state.evilTreeChanges,
+        mazeRevision: state.mazeRevision,
+        nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
+        evilTreeSpriteReady: scenerySprites.evilTree.ready,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
         witch2Path: state.witch2.path.length,
