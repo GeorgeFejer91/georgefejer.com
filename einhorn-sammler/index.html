@@ -1641,13 +1641,14 @@
       function drawWitch(now, actor = state.witch, sprite = characterSprites.witch) {
         const s = worldToScreen(actor.x, actor.y);
         const frozen = now < actor.frozenUntil;
-        const moving = actor.path.length > 0 && !frozen;
-        const frameIndex = moving ? Math.floor(actor.step * 1.35) % witchRunFrames.length : 1;
-        const frame = witchRunFrames[frameIndex];
-        const feet = witchAnimatedFeet(actor.step, moving, frame);
+        const step = Number.isFinite(actor.step) ? actor.step : 0;
+        const moving = Array.isArray(actor.path) && actor.path.length > 0 && !frozen;
+        const frameIndex = moving ? Math.abs(Math.floor(step * 1.35)) % witchRunFrames.length : 1;
+        const frame = witchRunFrames[frameIndex] || witchRunFrames[1] || witchRunFrames[0];
+        const feet = witchAnimatedFeet(step, moving, frame);
         const palette = witchPalette(frozen);
-        const bob = moving ? Math.sin(actor.step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
-        const lean = moving ? Math.sin(actor.step * 0.65) * 0.035 : 0;
+        const bob = moving ? Math.sin(step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
+        const lean = moving ? Math.sin(step * 0.65) * 0.035 : 0;
         ctx.save();
         ctx.translate(s.x, s.y + bob * state.zoom);
         ctx.scale(state.zoom, state.zoom);
