@@ -112,6 +112,7 @@
         wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0),
         evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0)
       };
+      const evilTreeFrameCount = 8;
 
       function loadSprite(src, frameW, frameH, scale, ground) {
         const image = new Image();
@@ -1926,7 +1927,7 @@
         const s = worldToScreen(tree.x, tree.y);
         const sprite = scenerySprites.evilTree;
         const step = Number.isFinite(tree.step) ? tree.step : 0;
-        const frameIndex = Math.abs(Math.floor(step * 0.82)) % 6;
+        const frameIndex = Math.abs(Math.floor(step * 1.05)) % evilTreeFrameCount;
         const drawW = grid.tile * 1.68;
         const drawH = grid.tile * 1.68;
         const bob = Math.sin(step * 1.1) * 1.6;
