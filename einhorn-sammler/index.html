@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-difficulty-v1';
+      const assetVersion = '20260622-banner-v1';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -65,38 +65,41 @@
       const evilTreeTestMode = urlParams.has('eviltest');
       const leafTreeTestMode = urlParams.has('leaftest');
       const treePushTestMode = urlParams.get('treepushtest');
+      const morphTestMode = urlParams.get('morphtest');
       const aiValidationMode = urlParams.has('aitest');
       const levelConfigs = [
         {
           level: 1,
           title: 'Stufe 1',
-          subtitle: 'Einhornpfad: eine Hexe, wenige Baum-Tore.',
-          difficulty: 'leicht',
+          subtitle: 'Einhorn, gib Horn!',
+          difficulty: 'Krone frei!',
           playerForm: 'unicorn',
           playerSpeed: 275,
           witchCount: 1,
-          witchSpeed: 150,
+          witchSpeed: 160,
           witch2Speed: 0,
-          mazeOpenings: 112,
-          treats: 22,
-          crumbs: 130,
+          witchStartDelay: 1.2,
+          mazeOpenings: 106,
+          treats: 30,
+          crumbs: 178,
           minSpan: 5,
-          maxSpan: 8,
-          evilTreeSpeed: 84,
-          goodTreeSpeed: 76,
-          treeWaitScale: 1.45,
-          gatePlan: [['evil', 0.24], ['good', 0.42], ['evil', 0.67]]
+          maxSpan: 9,
+          evilTreeSpeed: 92,
+          goodTreeSpeed: 80,
+          treeWaitScale: 1.18,
+          gatePlan: [['evil', 0.14], ['good', 0.26], ['evil', 0.38], ['evil', 0.56], ['good', 0.7], ['evil', 0.84]]
         },
         {
           level: 2,
           title: 'Stufe 2',
-          subtitle: 'Prinzessinnenlauf: zwei Hexen, mehr Tore.',
-          difficulty: 'mittel',
+          subtitle: 'Prinzessin, losgekuesst!',
+          difficulty: 'Maerchen-Magie!',
           playerForm: 'princess',
           playerSpeed: 274,
           witchCount: 2,
           witchSpeed: 166,
           witch2Speed: 178,
+          witchStartDelay: 1.8,
           mazeOpenings: 104,
           treats: 22,
           crumbs: 126,
@@ -110,13 +113,14 @@
         {
           level: 3,
           title: 'Stufe 3',
-          subtitle: 'Hexenwald: schnellere Hexen, engere Fenster.',
-          difficulty: 'knifflig',
-          playerForm: 'princess',
+          subtitle: 'Glitzer galopp!',
+          difficulty: 'Hornissimo!',
+          playerForm: 'unicorn',
           playerSpeed: 282,
           witchCount: 2,
           witchSpeed: 182,
           witch2Speed: 194,
+          witchStartDelay: 2.4,
           mazeOpenings: 96,
           treats: 21,
           crumbs: 118,
@@ -130,42 +134,44 @@
         {
           level: 4,
           title: 'Stufe 4',
-          subtitle: 'Verzauberte Tore: viele bewegte Baeume.',
-          difficulty: 'schwer',
+          subtitle: 'Prinzesslich, aber bissig!',
+          difficulty: 'Krone kontra Chaos!',
           playerForm: 'princess',
-          playerSpeed: 288,
+          playerSpeed: 302,
           witchCount: 2,
-          witchSpeed: 194,
-          witch2Speed: 206,
-          mazeOpenings: 88,
-          treats: 20,
-          crumbs: 112,
+          witchSpeed: 178,
+          witch2Speed: 188,
+          witchStartDelay: 5.2,
+          mazeOpenings: 92,
+          treats: 22,
+          crumbs: 122,
           minSpan: 6,
           maxSpan: 11,
-          evilTreeSpeed: 118,
-          goodTreeSpeed: 108,
-          treeWaitScale: 0.86,
+          evilTreeSpeed: 112,
+          goodTreeSpeed: 102,
+          treeWaitScale: 0.98,
           gatePlan: [['evil', 0.1], ['good', 0.2], ['evil', 0.32], ['good', 0.46], ['evil', 0.6], ['good', 0.74], ['evil', 0.88]]
         },
         {
           level: 5,
           title: 'Stufe 5',
-          subtitle: 'Meisterwald: maximale Dynamik, loesbar.',
-          difficulty: 'meister',
-          playerForm: 'princess',
-          playerSpeed: 294,
+          subtitle: 'Horn drauf, Maerchen ab!',
+          difficulty: 'Finale Fantasie!',
+          playerForm: 'unicorn',
+          playerSpeed: 306,
           witchCount: 2,
-          witchSpeed: 206,
-          witch2Speed: 218,
-          mazeOpenings: 82,
-          treats: 20,
-          crumbs: 108,
+          witchSpeed: 198,
+          witch2Speed: 210,
+          witchStartDelay: 3.4,
+          mazeOpenings: 88,
+          treats: 22,
+          crumbs: 116,
           minSpan: 6,
-          maxSpan: 12,
-          evilTreeSpeed: 128,
-          goodTreeSpeed: 116,
-          treeWaitScale: 0.74,
-          gatePlan: [['evil', 0.08], ['good', 0.18], ['evil', 0.29], ['good', 0.4], ['evil', 0.52], ['good', 0.64], ['evil', 0.76], ['good', 0.88]]
+          maxSpan: 11,
+          evilTreeSpeed: 120,
+          goodTreeSpeed: 110,
+          treeWaitScale: 0.84,
+          gatePlan: [['evil', 0.08], ['good', 0.2], ['evil', 0.32], ['good', 0.46], ['evil', 0.6], ['good', 0.74], ['evil', 0.88]]
         }
       ];
       function boundedLevel(value) {
@@ -241,6 +247,13 @@
         treeCrushes: 0,
         lastTreeCollision: 'none',
         transformUntil: 0,
+        morphFrom: null,
+        morphTo: null,
+        morphStartedAt: 0,
+        morphUntil: 0,
+        morphDuration: 3000,
+        morphTravel: null,
+        levelTransitionUntil: 0,
         musicStarted: false,
         musicBlocked: false,
         validationMode: false,
@@ -250,6 +263,7 @@
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
         princess: loadSprite('assets/princess-run.png', 190, 230, 0.43, 30),
+        morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
@@ -261,6 +275,7 @@
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
+      const morphFrameCount = 18;
       const musicSrc = 'assets/music/mlp-theme-one-cycle-nintendo-melody.mp3?v=' + assetVersion;
       const backgroundMusic = new Audio(musicSrc);
       backgroundMusic.loop = true;
@@ -714,6 +729,12 @@
           const p = centerOf(cell);
           state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
         }
+        const extraStinkTreats = Math.max(18, Math.round(config.treats * 1.35));
+        for (let i = 0; i < extraStinkTreats; i += 1) {
+          const cell = chooseFarCell(cells, startCell, 6);
+          const p = centerOf(cell);
+          state.treats.push({ ...p, cell, type: 'stink', taken: false, pulse: random() * 6.28 });
+        }
         for (let i = 0; i < config.crumbs; i += 1) {
           const cell = cells[Math.floor(random() * cells.length)];
           const p = centerOf(cell);
@@ -767,6 +788,58 @@
         state.messageUntil = performance.now() + ms;
       }
 
+      function oppositeHeroForm(form) {
+        return form === 'princess' ? 'unicorn' : 'princess';
+      }
+
+      function levelTransitionActive(now = performance.now()) {
+        return Boolean(state.levelTransitionUntil && now < state.levelTransitionUntil);
+      }
+
+      function levelTransitionTravelPoints() {
+        return {
+          start: {
+            x: clamp(state.vw * 0.82, 130, state.vw - 42),
+            y: clamp(state.vh * 0.78, 130, state.vh - 42)
+          },
+          end: {
+            x: clamp(state.vw * 0.22, 48, state.vw - 130),
+            y: clamp(state.vh * 0.23, 70, state.vh - 130)
+          }
+        };
+      }
+
+      function clearHeroMorph() {
+        state.morphFrom = null;
+        state.morphTo = null;
+        state.morphStartedAt = 0;
+        state.morphUntil = 0;
+        state.morphTravel = null;
+      }
+
+      function startHeroMorph(from, to, duration = 3200, options = {}) {
+        if (!from || !to || from === to) {
+          clearHeroMorph();
+          return;
+        }
+        const now = performance.now();
+        state.morphFrom = from;
+        state.morphTo = to;
+        state.morphDuration = duration;
+        state.morphStartedAt = now;
+        state.morphUntil = now + duration;
+        state.transformUntil = state.morphUntil;
+        state.morphTravel = options.travel ? {
+          ...levelTransitionTravelPoints(),
+          facing: options.facing || -1
+        } : null;
+        state.levelTransitionUntil = options.travel ? state.morphUntil : state.levelTransitionUntil;
+      }
+
+      function startLevelTravelMorph(from, to) {
+        startHeroMorph(from, to, 3800, { travel: true, facing: -1 });
+      }
+
       function updateHud() {
         const config = configForLevel(state.level);
         const now = performance.now();
@@ -786,8 +859,14 @@
         canvas.dataset.best = String(state.best);
         canvas.dataset.assetVersion = assetVersion;
         canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
-        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
+        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.morph.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.playerForm = state.playerForm;
+        canvas.dataset.morphSprite = characterSprites.morph.ready ? 'ready' : characterSprites.morph.failed ? 'failed' : 'loading';
+        canvas.dataset.morphActive = String(Boolean(state.morphUntil && now < state.morphUntil));
+        canvas.dataset.morphFrom = state.morphFrom || 'none';
+        canvas.dataset.morphTo = state.morphTo || 'none';
+        canvas.dataset.levelTransition = String(levelTransitionActive(now));
+        canvas.dataset.morphTravel = String(Boolean(state.morphTravel));
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
         canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
@@ -837,6 +916,8 @@
 
       function resetPositions() {
         const config = configForLevel(state.level);
+        const now = performance.now();
+        const witchDelay = Math.max(0, Number(config.witchStartDelay || 0)) * 1000;
         const w = centerOf(witchStartCell);
         const w2 = centerOf(secondWitchStartCell);
         resetPlayerToStart(false);
@@ -846,6 +927,7 @@
         state.witch.path = [];
         state.witch.speed = config.witchSpeed;
         state.witch.repath = 0;
+        state.witch.frozenUntil = now + witchDelay;
         state.witch.stenchUntil = 0;
         state.witch.facing = -1;
         state.witch2.x = w2.x;
@@ -854,7 +936,7 @@
         state.witch2.speed = config.witch2Speed || config.witchSpeed;
         state.witch2.step = 0;
         state.witch2.repath = 0;
-        state.witch2.frozenUntil = 0;
+        state.witch2.frozenUntil = now + witchDelay;
         state.witch2.stenchUntil = 0;
         state.witch2.facing = 1;
         state.witch2.active = config.witchCount > 1;
@@ -863,7 +945,7 @@
         clampCamera();
       }
 
-      function startLevel(level) {
+      function startLevel(level, transitionFrom = null) {
         state.level = boundedLevel(level);
         const config = configForLevel(state.level);
         state.playerForm = config.playerForm;
@@ -873,9 +955,7 @@
         state.activeTreat = null;
         state.activeUntil = 0;
         state.shieldUntil = 0;
-        state.witch.frozenUntil = 0;
         state.witch.stenchUntil = 0;
-        state.witch2.frozenUntil = 0;
         state.witch2.stenchUntil = 0;
         state.stenchUntil = 0;
         state.stenchEmit = 0;
@@ -896,6 +976,8 @@
         state.nextEvilTreeWalkerAt = 0;
         state.mazeRevision = 0;
         state.transformUntil = 0;
+        state.levelTransitionUntil = 0;
+        clearHeroMorph();
         state.lastGateWait = 'none';
         state.treePushes = 0;
         state.treeCrushes = 0;
@@ -906,8 +988,17 @@
         state.over = false;
         state.last = performance.now();
         state.levelStartedAt = performance.now();
-        state.levelIntroUntil = state.levelStartedAt + 20000;
+        state.levelIntroUntil = state.levelStartedAt + 10000;
         state.messageText = config.title + ': ' + config.difficulty;
+        if (transitionFrom && transitionFrom !== config.playerForm) {
+          startLevelTravelMorph(transitionFrom, config.playerForm);
+        } else if (morphTestMode === 'forward') {
+          state.playerForm = 'princess';
+          startLevelTravelMorph('unicorn', 'princess');
+        } else if (morphTestMode === 'reverse') {
+          state.playerForm = 'unicorn';
+          startLevelTravelMorph('princess', 'unicorn');
+        }
         showMessage(config.title + '. ' + config.subtitle, 2600);
         if (leafTreeTestMode) {
           state.activeTreat = 'leaf';
@@ -1908,16 +1999,19 @@
           localStorage.setItem(storageKey, String(state.best));
           if (state.level < state.maxLevel) {
             const previousLevel = state.level;
-            startLevel(state.level + 1);
-            state.transformUntil = performance.now() + 2800;
+            const previousForm = state.playerForm;
+            startLevel(state.level + 1, previousForm);
             playSfx('levelUp');
             showMessage(previousLevel === 1
               ? 'Magie bei B: Das Einhorn wird zur Prinzessin.'
-              : 'Geschafft. Die naechste Waldstufe beginnt.', 3200);
+              : 'Magie bei B: Die Gestalt wechselt.', 3400);
           } else {
+            const finalForm = oppositeHeroForm(state.playerForm);
+            startHeroMorph(state.playerForm, finalForm, 3600);
+            state.playerForm = finalForm;
             state.won = true;
             playSfx('win');
-            showMessage('Du hast Stufe 5 geschafft. Die Prinzessin ist entkommen!', 5000);
+            showMessage('Du hast Stufe 5 geschafft. Die Verwandlung ist vollendet!', 5000);
           }
         }
         if (state.over || state.won) return;
@@ -1951,7 +2045,13 @@
       }
 
       function update(dt, now) {
-        if (!state.over && !state.won) {
+        const transitioning = levelTransitionActive(now);
+        if (state.levelTransitionUntil && !transitioning) {
+          state.levelTransitionUntil = 0;
+          state.morphTravel = null;
+          clearHeroMorph();
+        }
+        if (!state.over && !state.won && !transitioning) {
           clearInvalidPlayerPath(now);
           movePlayerAlongPath(dt, now);
           updateStench(dt, now);
@@ -2796,9 +2896,71 @@
         ctx.restore();
       }
 
+      function drawHeroMorph(now) {
+        const sprite = characterSprites.morph;
+        if (!sprite.ready || !state.morphFrom || !state.morphTo) return false;
+        const duration = Math.max(1, state.morphDuration || 3200);
+        const progress = clamp((now - state.morphStartedAt) / duration, 0, 1);
+        const princessToUnicorn = state.morphFrom === 'princess' && state.morphTo === 'unicorn';
+        const frameProgress = princessToUnicorn ? progress : 1 - progress;
+        const frameIndex = clamp(Math.floor(frameProgress * morphFrameCount), 0, morphFrameCount - 1);
+        const travel = state.morphTravel;
+        const travelProgress = progress * progress * (3 - 2 * progress);
+        const s = travel
+          ? {
+              x: travel.start.x + (travel.end.x - travel.start.x) * travelProgress,
+              y: travel.start.y + (travel.end.y - travel.start.y) * travelProgress
+            }
+          : worldToScreen(state.player.x, state.player.y);
+        const renderScale = travel ? clamp(Math.min(state.vw, state.vh) / 600, 0.72, 1.04) : state.zoom;
+        const facing = travel ? travel.facing : state.player.facing || 1;
+        const pulse = Math.sin(progress * Math.PI);
+        const bob = Math.sin(now / 130) * (travel ? 5 : 2.5) * (travel ? 1 : pulse);
+        ctx.save();
+        if (travel) {
+          ctx.strokeStyle = 'rgb(255 231 103 / 35%)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(travel.start.x, travel.start.y);
+          ctx.lineTo(s.x, s.y);
+          ctx.stroke();
+        }
+        ctx.translate(s.x, s.y + bob * renderScale);
+        ctx.scale(renderScale, renderScale);
+        ctx.fillStyle = 'rgb(0 0 0 / 25%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 25, 44 + pulse * 8, 11 + pulse * 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgb(255 231 103 / 82%)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, -34, 62 + Math.sin(now / 120) * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgb(255 118 196 / 58%)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, -34, 44 + Math.cos(now / 150) * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 9; i += 1) {
+          const a = now / 210 + i * Math.PI * 2 / 9;
+          const r = 48 + Math.sin(now / 170 + i) * 10;
+          const color = i % 3 === 0 ? '#ffe767' : i % 3 === 1 ? '#ff78c8' : '#86e8ff';
+          drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 3.8 + pulse * 2, color);
+        }
+        drawSpriteFrame(sprite, frameIndex, facing);
+        ctx.restore();
+        return true;
+      }
+
       function drawHero(now) {
+        if (levelTransitionActive(now)) return;
+        if (state.morphUntil && now < state.morphUntil && drawHeroMorph(now)) return;
         if (state.playerForm === 'princess') drawPrincess(now);
         else drawUnicorn(now);
+      }
+
+      function drawLevelTransition(now) {
+        if (levelTransitionActive(now)) drawHeroMorph(now);
       }
 
       const witchRunFrames = [
@@ -3460,6 +3622,7 @@
         }
         actors.sort((a, b) => a.y - b.y);
         for (const actor of actors) actor.draw();
+        drawLevelTransition(now);
         drawCrushBursts(now);
         drawMinimap();
         drawLevelIntro(now);
@@ -3484,6 +3647,7 @@
       let pinch = null;
 
       function handleCanvasInput(clientX, clientY, source) {
+        if (levelTransitionActive()) return;
         lastCanvasInput = performance.now();
         state.lastInput = source + ':' + Math.round(clientX) + ',' + Math.round(clientY);
         startBackgroundMusic();
@@ -3937,6 +4101,11 @@
         levelIntroVisible: Boolean(state.levelIntroUntil && performance.now() < state.levelIntroUntil),
         maxLevel: state.maxLevel,
         playerForm: state.playerForm,
+        morphActive: Boolean(state.morphUntil && performance.now() < state.morphUntil),
+        morphFrom: state.morphFrom || null,
+        morphTo: state.morphTo || null,
+        levelTransitionActive: levelTransitionActive(),
+        morphTravelActive: Boolean(state.morphTravel),
         score: state.score,
         lives: state.lives,
         won: state.won,
@@ -4014,6 +4183,7 @@
         sfxCount: Object.keys(sfxDefinitions).length,
         failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
+        morphSpriteReady: characterSprites.morph.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         goodTreeSpriteReady: scenerySprites.goodTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,

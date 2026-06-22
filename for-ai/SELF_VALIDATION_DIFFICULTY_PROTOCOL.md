@@ -61,16 +61,17 @@ The default target is:
 - Level 1: clearly playable.
 - Level 2: playable with two witches.
 - Level 3: playable but riskier.
-- Level 4: hard but not blocked.
+- Level 4: hard but not blocked; witches must not reach the player before a realistic first tree-gate pass window.
 - Level 5: hardest, but at least one successful strategic route should remain possible.
 
 No level should report moving-tree overlaps.
 No level should create a permanent route block to B.
-If success rate drops below 45 percent in the emulator, inspect whether the level is actually fun-hard or mechanically unfair.
+For chase, level-layout, tree-gate, or difficulty changes, run all five levels with at least 8 runs per level. Each level should be `playable` with success rate at or above 75 percent before deployment.
+If success rate drops below 75 percent in the emulator, inspect whether the level is actually fun-hard or mechanically unfair.
 
 ## Updating This Folder
 
 When goals or constraints change, update `PROJECT_PROTOCOL.md`.
 When tuning difficulty or adding mechanics, update this file and add a dated log with the latest batch summary.
 
-Latest log: `difficulty-validation-log-2026-06-22.md`
+Latest log: `solvability-validation-log-2026-06-22.md`
