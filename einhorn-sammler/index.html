@@ -693,6 +693,7 @@
             const newRoute = findPath(cellOf(state.player.x, state.player.y), exitCell);
             if (!newRoute.length || routeIncludesCell(newRoute, closeCell) || !routeUsesAny(newRoute, archCells)) return null;
             const delta = newRoute.length - oldLength;
+            if (delta < 1) return null;
             const archUse = archCells.filter((cell) => routeIncludesCell(newRoute, cell)).length;
             return {
               closeCell,
@@ -768,6 +769,7 @@
         const newRoute = findPath(cellOf(state.player.x, state.player.y), exitCell);
         const valid = hasPlayableRoutes()
           && newRoute.length
+          && newRoute.length > plan.oldLength
           && !routeIncludesCell(newRoute, plan.closeCell)
           && routeUsesAny(newRoute, plan.openCells);
         if (valid) {
