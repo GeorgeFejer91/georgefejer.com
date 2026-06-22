@@ -71,7 +71,7 @@
         maze: [],
         camera: { x: 0, y: 0 },
         player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0, facing: 1 },
-        witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, facing: -1 },
+        witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
         score: 0,
         lives: 3,
         best: Number(localStorage.getItem(storageKey) || 0),
@@ -83,7 +83,11 @@
         won: false,
         over: false,
         treats: [],
-        crumbs: []
+        crumbs: [],
+        stenchTrail: [],
+        stenchFogs: [],
+        stenchUntil: 0,
+        stenchEmit: 0
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
@@ -255,8 +259,8 @@
           const key = cellKey(cell);
           return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell);
         });
-        const treatTypes = ['speed', 'shield', 'freeze', 'spark'];
-        for (let i = 0; i < 18; i += 1) {
+        const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink'];
+        for (let i = 0; i < 20; i += 1) {
           const cell = chooseFarCell(cells, startCell, 8);
           const p = centerOf(cell);
           state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
@@ -315,8 +319,12 @@
         canvas.dataset.score = String(state.score);
         canvas.dataset.lives = String(state.lives);
         canvas.dataset.treat = active;
+        canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready ? 'ready' : 'loading';
+        canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
+        canvas.dataset.stenchFogs = String(state.stenchFogs.length);
+        canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil);
         canvas.dataset.won = String(state.won);
         canvas.dataset.over = String(state.over);
       }
@@ -333,6 +341,7 @@
         state.witch.y = w.y;
         state.witch.path = [];
         state.witch.repath = 0;
+        state.witch.stenchUntil = 0;
         state.witch.facing = -1;
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
@@ -348,6 +357,11 @@
         state.activeUntil = 0;
         state.shieldUntil = 0;
         state.witch.frozenUntil = 0;
+        state.witch.stenchUntil = 0;
+        state.stenchUntil = 0;
+        state.stenchEmit = 0;
+        state.stenchTrail = [];
+        state.stenchFogs = [];
         state.won = false;
         state.over = false;
         state.last = performance.now();
@@ -389,24 +403,82 @@
           state.witch.path = path.slice(1).map(centerOf);
           state.witch.repath = 0.42;
         }
-        const speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : state.witch.speed;
+        let speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : state.witch.speed;
+        if (now < state.witch.stenchUntil) speed *= 0.42;
         moveAlongPath(state.witch, speed, dt);
       }
 
       function applyTreat(type) {
         const now = performance.now();
         state.activeTreat = type;
-        state.activeUntil = now + (type === 'spark' ? 2500 : 7000);
+        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
         if (type === 'freeze') state.witch.frozenUntil = now + 3500;
         if (type === 'spark') state.score += 50;
+        if (type === 'stink') {
+          state.stenchUntil = now + 9000;
+          state.stenchEmit = 0;
+        }
         const label = {
           speed: 'Carrot rush: unicorn is faster.',
           shield: 'Moon shield: the witch bounces off.',
           freeze: 'Sleep mushroom: witch slowed.',
-          spark: 'Star treat: bonus magic.'
+          spark: 'Star treat: bonus magic.',
+          stink: 'Rotten strawberry: stinky bubbles trail behind.'
         }[type];
         showMessage(label, 1700);
+      }
+
+      function emitStenchBubble(now) {
+        const facing = state.player.facing || 1;
+        state.stenchTrail.push({
+          x: state.player.x - facing * 30 + (random() - 0.5) * 12,
+          y: state.player.y + 12 + (random() - 0.5) * 10,
+          r: 10 + random() * 8,
+          born: now,
+          life: 6200,
+          drift: (random() - 0.5) * 22,
+          phase: random() * Math.PI * 2,
+          hit: false
+        });
+      }
+
+      function updateStench(dt, now) {
+        if (now < state.stenchUntil && state.player.path.length) {
+          state.stenchEmit -= dt;
+          while (state.stenchEmit <= 0) {
+            emitStenchBubble(now);
+            state.stenchEmit += 0.16;
+          }
+        }
+
+        state.stenchTrail = state.stenchTrail.filter((bubble) => now - bubble.born < bubble.life);
+        state.stenchFogs = state.stenchFogs.filter((fog) => now - fog.born < fog.life);
+
+        for (const bubble of state.stenchTrail) {
+          const age = (now - bubble.born) / bubble.life;
+          bubble.y -= dt * 2.4;
+          bubble.x += Math.sin(age * 8 + bubble.phase) * dt * bubble.drift;
+          if (!bubble.hit && Math.hypot(state.witch.x - bubble.x, state.witch.y - bubble.y) < bubble.r + 34) {
+            bubble.hit = true;
+            state.witch.stenchUntil = Math.max(state.witch.stenchUntil, now + 2800);
+            state.score += 5;
+            state.stenchFogs.push({
+              x: bubble.x,
+              y: bubble.y,
+              born: now,
+              life: 3600,
+              r: 42 + random() * 18,
+              phase: random() * Math.PI * 2
+            });
+          }
+        }
+
+        for (const fog of state.stenchFogs) {
+          if (Math.hypot(state.witch.x - fog.x, state.witch.y - fog.y) < fog.r + 22) {
+            state.witch.stenchUntil = Math.max(state.witch.stenchUntil, now + 900);
+          }
+        }
       }
 
       function updatePickups(now) {
@@ -464,6 +536,7 @@
       function update(dt, now) {
         if (!state.over && !state.won) {
           moveAlongPath(state.player, currentPlayerSpeed(now), dt);
+          updateStench(dt, now);
           updateWitch(dt, now);
           updatePickups(now);
           updateWinLose(now);
@@ -573,7 +646,7 @@
         ctx.save();
         ctx.translate(s.x, s.y);
         ctx.shadowBlur = 18;
-        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767' };
+        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b' };
         ctx.fillStyle = colors[treat.type];
         ctx.shadowColor = colors[treat.type];
         if (treat.type === 'speed') {
@@ -599,13 +672,108 @@
           ctx.arc(0, -6 * pulse, 16 * pulse, Math.PI, Math.PI * 2);
           ctx.fill();
           ctx.fillRect(-6 * pulse, -6 * pulse, 12 * pulse, 24 * pulse);
-        } else {
+        } else if (treat.type === 'spark') {
           for (let i = 0; i < 8; i += 1) {
             const a = i / 8 * Math.PI * 2;
             ctx.beginPath();
             ctx.ellipse(Math.cos(a) * 11 * pulse, Math.sin(a) * 11 * pulse, 4 * pulse, 10 * pulse, a, 0, Math.PI * 2);
             ctx.fill();
           }
+        } else {
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = '#cc2a24';
+          ctx.strokeStyle = '#2a1110';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, 20 * pulse);
+          ctx.bezierCurveTo(-25 * pulse, 1 * pulse, -17 * pulse, -22 * pulse, 0, -17 * pulse);
+          ctx.bezierCurveTo(18 * pulse, -23 * pulse, 27 * pulse, 1 * pulse, 0, 20 * pulse);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#4f7e2a';
+          ctx.beginPath();
+          ctx.moveTo(0, -17 * pulse);
+          ctx.lineTo(-19 * pulse, -25 * pulse);
+          ctx.lineTo(-7 * pulse, -7 * pulse);
+          ctx.lineTo(0, -29 * pulse);
+          ctx.lineTo(7 * pulse, -7 * pulse);
+          ctx.lineTo(21 * pulse, -24 * pulse);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#7f5d35';
+          for (const spot of [[-12, -2, 7], [9, 7, 6], [-3, 13, 5]]) {
+            ctx.beginPath();
+            ctx.arc(spot[0] * pulse, spot[1] * pulse, spot[2] * pulse, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#aeb9a0';
+          for (const mold of [[10, -8, 8], [-10, 8, 6]]) {
+            ctx.beginPath();
+            ctx.arc(mold[0] * pulse, mold[1] * pulse, mold[2] * pulse, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#efd16d';
+          for (let i = 0; i < 5; i += 1) {
+            const a = i / 5 * Math.PI * 2;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * 10 * pulse, Math.sin(a) * 8 * pulse, 2 * pulse, 4 * pulse, a, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.strokeStyle = '#160b0b';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-9 * pulse, 0);
+          ctx.quadraticCurveTo(-4 * pulse, 4 * pulse, 0, 0);
+          ctx.moveTo(5 * pulse, 0);
+          ctx.quadraticCurveTo(10 * pulse, 4 * pulse, 15 * pulse, 0);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawStench(now) {
+        ctx.save();
+        for (const fog of state.stenchFogs) {
+          const age = (now - fog.born) / fog.life;
+          const alpha = Math.max(0, 1 - age);
+          const radius = fog.r * (0.85 + age * 0.55);
+          const s = worldToScreen(fog.x, fog.y);
+          if (s.x < -120 || s.y < -120 || s.x > state.vw + 120 || s.y > state.vh + 120) continue;
+          const gradient = ctx.createRadialGradient(s.x, s.y, radius * 0.15, s.x, s.y, radius);
+          gradient.addColorStop(0, `rgb(110 191 67 / ${0.5 * alpha})`);
+          gradient.addColorStop(1, 'rgb(110 191 67 / 0)');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = `rgb(176 230 92 / ${0.22 * alpha})`;
+          ctx.lineWidth = 3;
+          for (let i = 0; i < 3; i += 1) {
+            const a = fog.phase + i * 2.1 + age * 2;
+            ctx.beginPath();
+            ctx.arc(s.x + Math.cos(a) * radius * 0.24, s.y + Math.sin(a) * radius * 0.18, radius * (0.18 + i * 0.04), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+
+        for (const bubble of state.stenchTrail) {
+          const age = (now - bubble.born) / bubble.life;
+          const alpha = Math.max(0, 1 - age);
+          const s = worldToScreen(bubble.x, bubble.y);
+          if (s.x < -80 || s.y < -80 || s.x > state.vw + 80 || s.y > state.vh + 80) continue;
+          const wobble = Math.sin(now / 150 + bubble.phase) * 2;
+          ctx.fillStyle = `rgb(132 217 78 / ${0.32 * alpha})`;
+          ctx.strokeStyle = `rgb(194 255 137 / ${0.7 * alpha})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(s.x + wobble, s.y, bubble.r * (1 + age * 0.45), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = `rgb(230 255 193 / ${0.55 * alpha})`;
+          ctx.beginPath();
+          ctx.arc(s.x - bubble.r * 0.28 + wobble, s.y - bubble.r * 0.3, bubble.r * 0.22, 0, Math.PI * 2);
+          ctx.fill();
         }
         ctx.restore();
       }
@@ -1463,6 +1631,7 @@
         drawPathLine();
         for (const crumb of state.crumbs) if (!crumb.taken) drawCrumb(crumb);
         for (const treat of state.treats) if (!treat.taken) drawTreat(treat, performance.now());
+        drawStench(performance.now());
         if (state.player.y <= state.witch.y) {
           drawUnicorn(performance.now());
           drawWitch(performance.now());
@@ -1525,7 +1694,12 @@
         won: state.won,
         over: state.over,
         treatsLeft: state.treats.filter((item) => !item.taken).length,
+        stinkTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'stink').length,
         crumbsLeft: state.crumbs.filter((item) => !item.taken).length,
+        stenchBubbles: state.stenchTrail.length,
+        stenchFogs: state.stenchFogs.length,
+        stenchActive: performance.now() < state.stenchUntil,
+        witchSlowed: performance.now() < state.witch.stenchUntil,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
         playerStep: state.player.step,
