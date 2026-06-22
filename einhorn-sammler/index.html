@@ -123,7 +123,7 @@
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
       const scenerySprites = {
-        wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0),
+        wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0),
         evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0),
         goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0),
         frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0)
@@ -1365,8 +1365,8 @@
         }
         const offset = (c * 5 + r * 3) % 4;
         const frameIndex = (Math.floor(now / 185) + offset) % 4;
-        const drawW = grid.tile * 1.36;
-        const drawH = grid.tile * 1.36;
+        const drawW = grid.tile * 1.48;
+        const drawH = grid.tile * 1.48;
         const sway = Math.sin(now / 640 + c * 0.73 + r * 0.41) * 0.035;
         ctx.save();
         ctx.translate(x + grid.tile / 2, y + grid.tile + 9);
