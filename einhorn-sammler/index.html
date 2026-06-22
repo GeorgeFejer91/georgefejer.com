@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-music-l1-v1';
+      const assetVersion = '20260623-assets-v1';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -258,20 +258,30 @@
         musicBlocked: false,
         validationMode: false,
         sfxPlays: 0,
-        lastSfx: 'none'
+        lastSfx: 'none',
+        assetPhase: 'boot'
       };
+      const assetStats = {
+        total: 0,
+        requested: 0,
+        decoded: 0,
+        failed: 0,
+        webp: 0,
+        pngFallback: 0
+      };
+      let deferredSpriteLoadStarted = false;
       const characterSprites = {
-        unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
-        princess: loadSprite('assets/princess-run.png', 190, 230, 0.43, 30),
-        morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30),
-        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35),
-        witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
+        unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { required: true, priority: 'high' }),
+        princess: loadSprite('assets/princess-run.png', 190, 230, 0.43, 30, { lazy: true }),
+        morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30, { lazy: true }),
+        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { required: true, priority: 'high' }),
+        witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35, { lazy: true })
       };
       const scenerySprites = {
-        wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0),
-        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0),
-        goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0),
-        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0)
+        wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0, { lazy: true }),
+        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
+        goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
+        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0, { lazy: true })
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
@@ -283,7 +293,7 @@
       ];
       const backgroundMusic = new Audio();
       backgroundMusic.loop = false;
-      backgroundMusic.preload = 'auto';
+      backgroundMusic.preload = 'none';
       backgroundMusic.volume = 0.34;
       let currentMusicIndex = -1;
       const sfxDefinitions = {
@@ -306,15 +316,24 @@
       const sfxPools = {};
       const sfxPoolIndex = {};
       const sfxLastPlayed = {};
+      const eagerSfx = new Set(['crumb', 'treat', 'blocked', 'levelUp', 'witchCatch']);
 
-      Object.entries(sfxDefinitions).forEach(([name, definition]) => {
+      function createSfxPool(name) {
+        if (sfxPools[name]) return sfxPools[name];
+        const definition = sfxDefinitions[name];
+        if (!definition) return null;
         sfxPools[name] = Array.from({ length: 3 }, () => {
           const audio = new Audio('assets/sfx/' + definition.src + '?v=' + assetVersion);
-          audio.preload = 'auto';
+          audio.preload = eagerSfx.has(name) ? 'auto' : 'none';
           audio.volume = definition.volume;
           return audio;
         });
         sfxPoolIndex[name] = 0;
+        return sfxPools[name];
+      }
+
+      Object.keys(sfxDefinitions).forEach((name) => {
+        if (eagerSfx.has(name)) createSfxPool(name);
       });
 
       function musicStatus() {
@@ -379,8 +398,7 @@
 
       function playSfx(name, minGap = null) {
         const definition = sfxDefinitions[name];
-        const pool = sfxPools[name];
-        if (!definition || !pool) return;
+        if (!definition) return;
         const now = performance.now();
         const gap = minGap === null ? definition.gap : minGap;
         if (gap && sfxLastPlayed[name] && now - sfxLastPlayed[name] < gap) return;
@@ -391,6 +409,8 @@
           updateHud();
           return;
         }
+        const pool = createSfxPool(name);
+        if (!pool) return;
         const index = sfxPoolIndex[name] % pool.length;
         sfxPoolIndex[name] += 1;
         const audio = pool[index];
@@ -428,7 +448,15 @@
         return [...Object.values(characterSprites), ...Object.values(scenerySprites)];
       }
 
+      function requiredSprites() {
+        return allSprites().filter((sprite) => sprite.required);
+      }
+
       function currentSpriteSetReady() {
+        return requiredSprites().every((sprite) => sprite.ready);
+      }
+
+      function allSpritesReady() {
         return allSprites().every((sprite) => sprite.ready);
       }
 
@@ -449,27 +477,117 @@
         ctx.restore();
       }
 
-      function loadSprite(src, frameW, frameH, scale, ground) {
-        const image = new Image();
-        const versionedSrc = src + '?v=' + assetVersion;
+      function webpSpriteSrc(src) {
+        return src.replace(/\.png$/i, '.webp');
+      }
+
+      function versionedAsset(src) {
+        return src + '?v=' + assetVersion;
+      }
+
+      function preloadImage(src) {
         const preload = document.createElement('link');
         preload.rel = 'preload';
         preload.as = 'image';
-        preload.href = versionedSrc;
+        preload.href = versionedAsset(src);
         document.head.appendChild(preload);
-        const sprite = { image, src, versionedSrc, frameW, frameH, scale, ground, ready: false, failed: false };
-        image.onload = () => {
-          sprite.ready = true;
+      }
+
+      function maybeStartDeferredSpriteLoad() {
+        if (deferredSpriteLoadStarted || !currentSpriteSetReady()) return;
+        deferredSpriteLoadStarted = true;
+        state.assetPhase = 'deferred';
+        const loadDeferred = () => {
+          allSprites()
+            .filter((sprite) => sprite.lazy && !sprite.requested)
+            .forEach((sprite) => requestSprite(sprite));
           if (canvas.width) {
             updateHud();
             draw();
           }
         };
-        image.onerror = () => {
-          sprite.failed = true;
-          if (canvas.width) updateHud();
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadDeferred, { timeout: 900 });
+        } else {
+          window.setTimeout(loadDeferred, 220);
+        }
+      }
+
+      function completeSprite(sprite) {
+        sprite.ready = true;
+        sprite.decoded = true;
+        assetStats.decoded += 1;
+        if (sprite.usingWebp) assetStats.webp += 1;
+        if (allSpritesReady()) state.assetPhase = 'complete';
+        maybeStartDeferredSpriteLoad();
+        if (canvas.width) {
+          updateHud();
+          draw();
+        }
+      }
+
+      function failSprite(sprite, usedFallback) {
+        if (!usedFallback && sprite.fallbackSrc) {
+          assetStats.pngFallback += 1;
+          requestSprite(sprite, true);
+          return;
+        }
+        sprite.failed = true;
+        assetStats.failed += 1;
+        maybeStartDeferredSpriteLoad();
+        if (canvas.width) {
+          updateHud();
+          draw();
+        }
+      }
+
+      function requestSprite(sprite, useFallback = false) {
+        if (sprite.ready || (sprite.requested && !useFallback)) return;
+        sprite.requested = true;
+        sprite.failed = false;
+        assetStats.requested += 1;
+        const image = new Image();
+        const src = useFallback ? sprite.fallbackSrc : sprite.preferredSrc;
+        sprite.image = image;
+        sprite.currentSrc = src;
+        sprite.usingWebp = !useFallback && /\.webp$/i.test(src);
+        image.onload = () => {
+          const decodePromise = typeof image.decode === 'function' ? image.decode() : Promise.resolve();
+          decodePromise.then(() => completeSprite(sprite)).catch(() => completeSprite(sprite));
         };
-        image.src = versionedSrc;
+        image.onerror = () => failSprite(sprite, useFallback);
+        image.src = versionedAsset(src);
+      }
+
+      function loadSprite(src, frameW, frameH, scale, ground, options = {}) {
+        const preferredSrc = options.preferPng ? src : webpSpriteSrc(src);
+        const sprite = {
+          image: new Image(),
+          src,
+          preferredSrc,
+          fallbackSrc: preferredSrc === src ? null : src,
+          versionedSrc: versionedAsset(preferredSrc),
+          frameW,
+          frameH,
+          scale,
+          ground,
+          ready: false,
+          failed: false,
+          decoded: false,
+          requested: false,
+          required: Boolean(options.required),
+          lazy: Boolean(options.lazy),
+          priority: options.priority || 'normal',
+          usingWebp: false,
+          currentSrc: ''
+        };
+        assetStats.total += 1;
+        if (sprite.required || sprite.priority === 'high') {
+          preloadImage(preferredSrc);
+        }
+        if (!sprite.lazy) {
+          requestSprite(sprite);
+        }
         return sprite;
       }
 
@@ -899,6 +1017,14 @@
         canvas.dataset.leafTreats = String(state.treats.filter((item) => !item.taken && item.type === 'leaf').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.assetVersion = assetVersion;
+        canvas.dataset.assetPhase = state.assetPhase;
+        canvas.dataset.assetTotal = String(assetStats.total);
+        canvas.dataset.assetRequested = String(assetStats.requested);
+        canvas.dataset.assetDecoded = String(assetStats.decoded);
+        canvas.dataset.assetFailed = String(assetStats.failed);
+        canvas.dataset.assetWebp = String(assetStats.webp);
+        canvas.dataset.assetPngFallback = String(assetStats.pngFallback);
+        canvas.dataset.allSpritesReady = String(allSpritesReady());
         canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.morph.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.playerForm = state.playerForm;
@@ -4213,7 +4339,10 @@
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         assetVersion,
+        assetPhase: state.assetPhase,
+        assetStats: { ...assetStats },
         currentSpritesReady: currentSpriteSetReady(),
+        allSpritesReady: allSpritesReady(),
         music: musicStatus(),
         musicChunk: currentMusicIndex + 1,
         musicNextChunk: 'random',

@@ -20,6 +20,9 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
+- Sprite loading is WebP-first with PNG fallback. The boot-critical sprites are only the player unicorn and first witch; princess, morph, second witch, frog, waving trees, evil trees, and good trees must load lazily after the first playable frame.
+- Background music must use `preload="none"` and start only after player interaction. Keep unused old melody exports out of the deployed asset folder.
+- Debug and validation should inspect the canvas dataset fields `assetVersion`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetDecoded`, `assetTotal`, and `currentSprites`.
 
 ## Gameplay Rules To Preserve
 
