@@ -102,6 +102,7 @@
         stenchUntil: 0,
         stenchEmit: 0,
         evilTrees: [],
+        goodTrees: [],
         nextEvilTreeAt: 0,
         evilTreeEventCount: 0,
         evilTreeChanges: 0,
@@ -124,6 +125,7 @@
       const scenerySprites = {
         wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0),
         evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0),
+        goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0),
         frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0)
       };
       const evilTreeFrameCount = 8;
@@ -189,8 +191,48 @@
       const isOpen = (cell) => state.maze[cell.r] && state.maze[cell.r][cell.c] === 1;
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+      function allMovingTrees() {
+        return [...state.evilTrees, ...state.goodTrees];
+      }
+
+      function treeReservedCells(tree) {
+        const cells = [tree.currentCell, tree.nextCell, cellOf(tree.x, tree.y)];
+        if (tree.path && tree.path[0]) cells.push(cellOf(tree.path[0].x, tree.path[0].y));
+        if (tree.patrolCells && Number.isInteger(tree.patrolIndex)) cells.push(tree.patrolCells[tree.patrolIndex]);
+        return cells.filter(Boolean);
+      }
+
+      function treeOccupiesCell(tree, cell) {
+        return treeReservedCells(tree).some((treeCell) => cellsMatch(treeCell, cell));
+      }
+
+      function cellReservedByOtherTree(cell, tree) {
+        return allMovingTrees().some((other) => other !== tree && treeOccupiesCell(other, cell));
+      }
+
+      function movingTreeOverlapCount() {
+        const seen = new Set();
+        let overlaps = 0;
+        for (const tree of allMovingTrees()) {
+          const uniqueCells = new Set(treeReservedCells(tree).map(cellKey));
+          for (const key of uniqueCells) {
+            if (seen.has(key)) overlaps += 1;
+            else seen.add(key);
+          }
+        }
+        return overlaps;
+      }
+
+      function evilTreeBlocksPlayer(cell) {
+        return state.evilTrees.some((tree) => treeOccupiesCell(tree, cell));
+      }
+
+      function goodTreeBlocksWitch(cell) {
+        return state.goodTrees.some((tree) => treeOccupiesCell(tree, cell));
+      }
+
       function isOccupiedByEvilTree(cell) {
-        return state.evilTrees.some((tree) => cellsMatch(tree.occupiedCell, cell) || cellsMatch(cellOf(tree.x, tree.y), cell));
+        return evilTreeBlocksPlayer(cell);
       }
 
       function isWavingTreePathCell(cell) {
@@ -209,7 +251,12 @@
       }
 
       function isPlayerPassable(cell, now = performance.now()) {
+        if (evilTreeBlocksPlayer(cell)) return false;
         return isOpen(cell) || (leafTreePassActive(now) && isWavingTreePathCell(cell));
+      }
+
+      function isWitchPassable(cell) {
+        return isOpen(cell) && !goodTreeBlocksWitch(cell);
       }
 
       function clampCamera() {
@@ -396,10 +443,10 @@
           return;
         }
         const now = performance.now();
-        const passable = (cell) => isPlayerPassable(cell, now);
         const pos = screenToWorldPoint(clientX, clientY);
-        const target = nearestPassableCell(pos.x, pos.y, passable);
         const current = cellOf(state.player.x, state.player.y);
+        const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
+        const target = nearestPassableCell(pos.x, pos.y, passable);
         const path = findPath(current, target, passable);
         state.lastTarget = cellKey(target);
         state.lastPathLength = path.length;
@@ -441,8 +488,11 @@
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
         canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
         canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
+        canvas.dataset.goodTreeSprites = scenerySprites.goodTree.ready ? 'ready' : scenerySprites.goodTree.failed ? 'failed' : 'loading';
         canvas.dataset.frogSprites = scenerySprites.frog.ready ? 'ready' : scenerySprites.frog.failed ? 'failed' : 'loading';
         canvas.dataset.evilTrees = String(state.evilTrees.length);
+        canvas.dataset.goodTrees = String(state.goodTrees.length);
+        canvas.dataset.treeOverlaps = String(movingTreeOverlapCount());
         canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
         canvas.dataset.evilTreeChanges = String(state.evilTreeChanges);
         canvas.dataset.evilTreeSwitches = String(state.evilTreeSwitches);
@@ -515,6 +565,8 @@
         state.stenchTrail = [];
         state.stenchFogs = [];
         state.evilTrees = [];
+        state.goodTrees = [];
+        state.nextEvilTreeAt = 0;
         state.evilTreeEventCount = 0;
         state.evilTreeChanges = 0;
         state.evilTreeSwitches = 0;
@@ -526,7 +578,7 @@
         state.nextEvilTreeWalkerAt = 0;
         state.mazeRevision = 0;
         state.transformUntil = 0;
-        scheduleNextEvilTree(performance.now(), true);
+        setupTreePatrols();
         state.won = false;
         state.over = false;
         state.last = performance.now();
@@ -554,8 +606,8 @@
       }
 
       function clearInvalidPlayerPath(now) {
-        const passable = (cell) => isPlayerPassable(cell, now);
         const current = cellOf(state.player.x, state.player.y);
+        const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
         if (!passable(current) && isWavingTreePathCell(current)) {
           const escape = nearestOpenCell(state.player.x, state.player.y);
           state.player.path = [centerOf(escape)];
@@ -626,7 +678,7 @@
           secondWitchStartCell,
           cellOf(state.player.x, state.player.y),
           ...activeWitches().map((witch) => cellOf(witch.x, witch.y)),
-          ...state.evilTrees.flatMap((tree) => [tree.occupiedCell, tree.targetCell, tree.plan && tree.plan.treeCell, tree.plan && tree.plan.routeCell, cellOf(tree.x, tree.y)].filter(Boolean))
+          ...allMovingTrees().flatMap((tree) => treeReservedCells(tree))
         ];
       }
 
@@ -669,6 +721,189 @@
         for (const witch of activeWitches()) {
           witch.path = [];
           witch.repath = 0;
+        }
+      }
+
+      function isTreePatrolSafeCell(cell) {
+        if (!isOpen(cell)) return false;
+        const protectedCells = [startCell, exitCell, witchStartCell, secondWitchStartCell];
+        return protectedCells.every((protectedCell) => cellDistance(cell, protectedCell) > 3);
+      }
+
+      function collectRouteHorizontalRuns(route, minLength) {
+        const runs = [];
+        let run = [];
+        const flush = () => {
+          if (run.length >= minLength) runs.push(run);
+          run = [];
+        };
+        for (let i = 0; i < route.length; i += 1) {
+          const cell = route[i];
+          const previous = run[run.length - 1];
+          if (!previous || (cell.r === previous.r && Math.abs(cell.c - previous.c) === 1)) {
+            run.push(cell);
+          } else {
+            flush();
+            run.push(cell);
+          }
+        }
+        flush();
+        return runs;
+      }
+
+      function collectOpenHorizontalRuns(minLength) {
+        const runs = [];
+        for (let r = 1; r < grid.rows - 1; r += 1) {
+          let run = [];
+          const flush = () => {
+            if (run.length >= minLength) runs.push(run);
+            run = [];
+          };
+          for (let c = 1; c < grid.cols - 1; c += 1) {
+            const cell = { c, r };
+            if (isTreePatrolSafeCell(cell)) {
+              run.push(cell);
+            } else {
+              flush();
+            }
+          }
+          flush();
+        }
+        return runs;
+      }
+
+      function patrolCandidateSlices(runs, anchor, span, reserved, fallbackPenalty = 0) {
+        const candidates = [];
+        for (const run of runs) {
+          if (run.length < span) continue;
+          for (let start = 0; start <= run.length - span; start += 1) {
+            const cells = run.slice(start, start + span);
+            if (cells.some((cell) => reserved.has(cellKey(cell)) || !isTreePatrolSafeCell(cell))) continue;
+            const center = cells[Math.floor(cells.length / 2)];
+            candidates.push({
+              cells,
+              score: cellDistance(center, anchor) + fallbackPenalty + Math.abs(cells[0].c - cells[cells.length - 1].c) * 0.02
+            });
+          }
+        }
+        return candidates;
+      }
+
+      function pickTreePatrolCells(route, ratio, span, reserved) {
+        if (!route.length) return null;
+        const anchor = route[clamp(Math.floor((route.length - 1) * ratio), 0, route.length - 1)];
+        const routeRuns = collectRouteHorizontalRuns(route, span);
+        let candidates = patrolCandidateSlices(routeRuns, anchor, span, reserved, 0);
+        if (!candidates.length) {
+          const openRuns = collectOpenHorizontalRuns(span);
+          candidates = patrolCandidateSlices(openRuns, anchor, span, reserved, 8);
+        }
+        if (!candidates.length) return null;
+        candidates.sort((a, b) => a.score - b.score);
+        return candidates[0].cells;
+      }
+
+      function makePatrolTree(kind, cells, index) {
+        const p = centerOf(cells[0]);
+        const next = cells[1] || cells[0];
+        return {
+          kind,
+          id: kind + '-' + index,
+          x: p.x,
+          y: p.y,
+          path: [],
+          speed: kind === 'evil' ? (evilTreeTestMode ? 185 : 118) : (evilTreeTestMode ? 170 : 102),
+          step: random() * 6,
+          facing: next.c < cells[0].c ? -1 : 1,
+          patrolCells: cells,
+          patrolIndex: 0,
+          patrolDir: 1,
+          currentCell: cells[0],
+          nextCell: null,
+          wait: random() * 0.5,
+          turns: 0
+        };
+      }
+
+      function reservePatrolCells(reserved, cells) {
+        for (const cell of cells) reserved.add(cellKey(cell));
+      }
+
+      function setupTreePatrols() {
+        state.evilTrees = [];
+        state.goodTrees = [];
+        const route = findPath(startCell, exitCell);
+        if (!route.length) return;
+        const reserved = new Set([cellKey(startCell), cellKey(exitCell), cellKey(witchStartCell), cellKey(secondWitchStartCell)]);
+        const span = state.level >= 2 ? 6 : 5;
+        const addTree = (kind, ratio, index) => {
+          const cells = pickTreePatrolCells(route, ratio, span, reserved);
+          if (!cells) return;
+          reservePatrolCells(reserved, cells);
+          const tree = makePatrolTree(kind, cells, index);
+          if (kind === 'evil') state.evilTrees.push(tree);
+          else state.goodTrees.push(tree);
+        };
+        const evilRatios = state.level >= 2 ? [0.22, 0.5, 0.76] : [0.35, 0.68];
+        const goodRatios = state.level >= 2 ? [0.39, 0.62] : [0.52];
+        evilRatios.forEach((ratio, index) => addTree('evil', ratio, index));
+        goodRatios.forEach((ratio, index) => addTree('good', ratio, index));
+        state.evilTreeEventCount = state.evilTrees.length;
+        state.evilTreeWaveTarget = state.evilTrees.length + state.goodTrees.length;
+        state.lastEvilTreeArch = 'fixed patrols';
+      }
+
+      function queueTreePatrolStep(tree) {
+        if (!tree.patrolCells || tree.patrolCells.length < 2 || tree.path.length) return;
+        let nextIndex = tree.patrolIndex + tree.patrolDir;
+        if (nextIndex < 0 || nextIndex >= tree.patrolCells.length) {
+          tree.patrolDir *= -1;
+          tree.turns += 1;
+          if (tree.kind === 'evil') state.evilTreeSwitches += 1;
+          nextIndex = tree.patrolIndex + tree.patrolDir;
+        }
+        const nextCell = tree.patrolCells[nextIndex];
+        if (!nextCell || cellReservedByOtherTree(nextCell, tree)) {
+          tree.wait = evilTreeTestMode ? 0.12 : 0.28;
+          return;
+        }
+        const current = cellOf(tree.x, tree.y);
+        tree.patrolIndex = nextIndex;
+        tree.nextCell = nextCell;
+        tree.facing = nextCell.c < current.c ? -1 : nextCell.c > current.c ? 1 : tree.facing;
+        tree.path = [centerOf(nextCell)];
+        tree.wait = 0;
+        if (tree.kind === 'evil') state.evilTreeChanges += 1;
+      }
+
+      function finishTreePatrolStep(tree) {
+        if (!tree.nextCell || tree.path.length) return;
+        if (!cellsMatch(cellOf(tree.x, tree.y), tree.nextCell)) return;
+        tree.currentCell = tree.nextCell;
+        tree.nextCell = null;
+        tree.wait = evilTreeTestMode ? 0.05 : 0.12 + random() * 0.22;
+      }
+
+      function updateTreePatrols(dt) {
+        for (const tree of allMovingTrees()) {
+          if (!tree.path.length) {
+            finishTreePatrolStep(tree);
+            tree.wait = Math.max(0, (tree.wait || 0) - dt);
+            if (tree.wait <= 0) queueTreePatrolStep(tree);
+            if (!tree.path.length) tree.step += dt * 1.7;
+          }
+          if (tree.path.length && tree.nextCell && cellReservedByOtherTree(tree.nextCell, tree)) {
+            const current = cellOf(tree.x, tree.y);
+            const currentIndex = tree.patrolCells.findIndex((cell) => cellsMatch(cell, current));
+            if (currentIndex >= 0) tree.patrolIndex = currentIndex;
+            tree.currentCell = current;
+            tree.nextCell = null;
+            tree.path = [];
+            tree.wait = evilTreeTestMode ? 0.1 : 0.22;
+            continue;
+          }
+          moveAlongPath(tree, tree.speed, dt);
+          finishTreePatrolStep(tree);
         }
       }
 
@@ -920,12 +1155,17 @@
       function updateWitch(actor, dt, now) {
         if (!actor.active && actor !== state.witch) return;
         if (now < actor.frozenUntil || state.over || state.won) return;
+        const from = cellOf(actor.x, actor.y);
+        const passable = (cell) => cellsMatch(cell, from) || isWitchPassable(cell);
+        if (actor.path.length && !pathPointsAreOpen(actor.path, passable)) {
+          actor.path = [];
+          actor.repath = 0;
+        }
         actor.repath -= dt;
         if (actor.repath <= 0 || actor.path.length < 2) {
-          const from = cellOf(actor.x, actor.y);
           const to = cellOf(state.player.x, state.player.y);
-          const path = findPath(from, to);
-          actor.path = path.slice(1).map(centerOf);
+          const path = findPath(from, to, passable);
+          actor.path = path.length ? path.slice(1).map(centerOf) : [];
           actor.repath = 0.42;
         }
         let speed = mushroomPassThroughActive(now) ? 60 : actor.speed;
@@ -1081,7 +1321,7 @@
           clearInvalidPlayerPath(now);
           moveAlongPath(state.player, currentPlayerSpeed(now), dt);
           updateStench(dt, now);
-          updateEvilTrees(dt, now);
+          updateTreePatrols(dt, now);
           for (const witch of activeWitches()) updateWitch(witch, dt, now);
           updatePickups(now);
           updateWinLose(now);
@@ -2368,6 +2608,56 @@
         ctx.restore();
       }
 
+      function drawGoodTree(now, tree) {
+        const s = worldToScreen(tree.x, tree.y);
+        const sprite = scenerySprites.goodTree;
+        const step = Number.isFinite(tree.step) ? tree.step : 0;
+        const frameIndex = Math.abs(Math.floor(step * 1.05)) % evilTreeFrameCount;
+        const drawW = grid.tile * 1.6;
+        const drawH = grid.tile * 1.6;
+        const bob = Math.sin(step * 1.1) * 1.4;
+        ctx.save();
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
+        ctx.fillStyle = 'rgb(147 255 127 / 22%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 31, 38, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (sprite.ready) {
+          ctx.save();
+          ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
+          ctx.drawImage(
+            sprite.image,
+            frameIndex * sprite.frameW,
+            0,
+            sprite.frameW,
+            sprite.frameH,
+            -drawW / 2,
+            -drawH + 26,
+            drawW,
+            drawH
+          );
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#65b943';
+          ctx.strokeStyle = '#0b220d';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.ellipse(0, -42, 43, 35, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#8a5b2b';
+          ctx.fillRect(-18, -32, 36, 60);
+          ctx.strokeRect(-18, -32, 36, 60);
+          ctx.fillStyle = '#f8fff0';
+          ctx.beginPath();
+          ctx.arc(-9, -10, 5, 0, Math.PI * 2);
+          ctx.arc(9, -10, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
       function drawMinimap() {
         const size = Math.min(96, Math.max(72, Math.min(state.vw, state.vh) * 0.22));
         const x = 10;
@@ -2412,6 +2702,12 @@
           ctx.arc(x + tree.x * sx, y + tree.y * sy, 3, 0, Math.PI * 2);
           ctx.fill();
         }
+        ctx.fillStyle = '#8cff6f';
+        for (const tree of state.goodTrees) {
+          ctx.beginPath();
+          ctx.arc(x + tree.x * sx, y + tree.y * sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
 
@@ -2438,6 +2734,9 @@
         }
         for (const tree of state.evilTrees) {
           actors.push({ y: tree.y, draw: () => drawEvilTree(now, tree) });
+        }
+        for (const tree of state.goodTrees) {
+          actors.push({ y: tree.y, draw: () => drawGoodTree(now, tree) });
         }
         actors.sort((a, b) => a.y - b.y);
         for (const actor of actors) actor.draw();
@@ -2608,6 +2907,7 @@
           return null;
         })(),
         evilTrees: state.evilTrees.length,
+        goodTrees: state.goodTrees.length,
         evilTreeEvents: state.evilTreeEventCount,
         evilTreeChanges: state.evilTreeChanges,
         evilTreeSwitches: state.evilTreeSwitches,
@@ -2620,6 +2920,7 @@
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
+        goodTreeSpriteReady: scenerySprites.goodTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
