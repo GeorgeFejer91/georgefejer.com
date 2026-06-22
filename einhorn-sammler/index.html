@@ -417,6 +417,7 @@
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
+        canvas.dataset.witchesPassable = String(mushroomPassThroughActive(now));
         canvas.dataset.lastInput = state.lastInput || 'none';
         canvas.dataset.lastTarget = state.lastTarget || 'none';
         canvas.dataset.lastPathLength = String(state.lastPathLength || 0);
@@ -497,6 +498,10 @@
 
       function currentPlayerSpeed(now) {
         return state.activeTreat === 'speed' && now < state.activeUntil ? 405 : state.player.speed;
+      }
+
+      function mushroomPassThroughActive(now) {
+        return state.activeTreat === 'freeze' && now < state.activeUntil;
       }
 
       function moveAlongPath(actor, speed, dt) {
@@ -863,7 +868,7 @@
           actor.path = path.slice(1).map(centerOf);
           actor.repath = 0.42;
         }
-        let speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : actor.speed;
+        let speed = mushroomPassThroughActive(now) ? 60 : actor.speed;
         if (now < actor.stenchUntil) speed *= 0.42;
         moveAlongPath(actor, speed, dt);
       }
@@ -985,6 +990,9 @@
         if (state.over || state.won) return;
         const caughtBy = activeWitches().find((witch) => Math.hypot(state.player.x - witch.x, state.player.y - witch.y) < 42);
         if (caughtBy) {
+          if (mushroomPassThroughActive(now)) {
+            return;
+          }
           if (now < state.shieldUntil) {
             const w = centerOf(caughtBy === state.witch2 ? secondWitchStartCell : witchStartCell);
             caughtBy.x = w.x;
@@ -2080,6 +2088,7 @@
       function drawWitch(now, actor = state.witch, sprite = characterSprites.witch) {
         const s = worldToScreen(actor.x, actor.y);
         const frozen = now < actor.frozenUntil;
+        const passable = mushroomPassThroughActive(now);
         const step = Number.isFinite(actor.step) ? actor.step : 0;
         const moving = Array.isArray(actor.path) && actor.path.length > 0 && !frozen;
         const frameIndex = moving ? Math.abs(Math.floor(step * 1.35)) % witchRunFrames.length : 1;
@@ -2095,6 +2104,9 @@
         ctx.beginPath();
         ctx.ellipse(0, 29, 34, 10, 0, 0, Math.PI * 2);
         ctx.fill();
+        if (passable) {
+          ctx.globalAlpha = 0.62;
+        }
 
         if (drawSpriteFrame(sprite, frameIndex, actor.facing || -1)) {
           if (frozen) {
@@ -2390,6 +2402,7 @@
         stenchFogs: state.stenchFogs.length,
         stenchActive: performance.now() < state.stenchUntil,
         witchSlowed: performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil,
+        witchesPassable: mushroomPassThroughActive(performance.now()),
         evilTrees: state.evilTrees.length,
         evilTreeEvents: state.evilTreeEventCount,
         evilTreeChanges: state.evilTreeChanges,
