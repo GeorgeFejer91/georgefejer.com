@@ -58,6 +58,8 @@
       const startCell = { c: 1, r: 1 };
       const exitCell = { c: grid.cols - 2, r: grid.rows - 2 };
       const witchStartCell = { c: grid.cols - 2, r: 1 };
+      const secondWitchStartCell = { c: 1, r: grid.rows - 2 };
+      const defaultStartLevel = 2;
       const dirs = [
         { dc: 1, dr: 0 },
         { dc: -1, dr: 0 },
@@ -75,6 +77,9 @@
         maxZoom: 1.35,
         player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0, facing: 1 },
         witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
+        witch2: { x: 0, y: 0, path: [], speed: 210, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: 1, active: false },
+        level: defaultStartLevel,
+        maxLevel: 2,
         score: 0,
         lives: 3,
         best: Number(localStorage.getItem(storageKey) || 0),
@@ -94,7 +99,8 @@
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
-        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35)
+        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35),
+        witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
 
       function loadSprite(src, frameW, frameH, scale, ground) {
@@ -212,6 +218,7 @@
         carve(startCell.c, startCell.r);
         state.maze[exitCell.r][exitCell.c] = 1;
         state.maze[witchStartCell.r][witchStartCell.c] = 1;
+        state.maze[secondWitchStartCell.r][secondWitchStartCell.c] = 1;
 
         for (let i = 0; i < 95; i += 1) {
           const c = 2 + Math.floor(random() * (grid.cols - 4));
@@ -304,7 +311,7 @@
         state.crumbs = [];
         const cells = openCells().filter((cell) => {
           const key = cellKey(cell);
-          return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell);
+          return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell) && key !== cellKey(secondWitchStartCell);
         });
         const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink'];
         for (let i = 0; i < 20; i += 1) {
@@ -365,16 +372,18 @@
         const now = performance.now();
         const active = state.activeTreat && now < state.activeUntil ? state.activeTreat + ' ' + Math.ceil((state.activeUntil - now) / 1000) + 's' : 'none';
         canvas.dataset.playerCell = cellKey(cellOf(state.player.x, state.player.y));
+        canvas.dataset.level = String(state.level);
         canvas.dataset.witchCell = cellKey(cellOf(state.witch.x, state.witch.y));
+        canvas.dataset.witch2Cell = state.witch2.active ? cellKey(cellOf(state.witch2.x, state.witch2.y)) : 'inactive';
         canvas.dataset.score = String(state.score);
         canvas.dataset.lives = String(state.lives);
         canvas.dataset.treat = active;
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.best = String(state.best);
-        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready ? 'ready' : 'loading';
+        canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
-        canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil);
+        canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
         canvas.dataset.lastInput = state.lastInput || 'none';
         canvas.dataset.lastTarget = state.lastTarget || 'none';
         canvas.dataset.lastPathLength = String(state.lastPathLength || 0);
@@ -387,6 +396,7 @@
       function resetPositions() {
         const p = centerOf(startCell);
         const w = centerOf(witchStartCell);
+        const w2 = centerOf(secondWitchStartCell);
         state.player.x = p.x;
         state.player.y = p.y;
         state.player.path = [];
@@ -398,22 +408,32 @@
         state.witch.repath = 0;
         state.witch.stenchUntil = 0;
         state.witch.facing = -1;
+        state.witch2.x = w2.x;
+        state.witch2.y = w2.y;
+        state.witch2.path = [];
+        state.witch2.step = 0;
+        state.witch2.repath = 0;
+        state.witch2.frozenUntil = 0;
+        state.witch2.stenchUntil = 0;
+        state.witch2.facing = 1;
+        state.witch2.active = state.level >= 2;
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
         clampCamera();
       }
 
-      function reset() {
+      function startLevel(level) {
+        state.level = level;
         generateMaze();
         placeTreats();
         resetPositions();
-        state.score = 0;
-        state.lives = 3;
         state.activeTreat = null;
         state.activeUntil = 0;
         state.shieldUntil = 0;
         state.witch.frozenUntil = 0;
         state.witch.stenchUntil = 0;
+        state.witch2.frozenUntil = 0;
+        state.witch2.stenchUntil = 0;
         state.stenchUntil = 0;
         state.stenchEmit = 0;
         state.stenchTrail = [];
@@ -421,8 +441,14 @@
         state.won = false;
         state.over = false;
         state.last = performance.now();
-        showMessage('Start at A. Tap paths to reach B. Avoid the witch.', 2200);
+        showMessage(level === 1 ? 'Level 1. Reach B and avoid the witch.' : 'Level 2. Two witches are chasing now.', 2200);
         updateHud();
+      }
+
+      function reset() {
+        state.score = 0;
+        state.lives = 3;
+        startLevel(defaultStartLevel);
       }
 
       function currentPlayerSpeed(now) {
@@ -449,19 +475,24 @@
         actor.y += (dy / d) * step;
       }
 
-      function updateWitch(dt, now) {
-        if (now < state.witch.frozenUntil || state.over || state.won) return;
-        state.witch.repath -= dt;
-        if (state.witch.repath <= 0 || state.witch.path.length < 2) {
-          const from = cellOf(state.witch.x, state.witch.y);
+      function activeWitches() {
+        return state.witch2.active ? [state.witch, state.witch2] : [state.witch];
+      }
+
+      function updateWitch(actor, dt, now) {
+        if (!actor.active && actor !== state.witch) return;
+        if (now < actor.frozenUntil || state.over || state.won) return;
+        actor.repath -= dt;
+        if (actor.repath <= 0 || actor.path.length < 2) {
+          const from = cellOf(actor.x, actor.y);
           const to = cellOf(state.player.x, state.player.y);
           const path = findPath(from, to);
-          state.witch.path = path.slice(1).map(centerOf);
-          state.witch.repath = 0.42;
+          actor.path = path.slice(1).map(centerOf);
+          actor.repath = 0.42;
         }
-        let speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : state.witch.speed;
-        if (now < state.witch.stenchUntil) speed *= 0.42;
-        moveAlongPath(state.witch, speed, dt);
+        let speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : actor.speed;
+        if (now < actor.stenchUntil) speed *= 0.42;
+        moveAlongPath(actor, speed, dt);
       }
 
       function applyTreat(type) {
@@ -469,7 +500,9 @@
         state.activeTreat = type;
         state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
-        if (type === 'freeze') state.witch.frozenUntil = now + 3500;
+        if (type === 'freeze') {
+          for (const witch of activeWitches()) witch.frozenUntil = now + 3500;
+        }
         if (type === 'spark') state.score += 50;
         if (type === 'stink') {
           state.stenchUntil = now + 9000;
@@ -515,24 +548,29 @@
           const age = (now - bubble.born) / bubble.life;
           bubble.y -= dt * 2.4;
           bubble.x += Math.sin(age * 8 + bubble.phase) * dt * bubble.drift;
-          if (!bubble.hit && Math.hypot(state.witch.x - bubble.x, state.witch.y - bubble.y) < bubble.r + 34) {
-            bubble.hit = true;
-            state.witch.stenchUntil = Math.max(state.witch.stenchUntil, now + 2800);
-            state.score += 5;
-            state.stenchFogs.push({
-              x: bubble.x,
-              y: bubble.y,
-              born: now,
-              life: 3600,
-              r: 42 + random() * 18,
-              phase: random() * Math.PI * 2
-            });
+          if (!bubble.hit) {
+            const hitWitch = activeWitches().find((witch) => Math.hypot(witch.x - bubble.x, witch.y - bubble.y) < bubble.r + 34);
+            if (hitWitch) {
+              bubble.hit = true;
+              hitWitch.stenchUntil = Math.max(hitWitch.stenchUntil, now + 2800);
+              state.score += 5;
+              state.stenchFogs.push({
+                x: bubble.x,
+                y: bubble.y,
+                born: now,
+                life: 3600,
+                r: 42 + random() * 18,
+                phase: random() * Math.PI * 2
+              });
+            }
           }
         }
 
         for (const fog of state.stenchFogs) {
-          if (Math.hypot(state.witch.x - fog.x, state.witch.y - fog.y) < fog.r + 22) {
-            state.witch.stenchUntil = Math.max(state.witch.stenchUntil, now + 900);
+          for (const witch of activeWitches()) {
+            if (Math.hypot(witch.x - fog.x, witch.y - fog.y) < fog.r + 22) {
+              witch.stenchUntil = Math.max(witch.stenchUntil, now + 900);
+            }
           }
         }
       }
@@ -560,20 +598,26 @@
       function updateWinLose(now) {
         const exit = centerOf(exitCell);
         if (!state.won && Math.hypot(state.player.x - exit.x, state.player.y - exit.y) < 38) {
-          state.won = true;
           state.score += 150;
           state.best = Math.max(state.best, state.score);
           localStorage.setItem(storageKey, String(state.best));
-          showMessage('You reached B. The unicorn escaped the labyrinth!', 5000);
+          if (state.level < state.maxLevel) {
+            startLevel(state.level + 1);
+            showMessage('Level 2 begins. Two witches are chasing.', 2600);
+          } else {
+            state.won = true;
+            showMessage('You cleared level 2. The unicorn escaped both witches!', 5000);
+          }
         }
         if (state.over || state.won) return;
-        if (Math.hypot(state.player.x - state.witch.x, state.player.y - state.witch.y) < 42) {
+        const caughtBy = activeWitches().find((witch) => Math.hypot(state.player.x - witch.x, state.player.y - witch.y) < 42);
+        if (caughtBy) {
           if (now < state.shieldUntil) {
-            const w = centerOf(witchStartCell);
-            state.witch.x = w.x;
-            state.witch.y = w.y;
-            state.witch.path = [];
-            state.witch.frozenUntil = now + 1800;
+            const w = centerOf(caughtBy === state.witch2 ? secondWitchStartCell : witchStartCell);
+            caughtBy.x = w.x;
+            caughtBy.y = w.y;
+            caughtBy.path = [];
+            caughtBy.frozenUntil = now + 1800;
             state.score += 25;
             showMessage('Shield repelled the witch +25.', 1500);
           } else {
@@ -593,7 +637,7 @@
         if (!state.over && !state.won) {
           moveAlongPath(state.player, currentPlayerSpeed(now), dt);
           updateStench(dt, now);
-          updateWitch(dt, now);
+          for (const witch of activeWitches()) updateWitch(witch, dt, now);
           updatePickups(now);
           updateWinLose(now);
         }
@@ -1594,16 +1638,16 @@
         ctx.restore();
       }
 
-      function drawWitch(now) {
-        const s = worldToScreen(state.witch.x, state.witch.y);
-        const frozen = now < state.witch.frozenUntil;
-        const moving = state.witch.path.length > 0 && !frozen;
-        const frameIndex = moving ? Math.floor(state.witch.step * 1.35) % witchRunFrames.length : 1;
+      function drawWitch(now, actor = state.witch, sprite = characterSprites.witch) {
+        const s = worldToScreen(actor.x, actor.y);
+        const frozen = now < actor.frozenUntil;
+        const moving = actor.path.length > 0 && !frozen;
+        const frameIndex = moving ? Math.floor(actor.step * 1.35) % witchRunFrames.length : 1;
         const frame = witchRunFrames[frameIndex];
-        const feet = witchAnimatedFeet(state.witch.step, moving, frame);
+        const feet = witchAnimatedFeet(actor.step, moving, frame);
         const palette = witchPalette(frozen);
-        const bob = moving ? Math.sin(state.witch.step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
-        const lean = moving ? Math.sin(state.witch.step * 0.65) * 0.035 : 0;
+        const bob = moving ? Math.sin(actor.step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
+        const lean = moving ? Math.sin(actor.step * 0.65) * 0.035 : 0;
         ctx.save();
         ctx.translate(s.x, s.y + bob * state.zoom);
         ctx.scale(state.zoom, state.zoom);
@@ -1612,7 +1656,7 @@
         ctx.ellipse(0, 29, 34, 10, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        if (drawSpriteFrame(characterSprites.witch, frameIndex, state.witch.facing || -1)) {
+        if (drawSpriteFrame(sprite, frameIndex, actor.facing || -1)) {
           if (frozen) {
             ctx.strokeStyle = 'rgb(200 249 255 / 70%)';
             ctx.lineWidth = 3;
@@ -1624,8 +1668,8 @@
           return;
         }
 
-        ctx.rotate(lean * (state.witch.facing || -1));
-        ctx.scale((state.witch.facing || -1) * 0.58, 0.58);
+        ctx.rotate(lean * (actor.facing || -1));
+        ctx.scale((actor.facing || -1) * 0.58, 0.58);
         drawWitchBoot(feet[1][0], feet[1][1], feet[1][2], true, palette);
         drawWitchStaff(frame, frozen, palette);
         drawWitchCape(frame, palette);
@@ -1677,6 +1721,12 @@
         ctx.beginPath();
         ctx.arc(x + state.witch.x * sx, y + state.witch.y * sy, 3, 0, Math.PI * 2);
         ctx.fill();
+        if (state.witch2.active) {
+          ctx.fillStyle = '#73f0ff';
+          ctx.beginPath();
+          ctx.arc(x + state.witch2.x * sx, y + state.witch2.y * sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
 
@@ -1693,13 +1743,16 @@
         for (const crumb of state.crumbs) if (!crumb.taken) drawCrumb(crumb);
         for (const treat of state.treats) if (!treat.taken) drawTreat(treat, performance.now());
         drawStench(performance.now());
-        if (state.player.y <= state.witch.y) {
-          drawUnicorn(performance.now());
-          drawWitch(performance.now());
-        } else {
-          drawWitch(performance.now());
-          drawUnicorn(performance.now());
+        const now = performance.now();
+        const actors = [
+          { y: state.player.y, draw: () => drawUnicorn(now) },
+          { y: state.witch.y, draw: () => drawWitch(now, state.witch, characterSprites.witch) }
+        ];
+        if (state.witch2.active) {
+          actors.push({ y: state.witch2.y, draw: () => drawWitch(now, state.witch2, characterSprites.witch2) });
         }
+        actors.sort((a, b) => a.y - b.y);
+        for (const actor of actors) actor.draw();
         drawMinimap();
       }
 
@@ -1825,6 +1878,8 @@
       window.__unicornMazeDebug = () => ({
         playerCell: cellOf(state.player.x, state.player.y),
         witchCell: cellOf(state.witch.x, state.witch.y),
+        witch2Cell: state.witch2.active ? cellOf(state.witch2.x, state.witch2.y) : null,
+        level: state.level,
         score: state.score,
         lives: state.lives,
         won: state.won,
@@ -1835,13 +1890,16 @@
         stenchBubbles: state.stenchTrail.length,
         stenchFogs: state.stenchFogs.length,
         stenchActive: performance.now() < state.stenchUntil,
-        witchSlowed: performance.now() < state.witch.stenchUntil,
+        witchSlowed: performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
+        witch2Path: state.witch2.path.length,
         playerStep: state.player.step,
         witchStep: state.witch.step,
+        witch2Step: state.witch2.step,
         playerFacing: state.player.facing,
         witchFacing: state.witch.facing,
+        witch2Facing: state.witch2.facing,
         zoom: state.zoom,
         lastInput: state.lastInput || 'none',
         canvas: { width: canvas.width, height: canvas.height, dpr: state.dpr },
