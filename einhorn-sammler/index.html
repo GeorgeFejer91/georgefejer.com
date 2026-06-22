@@ -239,6 +239,15 @@
         return treeReservedCells(tree).some((treeCell) => cellsMatch(treeCell, cell));
       }
 
+      function treeBlocksActorCell(tree, cell) {
+        const current = cellOf(tree.x, tree.y);
+        if (cellsMatch(current, cell)) return true;
+        if (!tree.path || !tree.path[0]) return false;
+        const targetCell = cellOf(tree.path[0].x, tree.path[0].y);
+        const distanceToTarget = dist({ x: tree.x, y: tree.y }, tree.path[0]);
+        return distanceToTarget < grid.tile * 0.34 && cellsMatch(targetCell, cell);
+      }
+
       function cellReservedByOtherTree(cell, tree) {
         return allMovingTrees().some((other) => other !== tree && treeOccupiesCell(other, cell));
       }
@@ -260,12 +269,16 @@
         return allMovingTrees().reduce((longest, tree) => Math.max(longest, tree.patrolCells ? tree.patrolCells.length : 0), 0);
       }
 
+      function movingTreeGateWindowCount() {
+        return allMovingTrees().reduce((count, tree) => count + (tree.gateWindow ? 1 : 0), 0);
+      }
+
       function evilTreeBlocksPlayer(cell) {
-        return state.evilTrees.some((tree) => treeOccupiesCell(tree, cell));
+        return state.evilTrees.some((tree) => treeBlocksActorCell(tree, cell));
       }
 
       function goodTreeBlocksWitch(cell) {
-        return state.goodTrees.some((tree) => treeOccupiesCell(tree, cell));
+        return state.goodTrees.some((tree) => treeBlocksActorCell(tree, cell));
       }
 
       function isOccupiedByEvilTree(cell) {
@@ -536,6 +549,7 @@
         canvas.dataset.evilTrees = String(state.evilTrees.length);
         canvas.dataset.goodTrees = String(state.goodTrees.length);
         canvas.dataset.treeOverlaps = String(movingTreeOverlapCount());
+        canvas.dataset.treeGateWindows = String(movingTreeGateWindowCount());
         canvas.dataset.longestTreePatrol = String(longestMovingTreePatrol());
         canvas.dataset.gateWait = state.lastGateWait || 'none';
         canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
@@ -838,13 +852,54 @@
         }, 0);
       }
 
-      function routeCellInfluenceScore(cells, routeSet) {
-        if (!routeSet) return 0;
-        return cells.reduce((score, cell) => {
-          if (routeSet.has(cellKey(cell))) return score + 3;
-          const touchesRoute = dirs.some((dir) => routeSet.has(cellKey({ c: cell.c + dir.dc, r: cell.r + dir.dr })));
-          return score + (touchesRoute ? 1 : 0);
-        }, 0);
+      function routeGateMetrics(cells, routeSet) {
+        if (!routeSet) {
+          return {
+            direct: 0,
+            adjacent: 0,
+            offRoute: cells.length,
+            endpointOffRoute: 0,
+            sideRoom: 0,
+            sideGate: false,
+            hasWindow: false,
+            followsRoutePenalty: 0,
+            noGatePenalty: 0
+          };
+        }
+        const directIndices = [];
+        let adjacent = 0;
+        for (let i = 0; i < cells.length; i += 1) {
+          const cell = cells[i];
+          if (routeSet.has(cellKey(cell))) {
+            directIndices.push(i);
+          } else if (dirs.some((dir) => routeSet.has(cellKey({ c: cell.c + dir.dc, r: cell.r + dir.dr })))) {
+            adjacent += 1;
+          }
+        }
+        const direct = directIndices.length;
+        const offRoute = cells.length - direct;
+        const endpointOffRoute = (routeSet.has(cellKey(cells[0])) ? 0 : 1)
+          + (routeSet.has(cellKey(cells[cells.length - 1])) ? 0 : 1);
+        const leadingRoom = direct ? directIndices[0] : 0;
+        const trailingRoom = direct ? cells.length - 1 - directIndices[directIndices.length - 1] : 0;
+        const sideRoom = Math.max(leadingRoom, trailingRoom);
+        const maxRouteCells = Math.max(2, Math.floor(cells.length * 0.45));
+        const sideGate = direct > 0
+          && offRoute >= 2
+          && sideRoom >= 2
+          && direct <= Math.max(2, Math.floor(cells.length * 0.55));
+        const hasWindow = direct > 0 && cells.length >= 3;
+        return {
+          direct,
+          adjacent,
+          offRoute,
+          endpointOffRoute,
+          sideRoom,
+          sideGate,
+          hasWindow,
+          followsRoutePenalty: Math.max(0, direct - maxRouteCells) * 3.4,
+          noGatePenalty: direct ? (hasWindow ? 0 : 7.5) : 13
+        };
       }
 
       function localChokeScore(cells) {
@@ -864,23 +919,33 @@
               segment = [];
               return;
             }
-            const windowLength = Math.min(maxSpan, segment.length);
-            for (let start = 0; start <= segment.length - windowLength; start += 1) {
-              const cells = segment.slice(start, start + windowLength);
-              const center = cells[Math.floor(cells.length / 2)];
-              const crossings = verticalCrossingScore(cells);
-              const routeInfluence = routeCellInfluenceScore(cells, routeSet);
-              const choke = localChokeScore(cells);
-              candidates.push({
-                cells,
-                score: cellDistance(center, anchor)
-                  + fallbackPenalty
-                  - cells.length * 0.42
-                  - crossings * 0.62
-                  - routeInfluence * 0.95
-                  - choke * 0.58
-                  + Math.abs(cells[0].c - cells[cells.length - 1].c) * 0.01
-              });
+            const maxWindowLength = Math.min(maxSpan, segment.length);
+            for (let windowLength = minSpan; windowLength <= maxWindowLength; windowLength += 1) {
+              for (let start = 0; start <= segment.length - windowLength; start += 1) {
+                const cells = segment.slice(start, start + windowLength);
+                const center = cells[Math.floor(cells.length / 2)];
+                const crossings = verticalCrossingScore(cells);
+                const gateMetrics = routeGateMetrics(cells, routeSet);
+                const choke = localChokeScore(cells);
+                const longPatrolPenalty = Math.max(0, cells.length - 7) * 0.48;
+                candidates.push({
+                  cells,
+                  gateMetrics,
+                  score: cellDistance(center, anchor)
+                    + fallbackPenalty
+                    + gateMetrics.noGatePenalty
+                    + gateMetrics.followsRoutePenalty
+                    + longPatrolPenalty
+                    - cells.length * 0.24
+                    - crossings * 0.34
+                    - choke * 0.28
+                    - gateMetrics.direct * 0.72
+                    - gateMetrics.adjacent * 0.28
+                    - gateMetrics.endpointOffRoute * 1.15
+                    - gateMetrics.sideRoom * 0.42
+                    - (gateMetrics.sideGate ? 8.5 : gateMetrics.hasWindow ? 3.5 : 0)
+                });
+              }
             }
             segment = [];
           };
@@ -896,26 +961,63 @@
         return candidates;
       }
 
-      function pickTreePatrolCells(route, ratio, minSpan, maxSpan, reserved) {
-        if (!route.length) return null;
-        const anchor = route[clamp(Math.floor((route.length - 1) * ratio), 0, route.length - 1)];
-        const routeSet = new Set(route.map(cellKey));
-        const routeRuns = collectRouteHorizontalRuns(route, minSpan);
-        let candidates = patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, routeSet, 0);
-        if (!candidates.length) {
-          const openRuns = collectOpenHorizontalRuns(minSpan);
-          candidates = patrolCandidateSlices(openRuns, anchor, minSpan, maxSpan, reserved, routeSet, 8);
+      function combineRoutes(routes) {
+        const seen = new Set();
+        const combined = [];
+        for (const route of routes) {
+          for (const cell of route) {
+            const key = cellKey(cell);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            combined.push(cell);
+          }
         }
-        if (!candidates.length && minSpan > 5) {
-          const openRuns = collectOpenHorizontalRuns(5);
-          candidates = patrolCandidateSlices(openRuns, anchor, 5, Math.min(8, maxSpan), reserved, routeSet, 12);
-        }
-        if (!candidates.length) return null;
-        candidates.sort((a, b) => a.score - b.score);
-        return candidates[0].cells;
+        return combined;
       }
 
-      function makePatrolTree(kind, cells, index) {
+      function orientPatrolCellsForGate(cells, routeSet) {
+        if (!routeSet || !cells.length) return cells;
+        const directIndices = cells
+          .map((cell, index) => routeSet.has(cellKey(cell)) ? index : -1)
+          .filter((index) => index >= 0);
+        if (!directIndices.length) return cells;
+        const leadingRoom = directIndices[0];
+        const trailingRoom = cells.length - 1 - directIndices[directIndices.length - 1];
+        if (leadingRoom >= trailingRoom) return cells;
+        return [...cells].reverse();
+      }
+
+      function pickTreePatrolCells(routes, ratio, minSpan, maxSpan, reserved) {
+        const routeList = routes.filter((route) => route && route.length);
+        const combinedRoute = combineRoutes(routeList);
+        if (!combinedRoute.length) return null;
+        const anchor = combinedRoute[clamp(Math.floor((combinedRoute.length - 1) * ratio), 0, combinedRoute.length - 1)];
+        const routeSet = new Set(combinedRoute.map(cellKey));
+        const routeRuns = routeList.flatMap((route) => collectRouteHorizontalRuns(route, minSpan));
+        const openRuns = collectOpenHorizontalRuns(minSpan);
+        let candidates = patrolCandidateSlices(openRuns, anchor, minSpan, maxSpan, reserved, routeSet, 0);
+        let gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
+        if (!candidates.length) {
+          candidates = patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, routeSet, 8);
+          gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
+        }
+        if (!candidates.length && minSpan > 5) {
+          const shorterOpenRuns = collectOpenHorizontalRuns(5);
+          candidates = patrolCandidateSlices(shorterOpenRuns, anchor, 5, Math.min(8, maxSpan), reserved, routeSet, 12);
+          gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
+        }
+        if (!candidates.length) return null;
+        const pool = gateCandidates.length ? gateCandidates : candidates;
+        pool.sort((a, b) => a.score - b.score);
+        const best = pool[0];
+        return {
+          cells: orientPatrolCellsForGate(best.cells, routeSet),
+          gateWindow: Boolean(best.gateMetrics && best.gateMetrics.hasWindow),
+          gateMetrics: best.gateMetrics || null
+        };
+      }
+
+      function makePatrolTree(kind, cells, index, gateWindow = false, gateMetrics = null) {
         const p = centerOf(cells[0]);
         const next = cells[1] || cells[0];
         return {
@@ -933,7 +1035,9 @@
           currentCell: cells[0],
           nextCell: null,
           wait: random() * 0.5,
-          turns: 0
+          turns: 0,
+          gateWindow,
+          gateMetrics
         };
       }
 
@@ -950,24 +1054,41 @@
           findPath(witchStartCell, startCell),
           state.level >= 2 ? findPath(secondWitchStartCell, startCell) : []
         ].filter((witchRoute) => witchRoute.length);
+        const strategicRoutes = [route, ...witchRoutes];
         const reserved = new Set([cellKey(startCell), cellKey(exitCell), cellKey(witchStartCell), cellKey(secondWitchStartCell)]);
-        const minSpan = state.level >= 2 ? 6 : 5;
-        const maxSpan = state.level >= 2 ? 11 : 9;
-        const addTree = (kind, routeSource, ratio, index) => {
-          const cells = pickTreePatrolCells(routeSource, ratio, minSpan, maxSpan, reserved);
-          if (!cells) return;
+        const minSpan = 5;
+        const maxSpan = state.level >= 2 ? 10 : 9;
+        const addedByKind = { evil: 0, good: 0 };
+        const addTree = (kind, ratio) => {
+          const patrol = pickTreePatrolCells(strategicRoutes, ratio, minSpan, maxSpan, reserved);
+          if (!patrol || !patrol.cells) return;
+          const cells = patrol.cells;
           reservePatrolCells(reserved, cells);
-          const tree = makePatrolTree(kind, cells, index);
+          const tree = makePatrolTree(kind, cells, addedByKind[kind], patrol.gateWindow, patrol.gateMetrics);
+          addedByKind[kind] += 1;
           if (kind === 'evil') state.evilTrees.push(tree);
           else state.goodTrees.push(tree);
         };
-        const evilRatios = state.level >= 2 ? [0.16, 0.31, 0.47, 0.64, 0.82] : [0.26, 0.5, 0.74];
-        const goodRatios = state.level >= 2 ? [0.2, 0.36, 0.54, 0.72] : [0.34, 0.62];
-        evilRatios.forEach((ratio, index) => addTree('evil', route, ratio, index));
-        goodRatios.forEach((ratio, index) => {
-          const routeSource = witchRoutes[index % Math.max(1, witchRoutes.length)] || route;
-          addTree('good', routeSource, ratio, index);
-        });
+        const gatePlan = state.level >= 2
+          ? [
+            ['evil', 0.12],
+            ['good', 0.2],
+            ['evil', 0.3],
+            ['good', 0.4],
+            ['evil', 0.5],
+            ['good', 0.6],
+            ['evil', 0.7],
+            ['good', 0.8],
+            ['evil', 0.9]
+          ]
+          : [
+            ['evil', 0.2],
+            ['good', 0.35],
+            ['evil', 0.5],
+            ['good', 0.65],
+            ['evil', 0.8]
+          ];
+        gatePlan.forEach(([kind, ratio]) => addTree(kind, ratio));
         state.evilTreeEventCount = state.evilTrees.length;
         state.evilTreeWaveTarget = state.evilTrees.length + state.goodTrees.length;
         state.lastEvilTreeArch = 'fixed patrols';
@@ -3034,6 +3155,7 @@
         goodTrees: state.goodTrees.length,
         longestTreePatrol: longestMovingTreePatrol(),
         treeOverlaps: movingTreeOverlapCount(),
+        treeGateWindows: movingTreeGateWindowCount(),
         gateWait: state.lastGateWait || 'none',
         evilTreeEvents: state.evilTreeEventCount,
         evilTreeChanges: state.evilTreeChanges,
