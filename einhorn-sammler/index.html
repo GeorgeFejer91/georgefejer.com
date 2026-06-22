@@ -70,6 +70,9 @@
         vh: 0,
         maze: [],
         camera: { x: 0, y: 0 },
+        zoom: 0.75,
+        minZoom: 0.55,
+        maxZoom: 1.35,
         player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0, facing: 1 },
         witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
         score: 0,
@@ -153,6 +156,38 @@
       const cellOf = (x, y) => ({ c: clamp(Math.floor(x / grid.tile), 0, grid.cols - 1), r: clamp(Math.floor(y / grid.tile), 0, grid.rows - 1) });
       const isOpen = (cell) => state.maze[cell.r] && state.maze[cell.r][cell.c] === 1;
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+      function clampCamera() {
+        const halfW = state.vw / (2 * state.zoom);
+        const halfH = state.vh / (2 * state.zoom);
+        state.camera.x = world.w <= halfW * 2 ? world.w / 2 : clamp(state.camera.x, halfW, world.w - halfW);
+        state.camera.y = world.h <= halfH * 2 ? world.h / 2 : clamp(state.camera.y, halfH, world.h - halfH);
+      }
+
+      function worldToScreen(x, y) {
+        return {
+          x: (x - state.camera.x) * state.zoom + state.vw / 2,
+          y: (y - state.camera.y) * state.zoom + state.vh / 2
+        };
+      }
+
+      function screenToWorldPoint(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: state.camera.x + (clientX - rect.left - state.vw / 2) / state.zoom,
+          y: state.camera.y + (clientY - rect.top - state.vh / 2) / state.zoom
+        };
+      }
+
+      function setZoom(nextZoom, clientX = state.vw / 2, clientY = state.vh / 2) {
+        const before = screenToWorldPoint(clientX, clientY);
+        state.zoom = clamp(nextZoom, state.minZoom, state.maxZoom);
+        const after = screenToWorldPoint(clientX, clientY);
+        state.camera.x += before.x - after.x;
+        state.camera.y += before.y - after.y;
+        clampCamera();
+        updateHud();
+      }
 
       function shuffle(list) {
         for (let i = list.length - 1; i > 0; i -= 1) {
@@ -247,6 +282,18 @@
         return startCell;
       }
 
+      function directionalNeighbor(pos, current) {
+        const origin = centerOf(current);
+        const dx = pos.x - origin.x;
+        const dy = pos.y - origin.y;
+        const options = dirs
+          .map((dir) => ({ cell: { c: current.c + dir.dc, r: current.r + dir.dr }, score: dx * dir.dc + dy * dir.dr }))
+          .filter((option) => option.score > 0 && isOpen(option.cell))
+          .sort((a, b) => b.score - a.score);
+        if (options.length) return options[0].cell;
+        return dirs.map((dir) => ({ c: current.c + dir.dc, r: current.r + dir.dr })).find(isOpen) || null;
+      }
+
       function chooseFarCell(cells, reference, minDistance) {
         const filtered = cells.filter((cell) => Math.abs(cell.c - reference.c) + Math.abs(cell.r - reference.r) > minDistance);
         return filtered[Math.floor(random() * filtered.length)] || cells[Math.floor(random() * cells.length)];
@@ -280,14 +327,7 @@
         canvas.height = Math.floor(state.vh * state.dpr);
         canvas.style.width = state.vw + 'px';
         canvas.style.height = state.vh + 'px';
-      }
-
-      function screenToWorld(clientX, clientY) {
-        const rect = canvas.getBoundingClientRect();
-        return {
-          x: state.camera.x - state.vw / 2 + clientX - rect.left,
-          y: state.camera.y - state.vh / 2 + clientY - rect.top
-        };
+        clampCamera();
       }
 
       function setDestination(clientX, clientY) {
@@ -295,15 +335,25 @@
           reset();
           return;
         }
-        const pos = screenToWorld(clientX, clientY);
+        const pos = screenToWorldPoint(clientX, clientY);
         const target = nearestOpenCell(pos.x, pos.y);
         const current = cellOf(state.player.x, state.player.y);
         const path = findPath(current, target);
+        state.lastTarget = cellKey(target);
+        state.lastPathLength = path.length;
         if (path.length > 1) {
           state.player.path = path.slice(1).map(centerOf);
           showMessage('Unicorn path set: ' + (path.length - 1) + ' steps.', 1200);
         } else {
-          showMessage('That part of the forest is blocked.', 1100);
+          const next = directionalNeighbor(pos, current);
+          if (next) {
+            state.player.path = [centerOf(next)];
+            state.lastTarget = cellKey(next);
+            state.lastPathLength = 2;
+            showMessage('Unicorn steps toward the tap.', 900);
+          } else {
+            showMessage('That part of the forest is blocked.', 1100);
+          }
         }
       }
 
@@ -325,6 +375,11 @@
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil);
+        canvas.dataset.lastInput = state.lastInput || 'none';
+        canvas.dataset.lastTarget = state.lastTarget || 'none';
+        canvas.dataset.lastPathLength = String(state.lastPathLength || 0);
+        canvas.dataset.playerPath = String(state.player.path.length);
+        canvas.dataset.zoom = state.zoom.toFixed(2);
         canvas.dataset.won = String(state.won);
         canvas.dataset.over = String(state.over);
       }
@@ -345,6 +400,7 @@
         state.witch.facing = -1;
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
+        clampCamera();
       }
 
       function reset() {
@@ -543,25 +599,24 @@
         }
         state.camera.x += (state.player.x - state.camera.x) * Math.min(1, dt * 6);
         state.camera.y += (state.player.y - state.camera.y) * Math.min(1, dt * 6);
-        state.camera.x = clamp(state.camera.x, state.vw / 2, world.w - state.vw / 2);
-        state.camera.y = clamp(state.camera.y, state.vh / 2, world.h - state.vh / 2);
+        clampCamera();
         if (state.messageUntil && now > state.messageUntil && !state.over && !state.won) {
           state.messageUntil = 0;
         }
         updateHud();
       }
 
-      function worldToScreen(x, y) {
-        return { x: x - state.camera.x + state.vw / 2, y: y - state.camera.y + state.vh / 2 };
-      }
-
       function drawMaze() {
-        const startC = clamp(Math.floor((state.camera.x - state.vw / 2) / grid.tile) - 2, 0, grid.cols - 1);
-        const endC = clamp(Math.floor((state.camera.x + state.vw / 2) / grid.tile) + 2, 0, grid.cols - 1);
-        const startR = clamp(Math.floor((state.camera.y - state.vh / 2) / grid.tile) - 2, 0, grid.rows - 1);
-        const endR = clamp(Math.floor((state.camera.y + state.vh / 2) / grid.tile) + 2, 0, grid.rows - 1);
+        const halfW = state.vw / (2 * state.zoom);
+        const halfH = state.vh / (2 * state.zoom);
+        const startC = clamp(Math.floor((state.camera.x - halfW) / grid.tile) - 2, 0, grid.cols - 1);
+        const endC = clamp(Math.floor((state.camera.x + halfW) / grid.tile) + 2, 0, grid.cols - 1);
+        const startR = clamp(Math.floor((state.camera.y - halfH) / grid.tile) - 2, 0, grid.rows - 1);
+        const endR = clamp(Math.floor((state.camera.y + halfH) / grid.tile) + 2, 0, grid.rows - 1);
         ctx.save();
-        ctx.translate(-state.camera.x + state.vw / 2, -state.camera.y + state.vh / 2);
+        ctx.translate(state.vw / 2, state.vh / 2);
+        ctx.scale(state.zoom, state.zoom);
+        ctx.translate(-state.camera.x, -state.camera.y);
         ctx.fillStyle = '#14331d';
         ctx.fillRect(0, 0, world.w, world.h);
         for (let r = startR; r <= endR; r += 1) {
@@ -627,7 +682,9 @@
       function drawPathLine() {
         if (!state.player.path.length) return;
         ctx.save();
-        ctx.translate(-state.camera.x + state.vw / 2, -state.camera.y + state.vh / 2);
+        ctx.translate(state.vw / 2, state.vh / 2);
+        ctx.scale(state.zoom, state.zoom);
+        ctx.translate(-state.camera.x, -state.camera.y);
         ctx.strokeStyle = 'rgb(219 255 136 / 58%)';
         ctx.lineWidth = 5;
         ctx.lineCap = 'round';
@@ -645,6 +702,7 @@
         const pulse = Math.sin(now / 220 + treat.x) * 0.15 + 1;
         ctx.save();
         ctx.translate(s.x, s.y);
+        ctx.scale(state.zoom, state.zoom);
         ctx.shadowBlur = 18;
         const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b' };
         ctx.fillStyle = colors[treat.type];
@@ -737,7 +795,7 @@
         for (const fog of state.stenchFogs) {
           const age = (now - fog.born) / fog.life;
           const alpha = Math.max(0, 1 - age);
-          const radius = fog.r * (0.85 + age * 0.55);
+          const radius = fog.r * (0.85 + age * 0.55) * state.zoom;
           const s = worldToScreen(fog.x, fog.y);
           if (s.x < -120 || s.y < -120 || s.x > state.vw + 120 || s.y > state.vh + 120) continue;
           const gradient = ctx.createRadialGradient(s.x, s.y, radius * 0.15, s.x, s.y, radius);
@@ -762,17 +820,18 @@
           const alpha = Math.max(0, 1 - age);
           const s = worldToScreen(bubble.x, bubble.y);
           if (s.x < -80 || s.y < -80 || s.x > state.vw + 80 || s.y > state.vh + 80) continue;
-          const wobble = Math.sin(now / 150 + bubble.phase) * 2;
+          const wobble = Math.sin(now / 150 + bubble.phase) * 2 * state.zoom;
+          const radius = bubble.r * (1 + age * 0.45) * state.zoom;
           ctx.fillStyle = `rgb(132 217 78 / ${0.32 * alpha})`;
           ctx.strokeStyle = `rgb(194 255 137 / ${0.7 * alpha})`;
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(s.x + wobble, s.y, bubble.r * (1 + age * 0.45), 0, Math.PI * 2);
+          ctx.arc(s.x + wobble, s.y, radius, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
           ctx.fillStyle = `rgb(230 255 193 / ${0.55 * alpha})`;
           ctx.beginPath();
-          ctx.arc(s.x - bubble.r * 0.28 + wobble, s.y - bubble.r * 0.3, bubble.r * 0.22, 0, Math.PI * 2);
+          ctx.arc(s.x - radius * 0.28 + wobble, s.y - radius * 0.3, radius * 0.22, 0, Math.PI * 2);
           ctx.fill();
         }
         ctx.restore();
@@ -783,7 +842,7 @@
         if (s.x < -30 || s.y < -30 || s.x > state.vw + 30 || s.y > state.vh + 30) return;
         ctx.fillStyle = '#f6df82';
         ctx.beginPath();
-        ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+        ctx.arc(s.x, s.y, 5 * state.zoom, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -1084,7 +1143,8 @@
         const lean = moving ? Math.sin(state.player.step * 0.72) * 0.035 : Math.sin(now / 950) * 0.018;
         const shield = now < state.shieldUntil;
         ctx.save();
-        ctx.translate(s.x, s.y + bob);
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
         if (shield) {
           ctx.strokeStyle = 'rgb(145 234 255 / 78%)';
           ctx.lineWidth = 5;
@@ -1545,7 +1605,8 @@
         const bob = moving ? Math.sin(state.witch.step * 1.25) * 2.6 : Math.sin(now / 220) * 2;
         const lean = moving ? Math.sin(state.witch.step * 0.65) * 0.035 : 0;
         ctx.save();
-        ctx.translate(s.x, s.y + bob);
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
         ctx.fillStyle = 'rgb(0 0 0 / 26%)';
         ctx.beginPath();
         ctx.ellipse(0, 29, 34, 10, 0, 0, Math.PI * 2);
@@ -1587,7 +1648,7 @@
       function drawMinimap() {
         const size = Math.min(96, Math.max(72, Math.min(state.vw, state.vh) * 0.22));
         const x = 10;
-        const y = 10;
+        const y = state.vh - size - 10;
         ctx.save();
         ctx.fillStyle = 'rgb(3 10 8 / 58%)';
         ctx.strokeStyle = 'rgb(223 255 236 / 34%)';
@@ -1642,36 +1703,107 @@
         drawMinimap();
       }
 
-      function frame(now) {
+      let lastDrawAt = 0;
+
+      function stepFrame(now) {
         const dt = Math.min(0.05, (now - state.last) / 1000);
         state.last = now;
         update(dt, now);
         draw();
+        lastDrawAt = performance.now();
+      }
+
+      function frame(now) {
+        stepFrame(now);
         requestAnimationFrame(frame);
       }
 
-      let lastPointerInput = 0;
+      let lastCanvasInput = 0;
+      let pinch = null;
+
+      function handleCanvasInput(clientX, clientY, source) {
+        lastCanvasInput = performance.now();
+        state.lastInput = source + ':' + Math.round(clientX) + ',' + Math.round(clientY);
+        setDestination(clientX, clientY);
+        updateHud();
+      }
 
       canvas.addEventListener('pointerdown', (event) => {
-        lastPointerInput = performance.now();
-        if (event.pointerId !== undefined) {
-          try {
-            canvas.setPointerCapture(event.pointerId);
-          } catch (error) {
-            // Some embedded browsers do not expose pointer capture for synthetic taps.
-          }
+        if (event.isPrimary === false) return;
+        event.preventDefault();
+        handleCanvasInput(event.clientX, event.clientY, 'pointer');
+      }, { passive: false });
+
+      canvas.addEventListener('touchstart', (event) => {
+        if (event.touches && event.touches.length === 2) {
+          const a = event.touches[0];
+          const b = event.touches[1];
+          event.preventDefault();
+          pinch = {
+            distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+            zoom: state.zoom,
+            x: (a.clientX + b.clientX) / 2,
+            y: (a.clientY + b.clientY) / 2
+          };
+          return;
         }
-        setDestination(event.clientX, event.clientY);
+        if (window.PointerEvent && performance.now() - lastCanvasInput < 120) return;
+        const touch = event.changedTouches && event.changedTouches[0];
+        if (!touch) return;
+        event.preventDefault();
+        handleCanvasInput(touch.clientX, touch.clientY, 'touch');
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (event) => {
+        if (!pinch || !event.touches || event.touches.length !== 2) return;
+        const a = event.touches[0];
+        const b = event.touches[1];
+        const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        const x = (a.clientX + b.clientX) / 2;
+        const y = (a.clientY + b.clientY) / 2;
+        event.preventDefault();
+        setZoom(pinch.zoom * (distance / Math.max(1, pinch.distance)), x, y);
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', (event) => {
+        if (!event.touches || event.touches.length < 2) pinch = null;
+      }, { passive: false });
+
+      canvas.addEventListener('mousedown', (event) => {
+        if (event.button !== 0 || performance.now() - lastCanvasInput < 120) return;
+        event.preventDefault();
+        handleCanvasInput(event.clientX, event.clientY, 'mouse');
       });
 
       canvas.addEventListener('click', (event) => {
-        if (performance.now() - lastPointerInput < 120) return;
-        setDestination(event.clientX, event.clientY);
+        if (performance.now() - lastCanvasInput < 180) return;
+        event.preventDefault();
+        handleCanvasInput(event.clientX, event.clientY, 'click');
       });
+
+      canvas.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        setZoom(state.zoom * (event.deltaY > 0 ? 0.9 : 1.1), event.clientX, event.clientY);
+      }, { passive: false });
 
       window.addEventListener('keydown', (event) => {
         const current = cellOf(state.player.x, state.player.y);
         let next = null;
+        if (event.key === '+' || event.key === '=') {
+          event.preventDefault();
+          setZoom(state.zoom * 1.12);
+          return;
+        }
+        if (event.key === '-' || event.key === '_') {
+          event.preventDefault();
+          setZoom(state.zoom / 1.12);
+          return;
+        }
+        if (event.key === '0') {
+          event.preventDefault();
+          setZoom(0.75);
+          return;
+        }
         if (event.key === 'ArrowLeft' || event.key === 'a') next = { c: current.c - 1, r: current.r };
         else if (event.key === 'ArrowRight' || event.key === 'd') next = { c: current.c + 1, r: current.r };
         else if (event.key === 'ArrowUp' || event.key === 'w') next = { c: current.c, r: current.r - 1 };
@@ -1686,6 +1818,10 @@
       reset();
       draw();
       requestAnimationFrame(frame);
+      setInterval(() => {
+        const now = performance.now();
+        if (now - lastDrawAt > 140) stepFrame(now);
+      }, 80);
       window.__unicornMazeDebug = () => ({
         playerCell: cellOf(state.player.x, state.player.y),
         witchCell: cellOf(state.witch.x, state.witch.y),
@@ -1706,6 +1842,8 @@
         witchStep: state.witch.step,
         playerFacing: state.player.facing,
         witchFacing: state.witch.facing,
+        zoom: state.zoom,
+        lastInput: state.lastInput || 'none',
         canvas: { width: canvas.width, height: canvas.height, dpr: state.dpr },
         viewport: { width: state.vw, height: state.vh }
       });
