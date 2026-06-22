@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-banner-v1';
+      const assetVersion = '20260622-music-l1-v1';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -74,20 +74,20 @@
           subtitle: 'Einhorn, gib Horn!',
           difficulty: 'Krone frei!',
           playerForm: 'unicorn',
-          playerSpeed: 275,
+          playerSpeed: 300,
           witchCount: 1,
-          witchSpeed: 160,
+          witchSpeed: 124,
           witch2Speed: 0,
-          witchStartDelay: 1.2,
-          mazeOpenings: 106,
+          witchStartDelay: 5,
+          mazeOpenings: 122,
           treats: 30,
           crumbs: 178,
           minSpan: 5,
           maxSpan: 9,
-          evilTreeSpeed: 92,
-          goodTreeSpeed: 80,
-          treeWaitScale: 1.18,
-          gatePlan: [['evil', 0.14], ['good', 0.26], ['evil', 0.38], ['evil', 0.56], ['good', 0.7], ['evil', 0.84]]
+          evilTreeSpeed: 72,
+          goodTreeSpeed: 66,
+          treeWaitScale: 1.7,
+          gatePlan: [['good', 0.3], ['evil', 0.58], ['good', 0.82]]
         },
         {
           level: 2,
@@ -276,11 +276,16 @@
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
       const morphFrameCount = 18;
-      const musicSrc = 'assets/music/mlp-theme-one-cycle-nintendo-melody.mp3?v=' + assetVersion;
-      const backgroundMusic = new Audio(musicSrc);
-      backgroundMusic.loop = true;
+      const musicVariants = [
+        'assets/music/mlp-theme-arcade-variant-1.mp3',
+        'assets/music/mlp-theme-arcade-variant-2.mp3',
+        'assets/music/mlp-theme-arcade-variant-3.mp3'
+      ];
+      const backgroundMusic = new Audio();
+      backgroundMusic.loop = false;
       backgroundMusic.preload = 'auto';
       backgroundMusic.volume = 0.34;
+      let currentMusicIndex = -1;
       const sfxDefinitions = {
         crumb: { src: 'crumb.wav', volume: 0.34, gap: 70 },
         treat: { src: 'treat.wav', volume: 0.42, gap: 0 },
@@ -319,7 +324,31 @@
         return state.musicBlocked ? 'blocked' : 'paused';
       }
 
+      function musicSrc() {
+        return backgroundMusic.currentSrc || backgroundMusic.src || '';
+      }
+
+      function chooseNextMusicIndex() {
+        if (musicVariants.length <= 1) return 0;
+        let next = Math.floor(random() * musicVariants.length);
+        if (next === currentMusicIndex) {
+          next = (next + 1 + Math.floor(random() * (musicVariants.length - 1))) % musicVariants.length;
+        }
+        return next;
+      }
+
+      function setBackgroundMusicVariant(index) {
+        currentMusicIndex = clamp(index, 0, musicVariants.length - 1);
+        backgroundMusic.src = musicVariants[currentMusicIndex] + '?v=' + assetVersion;
+        try {
+          backgroundMusic.currentTime = 0;
+        } catch (_) {
+          // Some mobile browsers disallow seeking before metadata is ready.
+        }
+      }
+
       function playBackgroundMusic() {
+        if (currentMusicIndex < 0) setBackgroundMusicVariant(chooseNextMusicIndex());
         const playPromise = backgroundMusic.play();
         if (playPromise && typeof playPromise.then === 'function') {
           playPromise
@@ -334,8 +363,14 @@
         }
       }
 
+      function advanceBackgroundMusic() {
+        setBackgroundMusicVariant(chooseNextMusicIndex());
+        if (state.musicStarted) playBackgroundMusic();
+        updateHud();
+      }
+
       function startBackgroundMusic() {
-        if (backgroundMusic.error || !backgroundMusic.paused) return;
+        if (!backgroundMusic.paused) return;
         state.musicStarted = true;
         state.musicBlocked = false;
         playBackgroundMusic();
@@ -379,8 +414,14 @@
       ['canplaythrough', 'playing', 'pause', 'error', 'loadedmetadata'].forEach((eventName) => {
         backgroundMusic.addEventListener(eventName, () => {
           if (eventName === 'playing') state.musicBlocked = false;
+          if (eventName === 'error' && state.musicStarted && musicVariants.length > 1) {
+            window.setTimeout(() => advanceBackgroundMusic(), 250);
+          }
           if (canvas.width) updateHud();
         });
+      });
+      backgroundMusic.addEventListener('ended', () => {
+        if (state.musicStarted) advanceBackgroundMusic();
       });
 
       function allSprites() {
@@ -906,10 +947,10 @@
         canvas.dataset.treeCrushes = String(state.treeCrushes);
         canvas.dataset.lastTreeCollision = state.lastTreeCollision;
         canvas.dataset.music = musicStatus();
-        canvas.dataset.musicChunk = '0';
-        canvas.dataset.musicNextChunk = '0';
-        canvas.dataset.musicChunks = '1';
-        canvas.dataset.musicSrc = musicSrc;
+        canvas.dataset.musicChunk = String(currentMusicIndex + 1);
+        canvas.dataset.musicNextChunk = 'random';
+        canvas.dataset.musicChunks = String(musicVariants.length);
+        canvas.dataset.musicSrc = musicSrc();
         canvas.dataset.sfxPlays = String(state.sfxPlays);
         canvas.dataset.lastSfx = state.lastSfx;
       }
@@ -4174,10 +4215,10 @@
         assetVersion,
         currentSpritesReady: currentSpriteSetReady(),
         music: musicStatus(),
-        musicChunk: 0,
-        musicNextChunk: 0,
-        musicChunks: 1,
-        musicSrc,
+        musicChunk: currentMusicIndex + 1,
+        musicNextChunk: 'random',
+        musicChunks: musicVariants.length,
+        musicSrc: musicSrc(),
         sfxPlays: state.sfxPlays,
         lastSfx: state.lastSfx,
         sfxCount: Object.keys(sfxDefinitions).length,

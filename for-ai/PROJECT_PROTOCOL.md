@@ -18,7 +18,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Do not bring back obstructive counters or large HUD panels.
 - Preserve the original sprite assets for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
-- The MIDI-derived background melody is the active background music.
+- The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
 
 ## Gameplay Rules To Preserve
@@ -49,7 +49,7 @@ The game now has five levels. Difficulty should increase through:
 - More restrictive maze openness.
 - Faster witches.
 - Two witches from level 2 onward.
-- Level 1 has been intentionally made busier with more food and more evil moving tree gates.
+- Level 1 must stay clearly introductory and forgiving. Keep the first witch slow, give the player a visible start window, and avoid loading level 1 with too many evil moving-tree gates.
 
 The German level banner appears at the top of the screen for 10 seconds at the beginning of each level.
 Level banner copy should be short, exclamatory, gameshow-host style German wordplay about princesses, fairy tales, crowns, magic, and unicorns. It should not describe level mechanics like witches, moving trees, gates, food, or speed.

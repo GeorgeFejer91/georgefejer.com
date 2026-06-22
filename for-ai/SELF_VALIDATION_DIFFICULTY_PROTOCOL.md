@@ -74,4 +74,4 @@ If success rate drops below 75 percent in the emulator, inspect whether the leve
 When goals or constraints change, update `PROJECT_PROTOCOL.md`.
 When tuning difficulty or adding mechanics, update this file and add a dated log with the latest batch summary.
 
-Latest log: `solvability-validation-log-2026-06-22.md`
+Latest log: `music-level1-validation-log-2026-06-22.md`
