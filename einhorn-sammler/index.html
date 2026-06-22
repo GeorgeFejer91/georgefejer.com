@@ -838,7 +838,24 @@
         }, 0);
       }
 
-      function patrolCandidateSlices(runs, anchor, minSpan, maxSpan, reserved, fallbackPenalty = 0) {
+      function routeCellInfluenceScore(cells, routeSet) {
+        if (!routeSet) return 0;
+        return cells.reduce((score, cell) => {
+          if (routeSet.has(cellKey(cell))) return score + 3;
+          const touchesRoute = dirs.some((dir) => routeSet.has(cellKey({ c: cell.c + dir.dc, r: cell.r + dir.dr })));
+          return score + (touchesRoute ? 1 : 0);
+        }, 0);
+      }
+
+      function localChokeScore(cells) {
+        return cells.reduce((score, cell) => {
+          const neighbors = openNeighborCount(cell);
+          const vertical = (isOpen({ c: cell.c, r: cell.r - 1 }) ? 1 : 0) + (isOpen({ c: cell.c, r: cell.r + 1 }) ? 1 : 0);
+          return score + (neighbors <= 2 ? 1.2 : 0) + (vertical > 0 ? 0.8 : 0);
+        }, 0);
+      }
+
+      function patrolCandidateSlices(runs, anchor, minSpan, maxSpan, reserved, routeSet = null, fallbackPenalty = 0) {
         const candidates = [];
         for (const run of runs) {
           let segment = [];
@@ -852,12 +869,16 @@
               const cells = segment.slice(start, start + windowLength);
               const center = cells[Math.floor(cells.length / 2)];
               const crossings = verticalCrossingScore(cells);
+              const routeInfluence = routeCellInfluenceScore(cells, routeSet);
+              const choke = localChokeScore(cells);
               candidates.push({
                 cells,
                 score: cellDistance(center, anchor)
                   + fallbackPenalty
-                  - cells.length * 0.48
-                  - crossings * 0.72
+                  - cells.length * 0.42
+                  - crossings * 0.62
+                  - routeInfluence * 0.95
+                  - choke * 0.58
                   + Math.abs(cells[0].c - cells[cells.length - 1].c) * 0.01
               });
             }
@@ -878,15 +899,16 @@
       function pickTreePatrolCells(route, ratio, minSpan, maxSpan, reserved) {
         if (!route.length) return null;
         const anchor = route[clamp(Math.floor((route.length - 1) * ratio), 0, route.length - 1)];
+        const routeSet = new Set(route.map(cellKey));
         const routeRuns = collectRouteHorizontalRuns(route, minSpan);
-        let candidates = patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, 0);
+        let candidates = patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, routeSet, 0);
         if (!candidates.length) {
           const openRuns = collectOpenHorizontalRuns(minSpan);
-          candidates = patrolCandidateSlices(openRuns, anchor, minSpan, maxSpan, reserved, 8);
+          candidates = patrolCandidateSlices(openRuns, anchor, minSpan, maxSpan, reserved, routeSet, 8);
         }
         if (!candidates.length && minSpan > 5) {
           const openRuns = collectOpenHorizontalRuns(5);
-          candidates = patrolCandidateSlices(openRuns, anchor, 5, Math.min(8, maxSpan), reserved, 12);
+          candidates = patrolCandidateSlices(openRuns, anchor, 5, Math.min(8, maxSpan), reserved, routeSet, 12);
         }
         if (!candidates.length) return null;
         candidates.sort((a, b) => a.score - b.score);
@@ -924,21 +946,28 @@
         state.goodTrees = [];
         const route = findPath(startCell, exitCell);
         if (!route.length) return;
+        const witchRoutes = [
+          findPath(witchStartCell, startCell),
+          state.level >= 2 ? findPath(secondWitchStartCell, startCell) : []
+        ].filter((witchRoute) => witchRoute.length);
         const reserved = new Set([cellKey(startCell), cellKey(exitCell), cellKey(witchStartCell), cellKey(secondWitchStartCell)]);
-        const minSpan = state.level >= 2 ? 7 : 6;
-        const maxSpan = state.level >= 2 ? 12 : 10;
-        const addTree = (kind, ratio, index) => {
-          const cells = pickTreePatrolCells(route, ratio, minSpan, maxSpan, reserved);
+        const minSpan = state.level >= 2 ? 6 : 5;
+        const maxSpan = state.level >= 2 ? 11 : 9;
+        const addTree = (kind, routeSource, ratio, index) => {
+          const cells = pickTreePatrolCells(routeSource, ratio, minSpan, maxSpan, reserved);
           if (!cells) return;
           reservePatrolCells(reserved, cells);
           const tree = makePatrolTree(kind, cells, index);
           if (kind === 'evil') state.evilTrees.push(tree);
           else state.goodTrees.push(tree);
         };
-        const evilRatios = state.level >= 2 ? [0.22, 0.5, 0.76] : [0.35, 0.68];
-        const goodRatios = state.level >= 2 ? [0.39, 0.62] : [0.52];
-        evilRatios.forEach((ratio, index) => addTree('evil', ratio, index));
-        goodRatios.forEach((ratio, index) => addTree('good', ratio, index));
+        const evilRatios = state.level >= 2 ? [0.16, 0.31, 0.47, 0.64, 0.82] : [0.26, 0.5, 0.74];
+        const goodRatios = state.level >= 2 ? [0.2, 0.36, 0.54, 0.72] : [0.34, 0.62];
+        evilRatios.forEach((ratio, index) => addTree('evil', route, ratio, index));
+        goodRatios.forEach((ratio, index) => {
+          const routeSource = witchRoutes[index % Math.max(1, witchRoutes.length)] || route;
+          addTree('good', routeSource, ratio, index);
+        });
         state.evilTreeEventCount = state.evilTrees.length;
         state.evilTreeWaveTarget = state.evilTrees.length + state.goodTrees.length;
         state.lastEvilTreeArch = 'fixed patrols';
