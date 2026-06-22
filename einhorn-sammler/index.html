@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Unicorn Forest Explorer | GeorgeFejer.com</title>
+  <title>Unicorn Labyrinth Chase | GeorgeFejer.com</title>
   <style>
     :root {
       color-scheme: dark;
-      --panel: rgb(7 15 18 / 72%);
-      --panel-strong: rgb(7 15 18 / 86%);
-      --line: rgb(221 255 236 / 20%);
+      --panel: rgb(6 14 18 / 76%);
+      --panel-strong: rgb(6 14 18 / 90%);
+      --line: rgb(221 255 236 / 22%);
       --text: #f2fff7;
       --muted: #b8d9cd;
       --glow: #9af7da;
@@ -64,11 +64,12 @@
     .brand,
     .restart,
     .hud,
-    .message {
+    .message,
+    .title {
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
-      box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
+      box-shadow: 0 10px 30px rgb(0 0 0 / 25%);
       backdrop-filter: blur(12px);
     }
 
@@ -87,11 +88,7 @@
     .title {
       min-width: 0;
       padding: 9px 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
       background: var(--panel-strong);
-      box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
-      backdrop-filter: blur(12px);
     }
 
     h1 {
@@ -126,7 +123,7 @@
       top: calc(max(10px, env(safe-area-inset-top)) + 64px);
       left: max(10px, env(safe-area-inset-left));
       display: grid;
-      grid-template-columns: repeat(3, minmax(84px, auto));
+      grid-template-columns: repeat(4, minmax(76px, auto));
       gap: 8px;
       padding: 9px;
       color: var(--text);
@@ -147,7 +144,7 @@
       left: 50%;
       bottom: max(12px, env(safe-area-inset-bottom));
       transform: translateX(-50%);
-      max-width: min(92vw, 620px);
+      max-width: min(92vw, 720px);
       padding: 10px 14px;
       color: var(--text);
       font-size: 14px;
@@ -155,7 +152,7 @@
       text-align: center;
     }
 
-    @media (max-width: 620px) {
+    @media (max-width: 680px) {
       .topbar {
         grid-template-columns: 1fr auto;
       }
@@ -175,7 +172,7 @@
       .hud {
         top: calc(max(10px, env(safe-area-inset-top)) + 75px);
         right: max(10px, env(safe-area-inset-right));
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         font-size: 13px;
       }
 
@@ -191,70 +188,69 @@
   </style>
 </head>
 <body>
-  <canvas id="world" aria-label="Fullscreen open world unicorn forest explorer"></canvas>
+  <canvas id="world" aria-label="2D unicorn forest labyrinth chase game"></canvas>
 
   <header class="topbar">
     <a class="brand" href="../">GeorgeFejer.com</a>
     <div class="title">
-      <h1>Unicorn Forest Explorer</h1>
-      <p>Point or tap anywhere to move through the open forest.</p>
+      <h1>Unicorn Labyrinth Chase</h1>
+      <p>Guide the unicorn from A to B. Tap paths to move. The witch is hunting.</p>
     </div>
     <button class="restart" id="restart" type="button">Restart</button>
   </header>
 
-  <section class="hud" aria-label="Explorer status">
-    <div id="magic">Magic 0</div>
-    <div id="found">Found 0/0</div>
+  <section class="hud" aria-label="Game status">
+    <div id="score">Score 0</div>
+    <div id="lives">Lives 3</div>
+    <div id="treat">Treat none</div>
     <div id="best">Best 0</div>
   </section>
 
-  <div class="message" id="message">Tap a clearing, ruin, riverbank, or glowing flower to explore.</div>
+  <div class="message" id="message">Tap any forest path. Reach B before the witch catches you.</div>
 
   <script>
     (() => {
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
-      const magicEl = document.getElementById('magic');
-      const foundEl = document.getElementById('found');
+      const scoreEl = document.getElementById('score');
+      const livesEl = document.getElementById('lives');
+      const treatEl = document.getElementById('treat');
       const bestEl = document.getElementById('best');
       const messageEl = document.getElementById('message');
       const restartBtn = document.getElementById('restart');
-      const world = { w: 4400, h: 3400 };
-      const storageKey = 'unicornExplorerBest';
+      const storageKey = 'unicornLabyrinthBest';
+      const grid = { cols: 41, rows: 31, tile: 74 };
+      const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
+      const startCell = { c: 1, r: 1 };
+      const exitCell = { c: grid.cols - 2, r: grid.rows - 2 };
+      const witchStartCell = { c: grid.cols - 2, r: 1 };
+      const dirs = [
+        { dc: 1, dr: 0 },
+        { dc: -1, dr: 0 },
+        { dc: 0, dr: 1 },
+        { dc: 0, dr: -1 }
+      ];
       const state = {
         dpr: 1,
         vw: 0,
         vh: 0,
-        camera: { x: world.w / 2, y: world.h / 2 },
-        player: { x: world.w / 2, y: world.h / 2, tx: world.w / 2 + 180, ty: world.h / 2 - 90, speed: 255, angle: 0, moving: false, step: 0 },
+        maze: [],
+        camera: { x: 0, y: 0 },
+        player: { x: 0, y: 0, path: [], speed: 265, step: 0, angle: 0 },
+        witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0 },
         score: 0,
-        found: 0,
+        lives: 3,
         best: Number(localStorage.getItem(storageKey) || 0),
-        targetPulse: 0,
+        activeTreat: null,
+        activeUntil: 0,
+        shieldUntil: 0,
+        messageUntil: 0,
         last: performance.now(),
-        pointerDown: false,
-        messageUntil: 0
+        won: false,
+        over: false,
+        treats: [],
+        crumbs: []
       };
-      const objects = [];
-      const colliders = [];
-      const collectibles = [];
-      const pathPoints = [
-        { x: 310, y: 2870 },
-        { x: 920, y: 2480 },
-        { x: 1460, y: 2660 },
-        { x: 2140, y: 2210 },
-        { x: 2360, y: 1700 },
-        { x: 2920, y: 1330 },
-        { x: 3580, y: 1000 },
-        { x: 4080, y: 610 }
-      ];
-      const landmarks = [
-        { type: 'ruin', x: 760, y: 770, name: 'Moon Gate' },
-        { type: 'lake', x: 1090, y: 1800, name: 'Silver Lake' },
-        { type: 'grove', x: 2290, y: 930, name: 'Crystal Grove' },
-        { type: 'keep', x: 3480, y: 2390, name: 'Forest Keep' },
-        { type: 'portal', x: 3820, y: 1660, name: 'Star Well' }
-      ];
 
       function rng(seed) {
         let value = seed >>> 0;
@@ -267,76 +263,129 @@
         };
       }
 
-      const random = rng(7622026);
+      const random = rng(6222026);
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-      const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+      const cellKey = (cell) => cell.r + ',' + cell.c;
+      const centerOf = (cell) => ({ x: cell.c * grid.tile + grid.tile / 2, y: cell.r * grid.tile + grid.tile / 2 });
+      const cellOf = (x, y) => ({ c: clamp(Math.floor(x / grid.tile), 0, grid.cols - 1), r: clamp(Math.floor(y / grid.tile), 0, grid.rows - 1) });
+      const isOpen = (cell) => state.maze[cell.r] && state.maze[cell.r][cell.c] === 1;
+      const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-      function nearPath(x, y, limit) {
-        for (let i = 0; i < pathPoints.length - 1; i += 1) {
-          const a = pathPoints[i];
-          const b = pathPoints[i + 1];
-          const dx = b.x - a.x;
-          const dy = b.y - a.y;
-          const len2 = dx * dx + dy * dy;
-          const t = clamp(((x - a.x) * dx + (y - a.y) * dy) / len2, 0, 1);
-          const px = a.x + dx * t;
-          const py = a.y + dy * t;
-          if (Math.hypot(x - px, y - py) < limit) return true;
+      function shuffle(list) {
+        for (let i = list.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
         }
-        return false;
+        return list;
       }
 
-      function inProtectedClearing(x, y, radius) {
-        if (Math.hypot(x - world.w / 2, y - world.h / 2) < 260 + radius) return true;
-        return landmarks.some((landmark) => Math.hypot(x - landmark.x, y - landmark.y) < 230 + radius);
-      }
-
-      function addTree(x, y, r, kind) {
-        objects.push({ type: 'tree', x, y, r, kind, h: 62 + r * 1.3, sway: random() * 6.28 });
-        colliders.push({ x, y, r: r * 0.58 });
-      }
-
-      function addRock(x, y, r) {
-        objects.push({ type: 'rock', x, y, r });
-        colliders.push({ x, y, r: r * 0.75 });
-      }
-
-      function addCollectible(x, y, type) {
-        collectibles.push({ x, y, type, r: type === 'crystal' ? 28 : 22, collected: false, pulse: random() * 6.28 });
-      }
-
-      function generateWorld() {
-        objects.length = 0;
-        colliders.length = 0;
-        collectibles.length = 0;
-
-        for (const landmark of landmarks) objects.push(landmark);
-
-        for (let i = 0; i < 560; i += 1) {
-          const x = 120 + random() * (world.w - 240);
-          const y = 120 + random() * (world.h - 240);
-          const edgeBias = Math.min(x, y, world.w - x, world.h - y);
-          const forestChance = edgeBias < 620 ? 0.92 : 0.66;
-          if (random() > forestChance || nearPath(x, y, 115) || inProtectedClearing(x, y, 40)) continue;
-          addTree(x, y, 24 + random() * 34, random() < 0.72 ? 'pine' : 'oak');
-        }
+      function generateMaze() {
+        state.maze = Array.from({ length: grid.rows }, () => Array.from({ length: grid.cols }, () => 0));
+        const carve = (c, r) => {
+          state.maze[r][c] = 1;
+          for (const dir of shuffle([...dirs])) {
+            const nc = c + dir.dc * 2;
+            const nr = r + dir.dr * 2;
+            if (nr <= 0 || nr >= grid.rows - 1 || nc <= 0 || nc >= grid.cols - 1 || state.maze[nr][nc]) continue;
+            state.maze[r + dir.dr][c + dir.dc] = 1;
+            carve(nc, nr);
+          }
+        };
+        carve(startCell.c, startCell.r);
+        state.maze[exitCell.r][exitCell.c] = 1;
+        state.maze[witchStartCell.r][witchStartCell.c] = 1;
 
         for (let i = 0; i < 95; i += 1) {
-          const x = 160 + random() * (world.w - 320);
-          const y = 160 + random() * (world.h - 320);
-          if (inProtectedClearing(x, y, 20)) continue;
-          addRock(x, y, 13 + random() * 23);
-        }
-
-        for (let i = 0; i < 84; i += 1) {
-          let x = 180 + random() * (world.w - 360);
-          let y = 180 + random() * (world.h - 360);
-          if (i < pathPoints.length * 7) {
-            const p = pathPoints[i % pathPoints.length];
-            x = p.x + (random() - 0.5) * 360;
-            y = p.y + (random() - 0.5) * 360;
+          const c = 2 + Math.floor(random() * (grid.cols - 4));
+          const r = 2 + Math.floor(random() * (grid.rows - 4));
+          if (state.maze[r][c] === 0) {
+            const horizontal = state.maze[r][c - 1] && state.maze[r][c + 1];
+            const vertical = state.maze[r - 1][c] && state.maze[r + 1][c];
+            if (horizontal || vertical || random() < 0.12) state.maze[r][c] = 1;
           }
-          addCollectible(clamp(x, 90, world.w - 90), clamp(y, 90, world.h - 90), random() < 0.28 ? 'crystal' : 'flower');
+        }
+      }
+
+      function openCells() {
+        const cells = [];
+        for (let r = 1; r < grid.rows - 1; r += 1) {
+          for (let c = 1; c < grid.cols - 1; c += 1) {
+            if (state.maze[r][c] === 1) cells.push({ c, r });
+          }
+        }
+        return cells;
+      }
+
+      function findPath(from, to) {
+        if (!isOpen(from) || !isOpen(to)) return [];
+        const queue = [from];
+        const seen = new Set([cellKey(from)]);
+        const prev = new Map();
+        while (queue.length) {
+          const cur = queue.shift();
+          if (cur.c === to.c && cur.r === to.r) {
+            const path = [cur];
+            let k = cellKey(cur);
+            while (prev.has(k)) {
+              const p = prev.get(k);
+              path.push(p);
+              k = cellKey(p);
+            }
+            return path.reverse();
+          }
+          for (const dir of dirs) {
+            const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
+            const k = cellKey(next);
+            if (seen.has(k) || !isOpen(next)) continue;
+            seen.add(k);
+            prev.set(k, cur);
+            queue.push(next);
+          }
+        }
+        return [];
+      }
+
+      function nearestOpenCell(x, y) {
+        const start = cellOf(x, y);
+        if (isOpen(start)) return start;
+        const queue = [start];
+        const seen = new Set([cellKey(start)]);
+        while (queue.length) {
+          const cur = queue.shift();
+          for (const dir of dirs) {
+            const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
+            const k = cellKey(next);
+            if (next.c < 0 || next.r < 0 || next.c >= grid.cols || next.r >= grid.rows || seen.has(k)) continue;
+            if (isOpen(next)) return next;
+            seen.add(k);
+            queue.push(next);
+          }
+        }
+        return startCell;
+      }
+
+      function chooseFarCell(cells, reference, minDistance) {
+        const filtered = cells.filter((cell) => Math.abs(cell.c - reference.c) + Math.abs(cell.r - reference.r) > minDistance);
+        return filtered[Math.floor(random() * filtered.length)] || cells[Math.floor(random() * cells.length)];
+      }
+
+      function placeTreats() {
+        state.treats = [];
+        state.crumbs = [];
+        const cells = openCells().filter((cell) => {
+          const key = cellKey(cell);
+          return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell);
+        });
+        const treatTypes = ['speed', 'shield', 'freeze', 'spark'];
+        for (let i = 0; i < 18; i += 1) {
+          const cell = chooseFarCell(cells, startCell, 8);
+          const p = centerOf(cell);
+          state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
+        }
+        for (let i = 0; i < 120; i += 1) {
+          const cell = cells[Math.floor(random() * cells.length)];
+          const p = centerOf(cell);
+          state.crumbs.push({ x: p.x, y: p.y, taken: false });
         }
       }
 
@@ -353,17 +402,26 @@
       function screenToWorld(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         return {
-          x: clamp(state.camera.x - state.vw / 2 + clientX - rect.left, 0, world.w),
-          y: clamp(state.camera.y - state.vh / 2 + clientY - rect.top, 0, world.h)
+          x: state.camera.x - state.vw / 2 + clientX - rect.left,
+          y: state.camera.y - state.vh / 2 + clientY - rect.top
         };
       }
 
-      function setTarget(clientX, clientY) {
-        const target = screenToWorld(clientX, clientY);
-        state.player.tx = target.x;
-        state.player.ty = target.y;
-        state.targetPulse = 0;
-        showMessage('Exploring: ' + Math.round(target.x) + ', ' + Math.round(target.y), 1200);
+      function setDestination(clientX, clientY) {
+        if (state.over || state.won) {
+          reset();
+          return;
+        }
+        const pos = screenToWorld(clientX, clientY);
+        const target = nearestOpenCell(pos.x, pos.y);
+        const current = cellOf(state.player.x, state.player.y);
+        const path = findPath(current, target);
+        if (path.length > 1) {
+          state.player.path = path.slice(1).map(centerOf);
+          showMessage('Unicorn path set: ' + (path.length - 1) + ' steps.', 1200);
+        } else {
+          showMessage('That part of the forest is blocked.', 1100);
+        }
       }
 
       function showMessage(text, ms) {
@@ -371,80 +429,173 @@
         messageEl.textContent = text;
       }
 
-      function isBlocked(x, y) {
-        if (x < 35 || y < 35 || x > world.w - 35 || y > world.h - 35) return true;
-        for (const collider of colliders) {
-          if (Math.hypot(x - collider.x, y - collider.y) < collider.r + 18) return true;
-        }
-        return false;
+      function updateHud() {
+        const now = performance.now();
+        const active = state.activeTreat && now < state.activeUntil ? state.activeTreat + ' ' + Math.ceil((state.activeUntil - now) / 1000) + 's' : 'none';
+        scoreEl.textContent = 'Score ' + state.score;
+        livesEl.textContent = 'Lives ' + state.lives;
+        treatEl.textContent = 'Treat ' + active;
+        bestEl.textContent = 'Best ' + state.best;
+        canvas.dataset.playerCell = cellKey(cellOf(state.player.x, state.player.y));
+        canvas.dataset.witchCell = cellKey(cellOf(state.witch.x, state.witch.y));
+        canvas.dataset.score = String(state.score);
+        canvas.dataset.lives = String(state.lives);
+        canvas.dataset.won = String(state.won);
+        canvas.dataset.over = String(state.over);
       }
 
-      function updatePlayer(dt) {
-        const p = state.player;
-        const dx = p.tx - p.x;
-        const dy = p.ty - p.y;
-        const dist = Math.hypot(dx, dy);
-        p.moving = dist > 4;
-        if (!p.moving) return;
+      function resetPositions() {
+        const p = centerOf(startCell);
+        const w = centerOf(witchStartCell);
+        state.player.x = p.x;
+        state.player.y = p.y;
+        state.player.path = [];
+        state.player.step = 0;
+        state.witch.x = w.x;
+        state.witch.y = w.y;
+        state.witch.path = [];
+        state.witch.repath = 0;
+        state.camera.x = state.player.x;
+        state.camera.y = state.player.y;
+      }
 
-        p.angle = Math.atan2(dy, dx);
-        p.step += dt * 8;
-        const step = Math.min(p.speed * dt, dist);
-        const nx = p.x + (dx / dist) * step;
-        const ny = p.y + (dy / dist) * step;
+      function reset() {
+        generateMaze();
+        placeTreats();
+        resetPositions();
+        state.score = 0;
+        state.lives = 3;
+        state.activeTreat = null;
+        state.activeUntil = 0;
+        state.shieldUntil = 0;
+        state.witch.frozenUntil = 0;
+        state.won = false;
+        state.over = false;
+        state.last = performance.now();
+        showMessage('Start at A. Tap paths to reach B. Avoid the witch.', 2200);
+        updateHud();
+      }
 
-        if (!isBlocked(nx, ny)) {
-          p.x = nx;
-          p.y = ny;
-        } else if (!isBlocked(nx, p.y)) {
-          p.x = nx;
-        } else if (!isBlocked(p.x, ny)) {
-          p.y = ny;
-        } else {
-          p.tx = p.x;
-          p.ty = p.y;
-          showMessage('The forest is too dense there.', 1300);
+      function currentPlayerSpeed(now) {
+        return state.activeTreat === 'speed' && now < state.activeUntil ? 405 : state.player.speed;
+      }
+
+      function moveAlongPath(actor, speed, dt) {
+        if (!actor.path.length) return;
+        const target = actor.path[0];
+        const dx = target.x - actor.x;
+        const dy = target.y - actor.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 3) {
+          actor.x = target.x;
+          actor.y = target.y;
+          actor.path.shift();
+          return;
+        }
+        const step = Math.min(speed * dt, d);
+        actor.angle = Math.atan2(dy, dx);
+        actor.step += dt * 8;
+        actor.x += (dx / d) * step;
+        actor.y += (dy / d) * step;
+      }
+
+      function updateWitch(dt, now) {
+        if (now < state.witch.frozenUntil || state.over || state.won) return;
+        state.witch.repath -= dt;
+        if (state.witch.repath <= 0 || state.witch.path.length < 2) {
+          const from = cellOf(state.witch.x, state.witch.y);
+          const to = cellOf(state.player.x, state.player.y);
+          const path = findPath(from, to);
+          state.witch.path = path.slice(1).map(centerOf);
+          state.witch.repath = 0.42;
+        }
+        const speed = state.activeTreat === 'freeze' && now < state.activeUntil ? 60 : state.witch.speed;
+        moveAlongPath(state.witch, speed, dt);
+      }
+
+      function applyTreat(type) {
+        const now = performance.now();
+        state.activeTreat = type;
+        state.activeUntil = now + (type === 'spark' ? 2500 : 7000);
+        if (type === 'shield') state.shieldUntil = now + 7000;
+        if (type === 'freeze') state.witch.frozenUntil = now + 3500;
+        if (type === 'spark') state.score += 50;
+        const label = {
+          speed: 'Carrot rush: unicorn is faster.',
+          shield: 'Moon shield: the witch bounces off.',
+          freeze: 'Sleep mushroom: witch slowed.',
+          spark: 'Star treat: bonus magic.'
+        }[type];
+        showMessage(label, 1700);
+      }
+
+      function updatePickups(now) {
+        for (const crumb of state.crumbs) {
+          if (!crumb.taken && Math.hypot(crumb.x - state.player.x, crumb.y - state.player.y) < 24) {
+            crumb.taken = true;
+            state.score += 2;
+          }
+        }
+        for (const treat of state.treats) {
+          if (!treat.taken && Math.hypot(treat.x - state.player.x, treat.y - state.player.y) < 34) {
+            treat.taken = true;
+            state.score += 10;
+            applyTreat(treat.type);
+          }
+        }
+        if (state.score > state.best) {
+          state.best = state.score;
+          localStorage.setItem(storageKey, String(state.best));
         }
       }
 
-      function updateCollectibles() {
-        for (const item of collectibles) {
-          if (item.collected) continue;
-          if (Math.hypot(item.x - state.player.x, item.y - state.player.y) < item.r + 20) {
-            item.collected = true;
-            state.found += 1;
-            state.score += item.type === 'crystal' ? 25 : 10;
-            state.best = Math.max(state.best, state.score);
-            localStorage.setItem(storageKey, String(state.best));
-            showMessage(item.type === 'crystal' ? 'Crystal glade +25' : 'Forest bloom +10', 1300);
+      function updateWinLose(now) {
+        const exit = centerOf(exitCell);
+        if (!state.won && Math.hypot(state.player.x - exit.x, state.player.y - exit.y) < 38) {
+          state.won = true;
+          state.score += 150;
+          state.best = Math.max(state.best, state.score);
+          localStorage.setItem(storageKey, String(state.best));
+          showMessage('You reached B. The unicorn escaped the labyrinth!', 5000);
+        }
+        if (state.over || state.won) return;
+        if (Math.hypot(state.player.x - state.witch.x, state.player.y - state.witch.y) < 42) {
+          if (now < state.shieldUntil) {
+            const w = centerOf(witchStartCell);
+            state.witch.x = w.x;
+            state.witch.y = w.y;
+            state.witch.path = [];
+            state.witch.frozenUntil = now + 1800;
+            state.score += 25;
+            showMessage('Shield repelled the witch +25.', 1500);
+          } else {
+            state.lives -= 1;
+            if (state.lives <= 0) {
+              state.over = true;
+              showMessage('The witch caught the unicorn. Tap to restart.', 5000);
+            } else {
+              showMessage('Caught by the witch. Lives left: ' + state.lives, 1800);
+              resetPositions();
+            }
           }
         }
       }
 
-      function updateHud() {
-        magicEl.textContent = 'Magic ' + state.score;
-        foundEl.textContent = 'Found ' + state.found + '/' + collectibles.length;
-        bestEl.textContent = 'Best ' + state.best;
-        canvas.dataset.playerX = String(Math.round(state.player.x));
-        canvas.dataset.playerY = String(Math.round(state.player.y));
-        canvas.dataset.targetX = String(Math.round(state.player.tx));
-        canvas.dataset.targetY = String(Math.round(state.player.ty));
-        canvas.dataset.found = String(state.found);
-      }
-
-      function reset() {
-        state.player.x = world.w / 2;
-        state.player.y = world.h / 2;
-        state.player.tx = world.w / 2 + 180;
-        state.player.ty = world.h / 2 - 90;
-        state.player.step = 0;
-        state.player.moving = false;
-        state.camera.x = state.player.x;
-        state.camera.y = state.player.y;
-        state.score = 0;
-        state.found = 0;
-        for (const item of collectibles) item.collected = false;
-        showMessage('Tap anywhere in the forest to set a destination.', 1800);
+      function update(dt, now) {
+        if (!state.over && !state.won) {
+          moveAlongPath(state.player, currentPlayerSpeed(now), dt);
+          updateWitch(dt, now);
+          updatePickups(now);
+          updateWinLose(now);
+        }
+        state.camera.x += (state.player.x - state.camera.x) * Math.min(1, dt * 6);
+        state.camera.y += (state.player.y - state.camera.y) * Math.min(1, dt * 6);
+        state.camera.x = clamp(state.camera.x, state.vw / 2, world.w - state.vw / 2);
+        state.camera.y = clamp(state.camera.y, state.vh / 2, world.h - state.vh / 2);
+        if (state.messageUntil && now > state.messageUntil && !state.over && !state.won) {
+          state.messageUntil = 0;
+          messageEl.textContent = 'Tap a corridor. Carrots speed up, shields protect, mushrooms slow the witch.';
+        }
         updateHud();
       }
 
@@ -452,340 +603,258 @@
         return { x: x - state.camera.x + state.vw / 2, y: y - state.camera.y + state.vh / 2 };
       }
 
-      function drawGround() {
-        const g = ctx.createLinearGradient(0, 0, 0, state.vh);
-        g.addColorStop(0, '#163342');
-        g.addColorStop(0.38, '#255c3e');
-        g.addColorStop(1, '#123219');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, state.vw, state.vh);
-
+      function drawMaze() {
+        const startC = clamp(Math.floor((state.camera.x - state.vw / 2) / grid.tile) - 2, 0, grid.cols - 1);
+        const endC = clamp(Math.floor((state.camera.x + state.vw / 2) / grid.tile) + 2, 0, grid.cols - 1);
+        const startR = clamp(Math.floor((state.camera.y - state.vh / 2) / grid.tile) - 2, 0, grid.rows - 1);
+        const endR = clamp(Math.floor((state.camera.y + state.vh / 2) / grid.tile) + 2, 0, grid.rows - 1);
         ctx.save();
         ctx.translate(-state.camera.x + state.vw / 2, -state.camera.y + state.vh / 2);
-        ctx.fillStyle = '#1f6a3a';
-        for (let gx = -200; gx < world.w + 200; gx += 170) {
-          for (let gy = -200; gy < world.h + 200; gy += 150) {
-            const n = Math.sin(gx * 0.017 + gy * 0.021) * 0.5 + 0.5;
-            ctx.globalAlpha = 0.07 + n * 0.08;
-            ctx.beginPath();
-            ctx.ellipse(gx + Math.sin(gy) * 20, gy + Math.cos(gx) * 18, 95, 58, n * 3.14, 0, Math.PI * 2);
-            ctx.fill();
+        ctx.fillStyle = '#14331d';
+        ctx.fillRect(0, 0, world.w, world.h);
+        for (let r = startR; r <= endR; r += 1) {
+          for (let c = startC; c <= endC; c += 1) {
+            const x = c * grid.tile;
+            const y = r * grid.tile;
+            if (state.maze[r][c] === 1) {
+              const shade = (r * 7 + c * 11) % 4;
+              ctx.fillStyle = shade < 2 ? '#9a7b46' : '#8c6e3f';
+              ctx.fillRect(x, y, grid.tile, grid.tile);
+              ctx.fillStyle = 'rgb(255 239 170 / 8%)';
+              ctx.beginPath();
+              ctx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.34, grid.tile * 0.22, 0.4, 0, Math.PI * 2);
+              ctx.fill();
+            } else {
+              ctx.fillStyle = '#0d2818';
+              ctx.fillRect(x, y, grid.tile, grid.tile);
+              const cx = x + grid.tile / 2;
+              const cy = y + grid.tile / 2;
+              ctx.fillStyle = '#1e7b3f';
+              ctx.beginPath();
+              ctx.moveTo(cx, y + 9);
+              ctx.lineTo(x + 11, y + grid.tile - 10);
+              ctx.lineTo(x + grid.tile - 11, y + grid.tile - 10);
+              ctx.closePath();
+              ctx.fill();
+              ctx.fillStyle = '#14592e';
+              ctx.beginPath();
+              ctx.moveTo(cx + 8, y + 18);
+              ctx.lineTo(x + 18, y + grid.tile - 4);
+              ctx.lineTo(x + grid.tile - 4, y + grid.tile - 6);
+              ctx.closePath();
+              ctx.fill();
+            }
           }
         }
-        ctx.globalAlpha = 1;
-        drawRiver();
-        drawPaths();
+        drawStartExit();
         ctx.restore();
       }
 
-      function drawPaths() {
+      function drawStartExit() {
+        const a = centerOf(startCell);
+        const b = centerOf(exitCell);
         ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#a78755';
-        ctx.lineWidth = 96;
-        ctx.beginPath();
-        pathPoints.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-        ctx.stroke();
-        ctx.strokeStyle = '#c0a36a';
-        ctx.lineWidth = 34;
-        ctx.globalAlpha = 0.55;
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.restore();
-      }
-
-      function drawRiver() {
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#2e9fd1';
-        ctx.lineWidth = 90;
-        ctx.globalAlpha = 0.82;
-        ctx.beginPath();
-        ctx.moveTo(0, 1460);
-        ctx.bezierCurveTo(700, 1270, 910, 2050, 1480, 1810);
-        ctx.bezierCurveTo(2180, 1510, 2630, 2260, 3330, 1900);
-        ctx.bezierCurveTo(3820, 1640, 4060, 1380, world.w, 1510);
-        ctx.stroke();
-        ctx.strokeStyle = '#96e7ff';
-        ctx.lineWidth = 18;
-        ctx.globalAlpha = 0.45;
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      function drawLake(landmark, sx, sy) {
-        ctx.save();
-        ctx.translate(sx, sy);
-        ctx.fillStyle = '#2d9cc9';
-        ctx.globalAlpha = 0.82;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 260, 150, -0.22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#b6f3ff';
-        ctx.lineWidth = 6;
-        ctx.globalAlpha = 0.42;
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      function drawTree(tree, sx, sy) {
-        const sway = Math.sin(performance.now() / 900 + tree.sway) * 2.5;
-        ctx.save();
-        ctx.translate(sx, sy);
-        ctx.fillStyle = 'rgb(0 0 0 / 22%)';
-        ctx.beginPath();
-        ctx.ellipse(0, tree.r * 0.25, tree.r * 0.75, tree.r * 0.32, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#7a5133';
-        ctx.fillRect(-tree.r * 0.16, -tree.r * 0.55, tree.r * 0.32, tree.r * 0.9);
-        if (tree.kind === 'pine') {
-          for (let i = 0; i < 3; i += 1) {
-            ctx.fillStyle = i === 0 ? '#1d7b43' : i === 1 ? '#27904e' : '#32a65d';
-            ctx.beginPath();
-            ctx.moveTo(sway, -tree.h - i * tree.r * 0.05);
-            ctx.lineTo(-tree.r * (0.95 - i * 0.12), -tree.r * (0.18 + i * 0.34));
-            ctx.lineTo(tree.r * (0.95 - i * 0.12), -tree.r * (0.18 + i * 0.34));
-            ctx.closePath();
-            ctx.fill();
-          }
-        } else {
-          const crown = ctx.createRadialGradient(sway, -tree.r * 0.86, tree.r * 0.1, sway, -tree.r * 0.86, tree.r * 1.12);
-          crown.addColorStop(0, '#58c269');
-          crown.addColorStop(1, '#24783e');
-          ctx.fillStyle = crown;
-          ctx.beginPath();
-          ctx.arc(sway, -tree.r * 0.85, tree.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-
-      function drawRock(rock, sx, sy) {
-        ctx.save();
-        ctx.translate(sx, sy);
-        ctx.fillStyle = 'rgb(0 0 0 / 18%)';
-        ctx.beginPath();
-        ctx.ellipse(0, rock.r * 0.35, rock.r, rock.r * 0.42, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#79867c';
-        ctx.beginPath();
-        ctx.moveTo(-rock.r, rock.r * 0.25);
-        ctx.lineTo(-rock.r * 0.5, -rock.r * 0.62);
-        ctx.lineTo(rock.r * 0.28, -rock.r * 0.82);
-        ctx.lineTo(rock.r, -rock.r * 0.05);
-        ctx.lineTo(rock.r * 0.52, rock.r * 0.48);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      }
-
-      function drawLandmark(landmark, sx, sy) {
-        if (landmark.type === 'lake') {
-          drawLake(landmark, sx, sy);
-          return;
-        }
-        ctx.save();
-        ctx.translate(sx, sy);
-        if (landmark.type === 'ruin') {
-          ctx.fillStyle = '#b9b2a2';
-          for (let i = -2; i <= 2; i += 1) ctx.fillRect(i * 42 - 12, -70, 24, 96);
-          ctx.strokeStyle = '#e4dcc9';
-          ctx.lineWidth = 8;
-          ctx.beginPath();
-          ctx.arc(0, -36, 86, Math.PI, Math.PI * 2);
-          ctx.stroke();
-        } else if (landmark.type === 'grove') {
-          ctx.fillStyle = '#69e0c0';
-          for (let i = 0; i < 7; i += 1) {
-            const a = i / 7 * Math.PI * 2;
-            ctx.beginPath();
-            ctx.moveTo(Math.cos(a) * 72, Math.sin(a) * 44 - 20);
-            ctx.lineTo(Math.cos(a + 0.35) * 34, Math.sin(a + 0.35) * 22 - 94);
-            ctx.lineTo(Math.cos(a - 0.35) * 34, Math.sin(a - 0.35) * 22 - 94);
-            ctx.closePath();
-            ctx.fill();
-          }
-        } else if (landmark.type === 'keep') {
-          ctx.fillStyle = '#93866e';
-          ctx.fillRect(-88, -96, 176, 132);
-          ctx.fillStyle = '#6f604f';
-          ctx.fillRect(-124, -54, 42, 90);
-          ctx.fillRect(82, -54, 42, 90);
-          ctx.fillStyle = '#d9c48d';
-          ctx.fillRect(-22, -20, 44, 56);
-        } else if (landmark.type === 'portal') {
-          ctx.strokeStyle = '#b987ff';
-          ctx.lineWidth = 16;
-          ctx.beginPath();
-          ctx.ellipse(0, -34, 70, 96, 0, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.fillStyle = 'rgb(172 121 255 / 34%)';
-          ctx.beginPath();
-          ctx.ellipse(0, -34, 48, 74, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = 'rgb(0 0 0 / 54%)';
-        ctx.font = '700 16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(landmark.name, 0, 64);
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 34px Arial';
+        ctx.fillStyle = '#9df7d0';
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0b291b';
+        ctx.fillText('A', a.x, a.y + 1);
+        ctx.fillStyle = '#ffd866';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#37260a';
+        ctx.fillText('B', b.x, b.y + 1);
         ctx.restore();
       }
 
-      function drawCollectible(item, sx, sy, now) {
-        const pulse = Math.sin(now / 300 + item.pulse) * 0.18 + 1;
+      function drawPathLine() {
+        if (!state.player.path.length) return;
         ctx.save();
-        ctx.translate(sx, sy);
-        ctx.globalAlpha = item.collected ? 0.18 : 1;
-        ctx.fillStyle = item.type === 'crystal' ? '#83f5ff' : '#ffe46e';
+        ctx.translate(-state.camera.x + state.vw / 2, -state.camera.y + state.vh / 2);
+        ctx.strokeStyle = 'rgb(219 255 136 / 58%)';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.setLineDash([10, 12]);
+        ctx.beginPath();
+        ctx.moveTo(state.player.x, state.player.y);
+        for (const p of state.player.path) ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawTreat(treat, now) {
+        const s = worldToScreen(treat.x, treat.y);
+        if (s.x < -60 || s.y < -60 || s.x > state.vw + 60 || s.y > state.vh + 60) return;
+        const pulse = Math.sin(now / 220 + treat.x) * 0.15 + 1;
+        ctx.save();
+        ctx.translate(s.x, s.y);
         ctx.shadowBlur = 18;
-        ctx.shadowColor = ctx.fillStyle;
-        if (item.type === 'crystal') {
+        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767' };
+        ctx.fillStyle = colors[treat.type];
+        ctx.shadowColor = colors[treat.type];
+        if (treat.type === 'speed') {
           ctx.beginPath();
-          ctx.moveTo(0, -21 * pulse);
-          ctx.lineTo(15 * pulse, -2 * pulse);
-          ctx.lineTo(6 * pulse, 22 * pulse);
-          ctx.lineTo(-6 * pulse, 22 * pulse);
-          ctx.lineTo(-15 * pulse, -2 * pulse);
+          ctx.moveTo(18 * pulse, 0);
+          ctx.lineTo(-14 * pulse, -11 * pulse);
+          ctx.lineTo(-9 * pulse, 0);
+          ctx.lineTo(-14 * pulse, 11 * pulse);
           ctx.closePath();
           ctx.fill();
+        } else if (treat.type === 'shield') {
+          ctx.beginPath();
+          ctx.moveTo(0, -20 * pulse);
+          ctx.lineTo(17 * pulse, -8 * pulse);
+          ctx.lineTo(10 * pulse, 17 * pulse);
+          ctx.lineTo(0, 23 * pulse);
+          ctx.lineTo(-10 * pulse, 17 * pulse);
+          ctx.lineTo(-17 * pulse, -8 * pulse);
+          ctx.closePath();
+          ctx.fill();
+        } else if (treat.type === 'freeze') {
+          ctx.beginPath();
+          ctx.arc(0, -6 * pulse, 16 * pulse, Math.PI, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(-6 * pulse, -6 * pulse, 12 * pulse, 24 * pulse);
         } else {
           for (let i = 0; i < 8; i += 1) {
             const a = i / 8 * Math.PI * 2;
             ctx.beginPath();
-            ctx.ellipse(Math.cos(a) * 12 * pulse, Math.sin(a) * 12 * pulse, 5 * pulse, 11 * pulse, a, 0, Math.PI * 2);
+            ctx.ellipse(Math.cos(a) * 11 * pulse, Math.sin(a) * 11 * pulse, 4 * pulse, 10 * pulse, a, 0, Math.PI * 2);
             ctx.fill();
           }
-          ctx.fillStyle = '#fff8b8';
-          ctx.beginPath();
-          ctx.arc(0, 0, 6 * pulse, 0, Math.PI * 2);
-          ctx.fill();
         }
         ctx.restore();
       }
 
-      function drawUnicorn(sx, sy, now) {
-        const p = state.player;
-        const bob = p.moving ? Math.sin(p.step) * 3 : Math.sin(now / 650) * 1.5;
-        const flip = Math.cos(p.angle) < 0 ? -1 : 1;
+      function drawCrumb(crumb) {
+        const s = worldToScreen(crumb.x, crumb.y);
+        if (s.x < -30 || s.y < -30 || s.x > state.vw + 30 || s.y > state.vh + 30) return;
+        ctx.fillStyle = '#f6df82';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawUnicorn(now) {
+        const s = worldToScreen(state.player.x, state.player.y);
+        const bob = state.player.path.length ? Math.sin(state.player.step) * 3 : Math.sin(now / 500) * 1.5;
+        const shield = now < state.shieldUntil;
         ctx.save();
-        ctx.translate(sx, sy + bob);
-        ctx.scale(flip, 1);
+        ctx.translate(s.x, s.y + bob);
+        ctx.rotate(state.player.angle || 0);
+        if (shield) {
+          ctx.strokeStyle = 'rgb(145 234 255 / 78%)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 35, 0, Math.PI * 2);
+          ctx.stroke();
+        }
         ctx.fillStyle = 'rgb(0 0 0 / 24%)';
         ctx.beginPath();
-        ctx.ellipse(0, 22, 42, 14, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 18, 30, 11, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#fff9ff';
-        ctx.strokeStyle = '#354151';
+        ctx.strokeStyle = '#344051';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 36, 21, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 30, 18, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(34, -14, 17, 0, Math.PI * 2);
+        ctx.arc(27, -9, 13, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = '#ffd866';
         ctx.beginPath();
-        ctx.moveTo(42, -29);
-        ctx.lineTo(63, -48);
-        ctx.lineTo(52, -20);
+        ctx.moveTo(36, -19);
+        ctx.lineTo(54, -34);
+        ctx.lineTo(45, -12);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
         ctx.strokeStyle = '#ff78c8';
-        ctx.lineWidth = 7;
-        ctx.beginPath();
-        ctx.moveTo(18, -19);
-        ctx.quadraticCurveTo(2, -40, -22, -20);
-        ctx.stroke();
-        ctx.strokeStyle = '#73d6ff';
-        ctx.beginPath();
-        ctx.moveTo(18, -11);
-        ctx.quadraticCurveTo(0, -28, -26, -5);
-        ctx.stroke();
-        ctx.strokeStyle = '#354151';
-        ctx.lineWidth = 4;
-        const leg = p.moving ? Math.sin(p.step) * 7 : 0;
-        for (const pair of [[-18, leg], [8, -leg]]) {
-          ctx.beginPath();
-          ctx.moveTo(pair[0], 18);
-          ctx.lineTo(pair[0] + pair[1] * 0.15, 37);
-          ctx.stroke();
-        }
-        ctx.strokeStyle = '#ff78c8';
         ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(-34, -2);
-        ctx.quadraticCurveTo(-58, -20, -50, -42);
+        ctx.moveTo(10, -14);
+        ctx.quadraticCurveTo(-6, -31, -25, -13);
+        ctx.stroke();
+        ctx.strokeStyle = '#77d8ff';
+        ctx.beginPath();
+        ctx.moveTo(12, -7);
+        ctx.quadraticCurveTo(-3, -22, -27, 2);
         ctx.stroke();
         ctx.restore();
       }
 
-      function drawTarget() {
-        const t = worldToScreen(state.player.tx, state.player.ty);
-        if (t.x < -80 || t.y < -80 || t.x > state.vw + 80 || t.y > state.vh + 80) return;
-        const r = 22 + Math.sin(state.targetPulse) * 5;
+      function drawWitch(now) {
+        const s = worldToScreen(state.witch.x, state.witch.y);
+        const frozen = now < state.witch.frozenUntil;
         ctx.save();
-        ctx.strokeStyle = '#d7ff88';
+        ctx.translate(s.x, s.y + Math.sin(now / 180) * 3);
+        ctx.fillStyle = frozen ? '#aee8ff' : '#4c255f';
+        ctx.strokeStyle = '#1c0d27';
         ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.8;
         ctx.beginPath();
-        ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(t.x - r - 8, t.y);
-        ctx.lineTo(t.x - r + 8, t.y);
-        ctx.moveTo(t.x + r - 8, t.y);
-        ctx.lineTo(t.x + r + 8, t.y);
-        ctx.moveTo(t.x, t.y - r - 8);
-        ctx.lineTo(t.x, t.y - r + 8);
-        ctx.moveTo(t.x, t.y + r - 8);
-        ctx.lineTo(t.x, t.y + r + 8);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      function roundedRect(x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.moveTo(0, -34);
+        ctx.lineTo(-22, 8);
+        ctx.lineTo(22, 8);
         ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = frozen ? '#e7fbff' : '#7f3ca1';
+        ctx.beginPath();
+        ctx.arc(0, 2, 19, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#2a140d';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(-27, 20);
+        ctx.lineTo(31, 29);
+        ctx.stroke();
+        ctx.fillStyle = frozen ? '#79dfff' : '#ffcf63';
+        ctx.beginPath();
+        ctx.arc(7, -2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
 
       function drawMinimap() {
-        const size = Math.min(150, Math.max(104, state.vw * 0.18));
+        const size = Math.min(156, Math.max(110, state.vw * 0.18));
         const x = state.vw - size - 14;
         const y = state.vh - size - 14;
         ctx.save();
-        ctx.fillStyle = 'rgb(3 10 8 / 62%)';
+        ctx.fillStyle = 'rgb(3 10 8 / 70%)';
         ctx.strokeStyle = 'rgb(223 255 236 / 32%)';
         ctx.lineWidth = 1;
-        roundedRect(x, y, size, size, 8);
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, size, size, 8) : ctx.rect(x, y, size, size);
         ctx.fill();
         ctx.stroke();
         const sx = size / world.w;
         const sy = size / world.h;
-        ctx.strokeStyle = '#c0a36a';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        pathPoints.forEach((p, i) => i ? ctx.lineTo(x + p.x * sx, y + p.y * sy) : ctx.moveTo(x + p.x * sx, y + p.y * sy));
-        ctx.stroke();
-        ctx.fillStyle = '#ffe46e';
-        for (const item of collectibles) {
-          if (!item.collected) ctx.fillRect(x + item.x * sx - 1, y + item.y * sy - 1, 2, 2);
+        ctx.fillStyle = '#8c6e3f';
+        for (let r = 0; r < grid.rows; r += 1) {
+          for (let c = 0; c < grid.cols; c += 1) {
+            if (state.maze[r][c] === 1) ctx.fillRect(x + c * grid.tile * sx, y + r * grid.tile * sy, Math.max(1, grid.tile * sx), Math.max(1, grid.tile * sy));
+          }
         }
-        ctx.fillStyle = '#ff80c8';
+        ctx.fillStyle = '#9df7d0';
+        ctx.fillRect(x + startCell.c * grid.tile * sx - 2, y + startCell.r * grid.tile * sy - 2, 4, 4);
+        ctx.fillStyle = '#ffd866';
+        ctx.fillRect(x + exitCell.c * grid.tile * sx - 2, y + exitCell.r * grid.tile * sy - 2, 4, 4);
+        ctx.fillStyle = '#ff78c8';
         ctx.beginPath();
         ctx.arc(x + state.player.x * sx, y + state.player.y * sy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#bd77ff';
+        ctx.beginPath();
+        ctx.arc(x + state.witch.x * sx, y + state.witch.y * sy, 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -793,44 +862,23 @@
       function draw() {
         ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
         ctx.clearRect(0, 0, state.vw, state.vh);
-        drawGround();
-
-        const visible = [];
-        for (const landmark of landmarks) visible.push({ y: landmark.y + 90, draw: () => drawLandmark(landmark, worldToScreen(landmark.x, landmark.y).x, worldToScreen(landmark.x, landmark.y).y) });
-        for (const item of collectibles) {
-          if (item.collected) continue;
-          const s = worldToScreen(item.x, item.y);
-          if (s.x > -80 && s.y > -80 && s.x < state.vw + 80 && s.y < state.vh + 80) visible.push({ y: item.y, draw: () => drawCollectible(item, s.x, s.y, performance.now()) });
+        const bg = ctx.createLinearGradient(0, 0, 0, state.vh);
+        bg.addColorStop(0, '#0b281e');
+        bg.addColorStop(1, '#06130f');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, state.vw, state.vh);
+        drawMaze();
+        drawPathLine();
+        for (const crumb of state.crumbs) if (!crumb.taken) drawCrumb(crumb);
+        for (const treat of state.treats) if (!treat.taken) drawTreat(treat, performance.now());
+        if (state.player.y <= state.witch.y) {
+          drawUnicorn(performance.now());
+          drawWitch(performance.now());
+        } else {
+          drawWitch(performance.now());
+          drawUnicorn(performance.now());
         }
-        for (const object of objects) {
-          if (object.type !== 'tree' && object.type !== 'rock') continue;
-          const s = worldToScreen(object.x, object.y);
-          if (s.x < -150 || s.y < -180 || s.x > state.vw + 150 || s.y > state.vh + 150) continue;
-          visible.push({ y: object.y, draw: () => object.type === 'tree' ? drawTree(object, s.x, s.y) : drawRock(object, s.x, s.y) });
-        }
-        visible.push({ y: state.player.y, draw: () => {
-          const s = worldToScreen(state.player.x, state.player.y);
-          drawUnicorn(s.x, s.y, performance.now());
-        }});
-        visible.sort((a, b) => a.y - b.y).forEach((item) => item.draw());
-
-        drawTarget();
         drawMinimap();
-      }
-
-      function update(dt, now) {
-        updatePlayer(dt);
-        updateCollectibles();
-        state.camera.x += (state.player.x - state.camera.x) * Math.min(1, dt * 5.5);
-        state.camera.y += (state.player.y - state.camera.y) * Math.min(1, dt * 5.5);
-        state.camera.x = clamp(state.camera.x, state.vw / 2, world.w - state.vw / 2);
-        state.camera.y = clamp(state.camera.y, state.vh / 2, world.h - state.vh / 2);
-        state.targetPulse += dt * 5;
-        if (state.messageUntil && now > state.messageUntil) {
-          state.messageUntil = 0;
-          messageEl.textContent = 'Tap anywhere to set a destination. Drag to keep choosing a path.';
-        }
-        updateHud();
       }
 
       function frame(now) {
@@ -841,46 +889,38 @@
       }
 
       canvas.addEventListener('pointerdown', (event) => {
-        state.pointerDown = true;
         canvas.setPointerCapture(event.pointerId);
-        setTarget(event.clientX, event.clientY);
-      });
-
-      canvas.addEventListener('pointermove', (event) => {
-        if (state.pointerDown) setTarget(event.clientX, event.clientY);
-      });
-
-      canvas.addEventListener('pointerup', () => {
-        state.pointerDown = false;
-      });
-
-      canvas.addEventListener('pointercancel', () => {
-        state.pointerDown = false;
+        setDestination(event.clientX, event.clientY);
       });
 
       window.addEventListener('keydown', (event) => {
-        const step = 180;
-        if (event.key === 'ArrowLeft' || event.key === 'a') state.player.tx = clamp(state.player.tx - step, 0, world.w);
-        else if (event.key === 'ArrowRight' || event.key === 'd') state.player.tx = clamp(state.player.tx + step, 0, world.w);
-        else if (event.key === 'ArrowUp' || event.key === 'w') state.player.ty = clamp(state.player.ty - step, 0, world.h);
-        else if (event.key === 'ArrowDown' || event.key === 's') state.player.ty = clamp(state.player.ty + step, 0, world.h);
+        const current = cellOf(state.player.x, state.player.y);
+        let next = null;
+        if (event.key === 'ArrowLeft' || event.key === 'a') next = { c: current.c - 1, r: current.r };
+        else if (event.key === 'ArrowRight' || event.key === 'd') next = { c: current.c + 1, r: current.r };
+        else if (event.key === 'ArrowUp' || event.key === 'w') next = { c: current.c, r: current.r - 1 };
+        else if (event.key === 'ArrowDown' || event.key === 's') next = { c: current.c, r: current.r + 1 };
         else return;
         event.preventDefault();
+        if (next && isOpen(next)) state.player.path = [centerOf(next)];
       });
 
       restartBtn.addEventListener('click', reset);
       window.addEventListener('resize', resize);
-      generateWorld();
       resize();
       reset();
       setInterval(() => frame(performance.now()), 16);
-      window.__unicornExplorerDebug = () => ({
-        player: { x: state.player.x, y: state.player.y, tx: state.player.tx, ty: state.player.ty },
-        camera: { x: state.camera.x, y: state.camera.y },
+      window.__unicornMazeDebug = () => ({
+        playerCell: cellOf(state.player.x, state.player.y),
+        witchCell: cellOf(state.witch.x, state.witch.y),
         score: state.score,
-        found: state.found,
-        collectibles: collectibles.length,
-        objects: objects.length,
+        lives: state.lives,
+        won: state.won,
+        over: state.over,
+        treatsLeft: state.treats.filter((item) => !item.taken).length,
+        crumbsLeft: state.crumbs.filter((item) => !item.taken).length,
+        playerPath: state.player.path.length,
+        witchPath: state.witch.path.length,
         canvas: { width: canvas.width, height: canvas.height, dpr: state.dpr },
         viewport: { width: state.vw, height: state.vh }
       });
