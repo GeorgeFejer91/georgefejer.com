@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-music-chunks';
+      const assetVersion = '20260622-midi-melody';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -139,18 +139,11 @@
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
-      const musicChunkCount = 21;
-      const musicChunkSrcs = Array.from({ length: musicChunkCount }, (_, index) => {
-        return 'assets/music/mlp-theme-loop-8bit-' + String(index).padStart(3, '0') + '.mp3?v=' + assetVersion;
-      });
-      let musicChunkIndex = 0;
-      let musicPreloadIndex = -1;
-      const backgroundMusic = new Audio(musicChunkSrcs[musicChunkIndex]);
-      const nextBackgroundMusic = new Audio();
-      backgroundMusic.loop = false;
+      const musicSrc = 'assets/music/mlp-theme-one-cycle-nintendo-melody.mp3?v=' + assetVersion;
+      const backgroundMusic = new Audio(musicSrc);
+      backgroundMusic.loop = true;
       backgroundMusic.preload = 'auto';
-      backgroundMusic.volume = 0.36;
-      nextBackgroundMusic.preload = 'auto';
+      backgroundMusic.volume = 0.34;
 
       function musicStatus() {
         if (backgroundMusic.error) return 'failed';
@@ -159,22 +152,7 @@
         return state.musicBlocked ? 'blocked' : 'paused';
       }
 
-      function preloadNextMusicChunk() {
-        const nextIndex = (musicChunkIndex + 1) % musicChunkSrcs.length;
-        if (musicPreloadIndex === nextIndex) return;
-        musicPreloadIndex = nextIndex;
-        nextBackgroundMusic.src = musicChunkSrcs[nextIndex];
-        nextBackgroundMusic.load();
-      }
-
-      function loadMusicChunk(index) {
-        musicChunkIndex = (index + musicChunkSrcs.length) % musicChunkSrcs.length;
-        backgroundMusic.src = musicChunkSrcs[musicChunkIndex];
-        backgroundMusic.load();
-        preloadNextMusicChunk();
-      }
-
-      function playLoadedMusic() {
+      function playBackgroundMusic() {
         const playPromise = backgroundMusic.play();
         if (playPromise && typeof playPromise.then === 'function') {
           playPromise
@@ -193,16 +171,9 @@
         if (backgroundMusic.error || !backgroundMusic.paused) return;
         state.musicStarted = true;
         state.musicBlocked = false;
-        preloadNextMusicChunk();
-        playLoadedMusic();
+        playBackgroundMusic();
         updateHud();
       }
-
-      backgroundMusic.addEventListener('ended', () => {
-        loadMusicChunk(musicChunkIndex + 1);
-        if (state.musicStarted) playLoadedMusic();
-        updateHud();
-      });
 
       ['canplaythrough', 'playing', 'pause', 'error', 'loadedmetadata'].forEach((eventName) => {
         backgroundMusic.addEventListener(eventName, () => {
@@ -210,7 +181,6 @@
           if (canvas.width) updateHud();
         });
       });
-      preloadNextMusicChunk();
 
       function allSprites() {
         return [...Object.values(characterSprites), ...Object.values(scenerySprites)];
@@ -663,10 +633,10 @@
         canvas.dataset.treeCrushes = String(state.treeCrushes);
         canvas.dataset.lastTreeCollision = state.lastTreeCollision;
         canvas.dataset.music = musicStatus();
-        canvas.dataset.musicChunk = String(musicChunkIndex);
-        canvas.dataset.musicNextChunk = String((musicChunkIndex + 1) % musicChunkSrcs.length);
-        canvas.dataset.musicChunks = String(musicChunkSrcs.length);
-        canvas.dataset.musicSrc = musicChunkSrcs[musicChunkIndex];
+        canvas.dataset.musicChunk = '0';
+        canvas.dataset.musicNextChunk = '0';
+        canvas.dataset.musicChunks = '1';
+        canvas.dataset.musicSrc = musicSrc;
       }
 
       function resetPositions() {
@@ -3454,10 +3424,10 @@
         assetVersion,
         currentSpritesReady: currentSpriteSetReady(),
         music: musicStatus(),
-        musicChunk: musicChunkIndex,
-        musicNextChunk: (musicChunkIndex + 1) % musicChunkSrcs.length,
-        musicChunks: musicChunkSrcs.length,
-        musicSrc: musicChunkSrcs[musicChunkIndex],
+        musicChunk: 0,
+        musicNextChunk: 0,
+        musicChunks: 1,
+        musicSrc,
         failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
