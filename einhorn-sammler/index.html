@@ -7,16 +7,10 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #18202a;
-      --muted: #596673;
-      --paper: #fffdf9;
-      --line: #d6dce1;
-      --field: #e9f7df;
-      --field-edge: #87bb6d;
-      --blue: #69c4e8;
-      --rose: #e55f8e;
-      --gold: #f2b632;
-      --violet: #8067c9;
+      --ink: #17202a;
+      --muted: #5d6a76;
+      --line: #d5dce3;
+      --panel: rgb(255 255 255 / 90%);
     }
 
     * {
@@ -37,15 +31,15 @@
       place-items: center;
       padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
       background:
-        linear-gradient(#dff6ff 0 42%, transparent 42%),
-        linear-gradient(160deg, #fff9e8, #e8f8f5 44%, #eef0ff);
+        radial-gradient(circle at 18% 0%, rgb(129 234 218 / 26%), transparent 28%),
+        linear-gradient(160deg, #e8fbff 0%, #f8fbff 52%, #edf1ff 100%);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
       touch-action: manipulation;
     }
 
     .game {
-      width: min(100%, 700px);
+      width: min(100%, 740px);
       display: grid;
       gap: 10px;
     }
@@ -82,7 +76,7 @@
       min-height: 42px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgb(255 255 255 / 88%);
+      background: var(--panel);
       color: var(--ink);
       box-shadow: 0 2px 9px rgb(24 32 42 / 10%);
       font: 700 15px/1 Arial, Helvetica, sans-serif;
@@ -129,15 +123,12 @@
 
     .board-wrap {
       position: relative;
-      min-height: min(66svh, 470px);
-      display: grid;
-      place-items: end center;
-      padding: clamp(10px, 2.4vw, 18px);
-      border: 1px solid #96bd87;
+      min-height: min(66svh, 500px);
+      border: 1px solid #263645;
       border-radius: 8px;
-      background: #060913;
       overflow: hidden;
-      box-shadow: 0 10px 28px rgb(24 32 42 / 14%);
+      background: #020713;
+      box-shadow: 0 14px 34px rgb(10 19 30 / 22%);
       touch-action: none;
     }
 
@@ -145,53 +136,52 @@
       content: "";
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(circle at 50% 42%, rgb(104 218 255 / 18%), transparent 34%),
-        linear-gradient(rgb(6 9 19 / 0), rgb(6 9 19 / 46%));
       pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 34%, rgb(92 224 203 / 18%), transparent 31%),
+        linear-gradient(rgb(1 4 12 / 0), rgb(1 4 12 / 42%));
+      mix-blend-mode: screen;
     }
 
-    #world {
+    #viewport {
       position: absolute;
       inset: 0;
+      width: 100%;
+      height: 100%;
       margin: 0;
-      padding: clamp(8px, 2.2vw, 16px);
+      padding: clamp(8px, 2vw, 15px);
       overflow: hidden;
-      color: #caf6e9;
       background:
-        linear-gradient(#081124 0%, #142a3d 38%, #1d3c2d 39%, #07100b 100%);
+        linear-gradient(#071126 0%, #10243a 33%, #173924 34%, #08100b 100%);
+      color: #dffdf1;
       font-family: Consolas, "Courier New", monospace;
-      font-size: clamp(8px, 1.75vw, 14px);
-      line-height: 0.95;
+      font-size: clamp(8px, 1.63vw, 13px);
+      line-height: 0.96;
       letter-spacing: 0;
       white-space: pre;
-      text-shadow:
-        0 0 4px rgb(91 225 218 / 58%),
-        0 0 11px rgb(242 182 50 / 18%);
       user-select: none;
+      text-shadow: 0 0 5px rgb(123 244 225 / 42%);
     }
 
-    #screen {
-      position: relative;
-      z-index: 1;
-      width: min(100%, 360px);
-      margin: 0;
-      padding: 10px 12px;
-      border: 1px solid rgb(255 255 255 / 34%);
-      border-radius: 8px;
-      background: rgb(4 8 16 / 72%);
-      color: #fffdf9;
-      font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, sans-serif;
-      font-size: clamp(20px, 4.8vw, 30px);
-      line-height: 1.12;
-      letter-spacing: 0;
-      white-space: pre;
-      text-align: center;
-      box-shadow: 0 10px 26px rgb(0 0 0 / 32%);
-      text-shadow: 0 1px 2px rgb(0 0 0 / 78%);
-      user-select: none;
-      touch-action: none;
-    }
+    #viewport .sky { color: #9cc4d8; }
+    #viewport .star { color: #f8e9a1; text-shadow: 0 0 8px rgb(255 223 122 / 80%); }
+    #viewport .moon { color: #fff5b9; text-shadow: 0 0 12px rgb(255 239 160 / 72%); }
+    #viewport .mount { color: #83b0bb; }
+    #viewport .keep { color: #d3c2a8; text-shadow: 0 0 7px rgb(250 216 157 / 42%); }
+    #viewport .wood { color: #8b6d42; }
+    #viewport .leaf1 { color: #3eb45f; }
+    #viewport .leaf2 { color: #1e7e46; }
+    #viewport .path { color: #a98954; }
+    #viewport .edge { color: #f0d38b; text-shadow: 0 0 7px rgb(246 207 111 / 50%); }
+    #viewport .grass { color: #3b8f47; }
+    #viewport .dark { color: #173b2d; }
+    #viewport .magic { color: #fce36c; text-shadow: 0 0 11px rgb(255 232 107 / 92%); }
+    #viewport .mushroom { color: #f6b1da; text-shadow: 0 0 9px rgb(255 136 210 / 80%); }
+    #viewport .hazard { color: #ff8c64; text-shadow: 0 0 9px rgb(255 100 64 / 70%); }
+    #viewport .hero { color: #f8f7ff; text-shadow: 0 0 11px rgb(185 239 255 / 92%); font-weight: 700; }
+    #viewport .mane { color: #ff83c9; text-shadow: 0 0 9px rgb(255 131 201 / 82%); font-weight: 700; }
+    #viewport .hudtext { color: #c8f7ef; }
+    #viewport .warn { color: #ffcf76; }
 
     .status {
       min-height: 38px;
@@ -199,7 +189,7 @@
       place-items: center;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgb(255 255 255 / 88%);
+      background: var(--panel);
       color: var(--ink);
       font-size: 14px;
       font-weight: 700;
@@ -271,18 +261,12 @@
       }
 
       .board-wrap {
-        min-height: min(44svh, 330px);
+        min-height: min(45svh, 340px);
+      }
+
+      #viewport {
+        font-size: clamp(7px, 2.05vw, 10px);
         padding: 8px;
-      }
-
-      #world {
-        font-size: clamp(7px, 2.2vw, 10px);
-      }
-
-      #screen {
-        width: min(100%, 310px);
-        padding: 8px 10px;
-        font-size: clamp(18px, 5.3vw, 25px);
       }
 
       .controls {
@@ -313,114 +297,73 @@
     </section>
 
     <section class="board-wrap" aria-label="Game field">
-      <pre id="world" aria-hidden="true"></pre>
-      <pre id="screen" role="img" aria-label="Text-rendered unicorn forest game"></pre>
+      <pre id="viewport" role="img" aria-label="Pseudo 3D text-rendered unicorn forest runner"></pre>
     </section>
 
-    <div class="status" id="status">Ready</div>
+    <div class="status" id="status">Run the forest trail</div>
 
     <nav class="controls" aria-label="Controls">
-      <button class="up" type="button" data-move="up" aria-label="Up">&uarr;</button>
+      <button class="up" type="button" data-move="jump" aria-label="Jump">&uarr;</button>
       <button class="left" type="button" data-move="left" aria-label="Left">&larr;</button>
-      <button class="down" type="button" data-move="down" aria-label="Down">&darr;</button>
+      <button class="down" type="button" data-move="duck" aria-label="Duck">&darr;</button>
       <button class="right" type="button" data-move="right" aria-label="Right">&rarr;</button>
     </nav>
   </main>
 
   <script>
     (() => {
-      const width = 11;
-      const height = 8;
       const roundSeconds = 60;
+      const lanes = [-1, 0, 1];
       const board = document.querySelector('.board-wrap');
-      const world = document.getElementById('world');
-      const screen = document.getElementById('screen');
+      const viewport = document.getElementById('viewport');
       const scoreEl = document.getElementById('score');
       const livesEl = document.getElementById('lives');
       const timeEl = document.getElementById('time');
       const bestEl = document.getElementById('best');
       const statusEl = document.getElementById('status');
       const restartBtn = document.getElementById('restart');
-      const glyph = {
-        empty: '\u22c5',
-        player: '\ud83e\udd84',
-        star: '\u2728',
-        crystal: '\ud83c\udf44',
-        storm: '\ud83c\udf32',
-        flower: '\ud83c\udf38'
-      };
       const state = {
-        player: { x: 1, y: 5 },
-        items: [],
-        storms: [],
+        lane: 0,
         score: 0,
         lives: 3,
-        best: Number(localStorage.getItem('unicornBest') || 0),
+        best: Number(localStorage.getItem('unicornForestBest') || 0),
         time: roundSeconds,
         running: true,
-        startedAt: Date.now(),
-        lastStormStep: Date.now()
+        startedAt: performance.now(),
+        elapsed: 0,
+        lastFrame: performance.now(),
+        nextSpawn: 0.45,
+        distance: 0,
+        speed: 0.34,
+        jumpUntil: 0,
+        duckUntil: 0,
+        flashUntil: 0,
+        entities: [],
+        message: 'Collect magic. Jump logs. Duck branches. Dodge trunks.'
       };
 
-      function randomCell() {
-        return {
-          x: Math.floor(Math.random() * width),
-          y: Math.floor(Math.random() * height)
-        };
-      }
-
-      function same(a, b) {
-        return a.x === b.x && a.y === b.y;
-      }
-
-      function occupied(cell) {
-        return same(cell, state.player) ||
-          state.items.some((item) => same(cell, item)) ||
-          state.storms.some((storm) => same(cell, storm));
-      }
-
-      function freeCell() {
-        let cell = randomCell();
-        let guard = 0;
-        while (occupied(cell) && guard < 200) {
-          cell = randomCell();
-          guard += 1;
-        }
-        return cell;
-      }
-
-      function addItem(kind) {
-        const cell = freeCell();
-        state.items.push({
-          x: cell.x,
-          y: cell.y,
-          kind,
-          points: kind === 'crystal' ? 25 : 10
-        });
-      }
-
-      function addStorm() {
-        const cell = freeCell();
-        state.storms.push({ x: cell.x, y: cell.y });
-      }
-
       function reset() {
-        state.player = { x: 1, y: 5 };
-        state.items = [];
-        state.storms = [];
+        state.lane = 0;
         state.score = 0;
         state.lives = 3;
         state.time = roundSeconds;
         state.running = true;
-        state.startedAt = Date.now();
-        state.lastStormStep = Date.now();
-        addItem('star');
-        addItem('star');
-        addItem('star');
-        addItem('crystal');
-        addStorm();
-        addStorm();
-        statusEl.textContent = 'Find forest magic';
+        state.startedAt = performance.now();
+        state.elapsed = 0;
+        state.lastFrame = performance.now();
+        state.nextSpawn = 0.45;
+        state.distance = 0;
+        state.speed = 0.34;
+        state.jumpUntil = 0;
+        state.duckUntil = 0;
+        state.flashUntil = 0;
+        state.entities = [
+          { type: 'magic', lane: 0, z: 0.22, hit: false, points: 10 },
+          { type: 'log', lane: -1, z: 0.34, hit: false },
+          { type: 'mushroom', lane: 1, z: 0.48, hit: false, points: 25 }
+        ];
+        state.message = 'Collect magic. Jump logs. Duck branches. Dodge trunks.';
+        statusEl.textContent = state.message;
         updateHud();
         render();
       }
@@ -432,187 +375,340 @@
         bestEl.textContent = 'Best ' + state.best;
       }
 
-      function render() {
-        const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => glyph.empty));
-        for (const item of state.items) {
-          grid[item.y][item.x] = item.kind === 'crystal' ? glyph.crystal : glyph.star;
-        }
-        for (const storm of state.storms) {
-          grid[storm.y][storm.x] = glyph.storm;
-        }
-        grid[state.player.y][state.player.x] = state.lives > 0 ? glyph.player : glyph.flower;
-        screen.textContent = grid.map((row) => row.join(' ')).join('\n');
-        renderWorld();
+      function chooseEntity() {
+        const roll = Math.random();
+        const lane = lanes[Math.floor(Math.random() * lanes.length)];
+        if (roll < 0.42) return { type: 'magic', lane, z: 0, hit: false, points: 10 };
+        if (roll < 0.58) return { type: 'mushroom', lane, z: 0, hit: false, points: 25 };
+        if (roll < 0.75) return { type: 'log', lane, z: 0, hit: false };
+        if (roll < 0.88) return { type: 'branch', lane, z: 0, hit: false };
+        return { type: 'trunk', lane, z: 0, hit: false };
       }
 
-      function renderWorld() {
-        const cols = window.innerWidth <= 560 ? 48 : 72;
-        const rows = window.innerWidth <= 560 ? 24 : 29;
-        const horizon = Math.floor(rows * 0.42);
-        const center = Math.round(cols / 2 + (state.player.x - width / 2) * 1.1);
-        const sway = Math.sin(Date.now() / 850) * 2;
-        const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
+      function spawnEntity() {
+        const entity = chooseEntity();
+        const tooClose = state.entities.some((other) => other.lane === entity.lane && other.z < 0.22);
+        if (!tooClose) state.entities.push(entity);
+      }
 
-        for (let y = 0; y < rows; y += 1) {
-          for (let x = 0; x < cols; x += 1) {
-            if (y < horizon) {
-              const sparkle = (x * 13 + y * 17 + state.score) % 47 === 0;
-              grid[y][x] = sparkle ? '.' : ' ';
-            } else {
-              const d = (y - horizon + 1) / (rows - horizon);
-              const pathWidth = Math.max(3, Math.floor(Math.pow(d, 1.55) * cols * 0.52));
-              const pathCenter = Math.round(center + sway * (1 - d));
-              const edge = Math.abs(x - pathCenter);
-              if (edge < pathWidth / 2) {
-                grid[y][x] = (x + y + state.score) % 7 === 0 ? ',' : '.';
-              } else if (Math.abs(edge - pathWidth / 2) < 1.4) {
-                grid[y][x] = x < pathCenter ? '/' : '\\';
-              } else {
-                grid[y][x] = (x * 5 + y * 3) % 9 === 0 ? '"' : '^';
-              }
-            }
-          }
+      function isJumping(now) {
+        return now < state.jumpUntil;
+      }
+
+      function isDucking(now) {
+        return now < state.duckUntil;
+      }
+
+      function laneMove(delta) {
+        if (!state.running) {
+          reset();
+          return;
         }
+        state.lane = Math.max(-1, Math.min(1, state.lane + delta));
+        state.message = state.lane === -1 ? 'Left trail' : state.lane === 1 ? 'Right trail' : 'Center trail';
+        statusEl.textContent = state.message;
+        render();
+      }
 
-        function put(row, col, text) {
-          if (row < 0 || row >= rows) return;
-          for (let i = 0; i < text.length; i += 1) {
-            const x = col + i;
-            if (x >= 0 && x < cols) grid[row][x] = text[i];
-          }
+      function jump() {
+        const now = performance.now();
+        if (!state.running) {
+          reset();
+          return;
         }
+        state.jumpUntil = now + 620;
+        state.duckUntil = 0;
+        state.message = 'Jump';
+        statusEl.textContent = state.message;
+        render();
+      }
 
-        put(1, Math.floor(cols * 0.72), ' .  *');
-        put(2, Math.floor(cols * 0.72), '  \\ | /');
-        put(3, Math.floor(cols * 0.72), ' -- O --');
-        put(horizon - 5, Math.floor(cols * 0.08), '        /\\        /\\');
-        put(horizon - 4, Math.floor(cols * 0.08), '   /\\  /  \\__/\\__/  \\  /\\');
-        put(horizon - 3, Math.floor(cols * 0.08), '__/  \\/_/\\_/  \\_/\\_\\/  \\__');
-        put(horizon - 5, Math.floor(cols * 0.54), '       /\\   /\\');
-        put(horizon - 4, Math.floor(cols * 0.54), '  ____/  \\_/  \\____');
-        put(horizon - 3, Math.floor(cols * 0.54), ' /_[]_[]_[]_[]_[]_\\');
-        put(horizon - 2, Math.floor(cols * 0.54), '   | FOREST KEEP |');
-
-        for (let i = 0; i < 12; i += 1) {
-          const d = (i + 1) / 12;
-          const y = horizon + Math.floor(d * (rows - horizon - 2));
-          const side = i % 2 === 0 ? -1 : 1;
-          const offset = Math.floor(Math.pow(d, 1.35) * cols * 0.46);
-          const drift = Math.floor(Math.sin(i * 1.7 + Date.now() / 1200) * (1 + d * 3));
-          const x = center + side * offset + drift;
-          const trunk = d > 0.62 ? '||' : '|';
-          const leaves = d > 0.62 ? '/YY\\' : '/Y\\';
-          put(y - 2, x - Math.floor(leaves.length / 2), leaves);
-          put(y - 1, x - Math.floor(leaves.length / 2), leaves);
-          put(y, x - Math.floor(trunk.length / 2), trunk);
+      function duck() {
+        const now = performance.now();
+        if (!state.running) {
+          reset();
+          return;
         }
-
-        put(rows - 4, 2, 'HP ' + state.lives + '  SCORE ' + state.score);
-        put(rows - 3, 2, 'ARROWS / WASD / SWIPE');
-        world.textContent = grid.map((row) => row.join('')).join('\n');
+        state.duckUntil = now + 620;
+        state.jumpUntil = 0;
+        state.message = 'Duck';
+        statusEl.textContent = state.message;
+        render();
       }
 
       function end(text) {
         state.running = false;
         state.best = Math.max(state.best, state.score);
-        localStorage.setItem('unicornBest', String(state.best));
+        localStorage.setItem('unicornForestBest', String(state.best));
+        state.message = text;
         statusEl.textContent = text;
         updateHud();
-        render();
       }
 
-      function collect() {
-        const index = state.items.findIndex((item) => same(item, state.player));
-        if (index === -1) return;
-        const item = state.items[index];
-        state.score += item.points;
-        state.items.splice(index, 1);
-        addItem(Math.random() < 0.72 ? 'star' : 'crystal');
-        statusEl.textContent = item.kind === 'crystal' ? 'Moon mushroom +' + item.points : 'Forest sparkle +' + item.points;
-      }
-
-      function hitStorm() {
-        const storm = state.storms.find((cell) => same(cell, state.player));
-        if (!storm) return;
+      function loseLife(message) {
+        const now = performance.now();
         state.lives -= 1;
-        statusEl.textContent = 'Tree collision';
-        state.player = { x: 1, y: 5 };
-        if (state.lives <= 0) {
-          end('Lost in the forest. Score ' + state.score);
-        }
+        state.flashUntil = now + 420;
+        state.message = message;
+        statusEl.textContent = message;
+        if (state.lives <= 0) end('Lost in the forest. Score ' + state.score);
       }
 
-      function move(dx, dy) {
-        if (!state.running) {
-          reset();
+      function resolveEntity(entity, now) {
+        if (entity.hit || entity.z < 0.84 || entity.z > 0.96 || entity.lane !== state.lane) return;
+        entity.hit = true;
+        if (entity.type === 'magic' || entity.type === 'mushroom') {
+          state.score += entity.points;
+          state.message = entity.type === 'mushroom' ? 'Moon mushroom +' + entity.points : 'Forest magic +' + entity.points;
+          statusEl.textContent = state.message;
           return;
         }
-        state.player.x = Math.max(0, Math.min(width - 1, state.player.x + dx));
-        state.player.y = Math.max(0, Math.min(height - 1, state.player.y + dy));
-        collect();
-        hitStorm();
-        updateHud();
-        render();
-      }
-
-      function moveStorms() {
-        for (const storm of state.storms) {
-          const options = [
-            { x: storm.x + 1, y: storm.y },
-            { x: storm.x - 1, y: storm.y },
-            { x: storm.x, y: storm.y + 1 },
-            { x: storm.x, y: storm.y - 1 },
-            { x: storm.x, y: storm.y }
-          ].filter((cell) => cell.x >= 0 && cell.x < width && cell.y >= 0 && cell.y < height);
-          const next = options[Math.floor(Math.random() * options.length)];
-          storm.x = next.x;
-          storm.y = next.y;
+        if (entity.type === 'log' && isJumping(now)) {
+          state.score += 5;
+          state.message = 'Cleared the log +5';
+          statusEl.textContent = state.message;
+          return;
         }
-        hitStorm();
+        if (entity.type === 'branch' && isDucking(now)) {
+          state.score += 5;
+          state.message = 'Under the branch +5';
+          statusEl.textContent = state.message;
+          return;
+        }
+        loseLife(entity.type === 'trunk' ? 'Tree collision' : entity.type === 'log' ? 'Jump the logs' : 'Duck the branches');
       }
 
-      function tick() {
+      function update(dt, now) {
         if (!state.running) return;
-        const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
-        state.time = Math.max(0, roundSeconds - elapsed);
-        if (Date.now() - state.lastStormStep > 950) {
-          state.lastStormStep = Date.now();
-          moveStorms();
+        state.elapsed += dt;
+        state.time = Math.max(0, roundSeconds - Math.floor(state.elapsed));
+        state.distance += dt * 7.4;
+        state.nextSpawn -= dt;
+        state.speed = Math.min(0.56, 0.34 + state.score / 1500);
+        if (state.nextSpawn <= 0) {
+          spawnEntity();
+          state.nextSpawn = Math.max(0.42, 0.86 - state.score / 900) + Math.random() * 0.24;
         }
-        if (state.time <= 0) {
-          end('The forest fades. Score ' + state.score);
+        for (const entity of state.entities) {
+          entity.z += dt * state.speed;
+          resolveEntity(entity, now);
         }
+        state.entities = state.entities.filter((entity) => entity.z < 1.08 && !((entity.type === 'magic' || entity.type === 'mushroom') && entity.hit));
+        if (state.time <= 0) end('The forest fades. Score ' + state.score);
         updateHud();
+      }
+
+      function makeLayer(rows, cols, char, cls) {
+        return {
+          chars: Array.from({ length: rows }, () => Array.from({ length: cols }, () => char)),
+          cls: Array.from({ length: rows }, () => Array.from({ length: cols }, () => cls))
+        };
+      }
+
+      function setCell(layer, row, col, char, cls) {
+        if (row < 0 || row >= layer.chars.length || col < 0 || col >= layer.chars[0].length) return;
+        layer.chars[row][col] = char;
+        layer.cls[row][col] = cls;
+      }
+
+      function write(layer, row, col, text, cls) {
+        for (let i = 0; i < text.length; i += 1) setCell(layer, row, col + i, text[i], cls);
+      }
+
+      function escapeHtml(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function classNameAt(layer, row, col) {
+        return layer.cls[row][col] || '';
+      }
+
+      function renderHtml(layer) {
+        let html = '';
+        for (let row = 0; row < layer.chars.length; row += 1) {
+          let active = null;
+          let run = '';
+          for (let col = 0; col < layer.chars[row].length; col += 1) {
+            const cls = classNameAt(layer, row, col);
+            if (cls !== active) {
+              if (run) html += active ? '<span class="' + active + '">' + escapeHtml(run) + '</span>' : escapeHtml(run);
+              active = cls;
+              run = '';
+            }
+            run += layer.chars[row][col];
+          }
+          if (run) html += active ? '<span class="' + active + '">' + escapeHtml(run) + '</span>' : escapeHtml(run);
+          if (row < layer.chars.length - 1) html += '\n';
+        }
+        return html;
+      }
+
+      function depthForRow(row, horizon, rows) {
+        return Math.max(0, Math.min(1, (row - horizon) / (rows - horizon - 1)));
+      }
+
+      function pathWidthAt(row, horizon, rows, cols) {
+        const d = depthForRow(row, horizon, rows);
+        return Math.max(4, Math.floor((cols * 0.08) + Math.pow(d, 1.55) * cols * 0.7));
+      }
+
+      function pathCenterAt(row, horizon, rows, cols) {
+        const d = depthForRow(row, horizon, rows);
+        return Math.round(cols / 2 + Math.sin(state.distance * 0.52 + d * 4.1) * (1 + d * 4));
+      }
+
+      function laneCol(lane, row, horizon, rows, cols) {
+        const width = pathWidthAt(row, horizon, rows, cols);
+        const center = pathCenterAt(row, horizon, rows, cols);
+        return Math.round(center + lane * width * 0.24);
+      }
+
+      function drawBackground(layer, rows, cols, horizon) {
+        const t = Math.floor(state.distance * 10);
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
+            if (row < horizon) {
+              setCell(layer, row, col, ' ', 'sky');
+              if ((row * 17 + col * 29 + t) % 181 === 0) setCell(layer, row, col, '.', 'star');
+            } else {
+              const width = pathWidthAt(row, horizon, rows, cols);
+              const center = pathCenterAt(row, horizon, rows, cols);
+              const edge = Math.abs(col - center);
+              const d = depthForRow(row, horizon, rows);
+              if (edge < width / 2) {
+                const dust = (row * 5 + col * 3 + t) % 11 === 0 ? ',' : '.';
+                setCell(layer, row, col, dust, 'path');
+              } else if (Math.abs(edge - width / 2) < 1.5) {
+                setCell(layer, row, col, col < center ? '/' : '\\', 'edge');
+              } else {
+                const pattern = (row * 7 + col * 5 + t) % 10;
+                setCell(layer, row, col, pattern < 2 ? '"' : pattern < 5 ? '^' : '.', d > 0.55 ? 'leaf2' : 'grass');
+              }
+            }
+          }
+        }
+
+        write(layer, 1, Math.floor(cols * 0.71), ' .  *', 'star');
+        write(layer, 2, Math.floor(cols * 0.71), '  \\ | /', 'moon');
+        write(layer, 3, Math.floor(cols * 0.71), ' -- O --', 'moon');
+        write(layer, horizon - 5, Math.floor(cols * 0.05), '       /\\       /\\', 'mount');
+        write(layer, horizon - 4, Math.floor(cols * 0.05), '  /\\  /  \\_/\\_/  \\  /\\', 'mount');
+        write(layer, horizon - 3, Math.floor(cols * 0.05), '_/  \\/_/\\_/  \\_/\\_\\/  \\_', 'mount');
+        write(layer, horizon - 5, Math.floor(cols * 0.54), '       /\\   /\\', 'keep');
+        write(layer, horizon - 4, Math.floor(cols * 0.54), '  ____/  \\_/  \\____', 'keep');
+        write(layer, horizon - 3, Math.floor(cols * 0.54), ' /_[]_[]_[]_[]_[]_\\', 'keep');
+        write(layer, horizon - 2, Math.floor(cols * 0.54), '   | FOREST KEEP |', 'keep');
+      }
+
+      function drawForest(layer, rows, cols, horizon) {
+        for (let i = 0; i < 18; i += 1) {
+          const d = ((i * 0.113 + state.distance * 0.035) % 1);
+          const row = horizon + Math.floor(Math.pow(d, 1.55) * (rows - horizon - 3));
+          const side = i % 2 === 0 ? -1 : 1;
+          const center = pathCenterAt(row, horizon, rows, cols);
+          const pathWidth = pathWidthAt(row, horizon, rows, cols);
+          const col = Math.round(center + side * (pathWidth * 0.62 + d * cols * 0.16));
+          const large = d > 0.58;
+          const leaves = large ? '/YYY\\' : '/Y\\';
+          const trunk = large ? ' || ' : ' | ';
+          write(layer, row - 2, col - Math.floor(leaves.length / 2), leaves, d > 0.65 ? 'leaf1' : 'leaf2');
+          write(layer, row - 1, col - Math.floor(leaves.length / 2), leaves, d > 0.65 ? 'leaf1' : 'leaf2');
+          write(layer, row, col - Math.floor(trunk.length / 2), trunk, 'wood');
+        }
+      }
+
+      function drawEntity(layer, entity, rows, cols, horizon) {
+        const row = horizon + Math.floor(Math.pow(entity.z, 1.45) * (rows - horizon - 5));
+        const col = laneCol(entity.lane, row, horizon, rows, cols);
+        if (entity.hit) return;
+        if (entity.type === 'magic') {
+          const art = entity.z > 0.65 ? ['  *  ', ' *** ', '  *  '] : [' * ', '***', ' * '];
+          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'magic'));
+        } else if (entity.type === 'mushroom') {
+          const art = entity.z > 0.62 ? [' _M_ ', '(mmm)', '  |  '] : ['_m_', ' | '];
+          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'mushroom'));
+        } else if (entity.type === 'log') {
+          const line = entity.z > 0.6 ? '[=====]' : '[===]';
+          write(layer, row, col - Math.floor(line.length / 2), line, 'hazard');
+        } else if (entity.type === 'branch') {
+          const line = entity.z > 0.62 ? '--<###>--' : '-<##>-';
+          write(layer, row - 3, col - Math.floor(line.length / 2), line, 'hazard');
+        } else {
+          const art = entity.z > 0.58 ? ['  #  ', ' ### ', '##|##', '  |  '] : ['###', ' | '];
+          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'hazard'));
+        }
+      }
+
+      function drawHero(layer, rows, cols, horizon, now) {
+        const row = rows - 4 - (isJumping(now) ? 3 : 0);
+        const col = laneCol(state.lane, row, horizon, rows, cols);
+        const blinking = now < state.flashUntil && Math.floor(now / 90) % 2 === 0;
+        if (blinking) return;
+        if (isDucking(now)) {
+          write(layer, row - 1, col - 3, '  ^  ', 'hero');
+          write(layer, row, col - 4, '_/U\\__', 'mane');
+          return;
+        }
+        write(layer, row - 3, col - 2, '  ^', 'hero');
+        write(layer, row - 2, col - 3, ' /U\\ ', 'hero');
+        write(layer, row - 1, col - 4, '<===>', 'mane');
+        write(layer, row, col - 3, ' / \\ ', 'hero');
+      }
+
+      function drawInSceneHud(layer, rows, cols) {
+        const action = isJumping(performance.now()) ? 'JUMP' : isDucking(performance.now()) ? 'DUCK' : 'RUN';
+        write(layer, rows - 2, 2, 'LANE ' + (state.lane + 2) + '/3  ' + action, 'hudtext');
+        write(layer, rows - 1, 2, 'LEFT/RIGHT LANES   UP JUMP   DOWN DUCK', 'hudtext');
+        if (!state.running) write(layer, Math.floor(rows * 0.48), Math.floor(cols / 2) - 12, 'PRESS ANY CONTROL TO RESTART', 'warn');
+      }
+
+      function render() {
+        const mobile = window.innerWidth <= 560;
+        const cols = mobile ? 62 : 92;
+        const rows = mobile ? 31 : 38;
+        const horizon = Math.floor(rows * 0.34);
+        const layer = makeLayer(rows, cols, ' ', 'sky');
+        drawBackground(layer, rows, cols, horizon);
+        drawForest(layer, rows, cols, horizon);
+        [...state.entities].sort((a, b) => a.z - b.z).forEach((entity) => drawEntity(layer, entity, rows, cols, horizon));
+        drawHero(layer, rows, cols, horizon, performance.now());
+        drawInSceneHud(layer, rows, cols);
+        viewport.innerHTML = renderHtml(layer);
+      }
+
+      function frame(now) {
+        const dt = Math.min(0.05, Math.max(0, (now - state.lastFrame) / 1000));
+        state.lastFrame = now;
+        update(dt, now);
         render();
       }
 
       const keyMoves = {
-        ArrowLeft: [-1, 0],
-        ArrowRight: [1, 0],
-        ArrowUp: [0, -1],
-        ArrowDown: [0, 1],
-        a: [-1, 0],
-        d: [1, 0],
-        w: [0, -1],
-        s: [0, 1]
+        ArrowLeft: () => laneMove(-1),
+        ArrowRight: () => laneMove(1),
+        ArrowUp: jump,
+        ArrowDown: duck,
+        a: () => laneMove(-1),
+        d: () => laneMove(1),
+        w: jump,
+        s: duck
       };
 
       window.addEventListener('keydown', (event) => {
-        const step = keyMoves[event.key];
-        if (!step) return;
+        const action = keyMoves[event.key];
+        if (!action) return;
         event.preventDefault();
-        move(step[0], step[1]);
+        action();
       });
 
       document.querySelectorAll('[data-move]').forEach((button) => {
-        const name = button.dataset.move;
         const map = {
-          left: [-1, 0],
-          right: [1, 0],
-          up: [0, -1],
-          down: [0, 1]
+          left: () => laneMove(-1),
+          right: () => laneMove(1),
+          jump,
+          duck
         };
-        button.addEventListener('click', () => move(map[name][0], map[name][1]));
+        button.addEventListener('click', map[button.dataset.move]);
       });
 
       let touchStart = null;
@@ -627,16 +723,17 @@
         touchStart = null;
         if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
         if (Math.abs(dx) > Math.abs(dy)) {
-          move(dx > 0 ? 1 : -1, 0);
+          laneMove(dx > 0 ? 1 : -1);
+        } else if (dy < 0) {
+          jump();
         } else {
-          move(0, dy > 0 ? 1 : -1);
+          duck();
         }
       });
 
       restartBtn.addEventListener('click', reset);
-      window.addEventListener('resize', render);
       reset();
-      setInterval(tick, 250);
+      setInterval(() => frame(performance.now()), 33);
     })();
   </script>
 </body>
