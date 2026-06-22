@@ -102,6 +102,9 @@
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
+      const scenerySprites = {
+        wavingTree: loadSprite('assets/waving-tree.png', 180, 180, 0.54, 0)
+      };
 
       function loadSprite(src, frameW, frameH, scale, ground) {
         const image = new Image();
@@ -381,6 +384,7 @@
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
+        canvas.dataset.treeSprites = scenerySprites.wavingTree.ready ? 'ready' : scenerySprites.wavingTree.failed ? 'failed' : 'loading';
         canvas.dataset.stenchBubbles = String(state.stenchTrail.length);
         canvas.dataset.stenchFogs = String(state.stenchFogs.length);
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
@@ -650,7 +654,58 @@
         updateHud();
       }
 
+      function isWavingTreeCell(c, r) {
+        return ((c * 31 + r * 17) % 13 === 0 && (c + r) % 2 === 0) || (c * 7 + r * 29) % 41 === 0;
+      }
+
+      function drawPineTreeTile(x, y) {
+        const cx = x + grid.tile / 2;
+        ctx.fillStyle = '#1e7b3f';
+        ctx.beginPath();
+        ctx.moveTo(cx, y + 9);
+        ctx.lineTo(x + 11, y + grid.tile - 10);
+        ctx.lineTo(x + grid.tile - 11, y + grid.tile - 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#14592e';
+        ctx.beginPath();
+        ctx.moveTo(cx + 8, y + 18);
+        ctx.lineTo(x + 18, y + grid.tile - 4);
+        ctx.lineTo(x + grid.tile - 4, y + grid.tile - 6);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawWavingTreeTile(x, y, c, r, now) {
+        const sprite = scenerySprites.wavingTree;
+        if (!sprite.ready) {
+          drawPineTreeTile(x, y);
+          return;
+        }
+        const offset = (c * 5 + r * 3) % 4;
+        const frameIndex = (Math.floor(now / 185) + offset) % 4;
+        const drawW = grid.tile * 1.36;
+        const drawH = grid.tile * 1.36;
+        const sway = Math.sin(now / 640 + c * 0.73 + r * 0.41) * 0.035;
+        ctx.save();
+        ctx.translate(x + grid.tile / 2, y + grid.tile + 9);
+        ctx.rotate(sway);
+        ctx.drawImage(
+          sprite.image,
+          frameIndex * sprite.frameW,
+          0,
+          sprite.frameW,
+          sprite.frameH,
+          -drawW / 2,
+          -drawH,
+          drawW,
+          drawH
+        );
+        ctx.restore();
+      }
+
       function drawMaze() {
+        const now = performance.now();
         const halfW = state.vw / (2 * state.zoom);
         const halfH = state.vh / (2 * state.zoom);
         const startC = clamp(Math.floor((state.camera.x - halfW) / grid.tile) - 2, 0, grid.cols - 1);
@@ -678,22 +733,8 @@
             } else {
               ctx.fillStyle = '#0d2818';
               ctx.fillRect(x, y, grid.tile, grid.tile);
-              const cx = x + grid.tile / 2;
-              const cy = y + grid.tile / 2;
-              ctx.fillStyle = '#1e7b3f';
-              ctx.beginPath();
-              ctx.moveTo(cx, y + 9);
-              ctx.lineTo(x + 11, y + grid.tile - 10);
-              ctx.lineTo(x + grid.tile - 11, y + grid.tile - 10);
-              ctx.closePath();
-              ctx.fill();
-              ctx.fillStyle = '#14592e';
-              ctx.beginPath();
-              ctx.moveTo(cx + 8, y + 18);
-              ctx.lineTo(x + 18, y + grid.tile - 4);
-              ctx.lineTo(x + grid.tile - 4, y + grid.tile - 6);
-              ctx.closePath();
-              ctx.fill();
+              if (isWavingTreeCell(c, r)) drawWavingTreeTile(x, y, c, r, now);
+              else drawPineTreeTile(x, y);
             }
           }
         }
