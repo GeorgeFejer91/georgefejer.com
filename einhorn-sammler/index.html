@@ -53,6 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
+      const assetVersion = '20260622-current-sprites';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -132,9 +133,40 @@
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
 
+      function allSprites() {
+        return [...Object.values(characterSprites), ...Object.values(scenerySprites)];
+      }
+
+      function currentSpriteSetReady() {
+        return allSprites().every((sprite) => sprite.ready);
+      }
+
+      function failedSprites() {
+        return allSprites().filter((sprite) => sprite.failed).map((sprite) => sprite.src);
+      }
+
+      function drawLoadingScreen() {
+        const failed = failedSprites();
+        ctx.save();
+        ctx.fillStyle = '#07150f';
+        ctx.fillRect(0, 0, state.vw, state.vh);
+        ctx.fillStyle = '#9df7d0';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 18px Arial';
+        ctx.fillText(failed.length ? 'Sprite load failed. Reloading may help.' : 'Loading enchanted forest...', state.vw / 2, state.vh / 2);
+        ctx.restore();
+      }
+
       function loadSprite(src, frameW, frameH, scale, ground) {
         const image = new Image();
-        const sprite = { image, frameW, frameH, scale, ground, ready: false, failed: false };
+        const versionedSrc = src + '?v=' + assetVersion;
+        const preload = document.createElement('link');
+        preload.rel = 'preload';
+        preload.as = 'image';
+        preload.href = versionedSrc;
+        document.head.appendChild(preload);
+        const sprite = { image, src, versionedSrc, frameW, frameH, scale, ground, ready: false, failed: false };
         image.onload = () => {
           sprite.ready = true;
           if (canvas.width) {
@@ -146,7 +178,7 @@
           sprite.failed = true;
           if (canvas.width) updateHud();
         };
-        image.src = src;
+        image.src = versionedSrc;
         return sprite;
       }
 
@@ -492,6 +524,8 @@
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.leafTreats = String(state.treats.filter((item) => !item.taken && item.type === 'leaf').length);
         canvas.dataset.best = String(state.best);
+        canvas.dataset.assetVersion = assetVersion;
+        canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.playerForm = state.playerForm;
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
@@ -2776,6 +2810,10 @@
         bg.addColorStop(1, '#06130f');
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, state.vw, state.vh);
+        if (!currentSpriteSetReady()) {
+          drawLoadingScreen();
+          return;
+        }
         drawMaze();
         drawPathLine();
         for (const crumb of state.crumbs) if (!crumb.taken) drawCrumb(crumb);
@@ -2978,6 +3016,9 @@
         evilTreeWaveRemaining: state.evilTreeWaveRemaining,
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
+        assetVersion,
+        currentSpritesReady: currentSpriteSetReady(),
+        failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         goodTreeSpriteReady: scenerySprites.goodTree.ready,
