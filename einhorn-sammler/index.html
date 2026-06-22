@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-midi-melody';
+      const assetVersion = '20260622-midi-sfx';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -123,7 +123,9 @@
         lastTreeCollision: 'none',
         transformUntil: 0,
         musicStarted: false,
-        musicBlocked: false
+        musicBlocked: false,
+        sfxPlays: 0,
+        lastSfx: 'none'
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
@@ -144,6 +146,36 @@
       backgroundMusic.loop = true;
       backgroundMusic.preload = 'auto';
       backgroundMusic.volume = 0.34;
+      const sfxDefinitions = {
+        crumb: { src: 'crumb.wav', volume: 0.34, gap: 70 },
+        treat: { src: 'treat.wav', volume: 0.42, gap: 0 },
+        speed: { src: 'speed.wav', volume: 0.46, gap: 0 },
+        shield: { src: 'shield.wav', volume: 0.46, gap: 0 },
+        freeze: { src: 'freeze.wav', volume: 0.44, gap: 0 },
+        spark: { src: 'spark.wav', volume: 0.45, gap: 0 },
+        stink: { src: 'stink.wav', volume: 0.42, gap: 0 },
+        leaf: { src: 'leaf.wav', volume: 0.42, gap: 0 },
+        blocked: { src: 'blocked.wav', volume: 0.36, gap: 140 },
+        treePush: { src: 'tree-push.wav', volume: 0.50, gap: 80 },
+        treeCrush: { src: 'tree-crush.wav', volume: 0.62, gap: 0 },
+        shieldBounce: { src: 'shield-bounce.wav', volume: 0.48, gap: 0 },
+        witchCatch: { src: 'witch-catch.wav', volume: 0.54, gap: 0 },
+        levelUp: { src: 'level-up.wav', volume: 0.50, gap: 0 },
+        win: { src: 'win.wav', volume: 0.54, gap: 0 }
+      };
+      const sfxPools = {};
+      const sfxPoolIndex = {};
+      const sfxLastPlayed = {};
+
+      Object.entries(sfxDefinitions).forEach(([name, definition]) => {
+        sfxPools[name] = Array.from({ length: 3 }, () => {
+          const audio = new Audio('assets/sfx/' + definition.src + '?v=' + assetVersion);
+          audio.preload = 'auto';
+          audio.volume = definition.volume;
+          return audio;
+        });
+        sfxPoolIndex[name] = 0;
+      });
 
       function musicStatus() {
         if (backgroundMusic.error) return 'failed';
@@ -172,6 +204,34 @@
         state.musicStarted = true;
         state.musicBlocked = false;
         playBackgroundMusic();
+        updateHud();
+      }
+
+      function playSfx(name, minGap = null) {
+        const definition = sfxDefinitions[name];
+        const pool = sfxPools[name];
+        if (!definition || !pool) return;
+        const now = performance.now();
+        const gap = minGap === null ? definition.gap : minGap;
+        if (gap && sfxLastPlayed[name] && now - sfxLastPlayed[name] < gap) return;
+        sfxLastPlayed[name] = now;
+        const index = sfxPoolIndex[name] % pool.length;
+        sfxPoolIndex[name] += 1;
+        const audio = pool[index];
+        try {
+          audio.currentTime = 0;
+        } catch (_) {
+          // Some mobile browsers disallow seeking before metadata is ready.
+        }
+        const playPromise = audio.play();
+        state.sfxPlays += 1;
+        state.lastSfx = name;
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {
+            state.lastSfx = 'blocked:' + name;
+            updateHud();
+          });
+        }
         updateHud();
       }
 
@@ -568,6 +628,7 @@
             state.lastPathLength = 2;
             showMessage('Unicorn steps toward the tap.', 900);
           } else {
+            playSfx('blocked');
             showMessage('That part of the forest is blocked.', 1100);
           }
         }
@@ -637,6 +698,8 @@
         canvas.dataset.musicNextChunk = '0';
         canvas.dataset.musicChunks = '1';
         canvas.dataset.musicSrc = musicSrc;
+        canvas.dataset.sfxPlays = String(state.sfxPlays);
+        canvas.dataset.lastSfx = state.lastSfx;
       }
 
       function resetPositions() {
@@ -825,8 +888,10 @@
         }
         if (state.lives <= 0) {
           state.over = true;
+          playSfx('treeCrush');
           showMessage('The evil tree crushed the unicorn. Tap to restart.', 5000);
         } else {
+          playSfx('treeCrush');
           showMessage('Crushed by an evil tree. Respawned at A.', 1900);
         }
         updateHud();
@@ -863,6 +928,7 @@
         state.player.step += 0.9;
         state.lastTreeCollision = 'pushed:' + cellKey(playerCell) + '->' + cellKey(pushCell);
         state.lastGateWait = cellKey(travel.to);
+        playSfx('treePush');
         updateHud();
         return true;
       }
@@ -1615,6 +1681,7 @@
           state.stenchUntil = now + 9000;
           state.stenchEmit = 0;
         }
+        playSfx(type);
         const label = {
           speed: 'Carrot rush: unicorn is faster.',
           shield: 'Moon shield: the witch bounces off.',
@@ -1662,6 +1729,7 @@
               bubble.hit = true;
               hitWitch.stenchUntil = Math.max(hitWitch.stenchUntil, now + 2800);
               state.score += 5;
+              playSfx('stink', 350);
               state.stenchFogs.push({
                 x: bubble.x,
                 y: bubble.y,
@@ -1688,12 +1756,14 @@
           if (!crumb.taken && Math.hypot(crumb.x - state.player.x, crumb.y - state.player.y) < 24) {
             crumb.taken = true;
             state.score += 2;
+            playSfx('crumb');
           }
         }
         for (const treat of state.treats) {
           if (!treat.taken && Math.hypot(treat.x - state.player.x, treat.y - state.player.y) < 34) {
             treat.taken = true;
             state.score += 10;
+            playSfx('treat');
             applyTreat(treat.type);
           }
         }
@@ -1712,9 +1782,11 @@
           if (state.level < state.maxLevel) {
             startLevel(state.level + 1);
             state.transformUntil = performance.now() + 2800;
+            playSfx('levelUp');
             showMessage('Magic at B: the unicorn becomes a princess.', 3200);
           } else {
             state.won = true;
+            playSfx('win');
             showMessage('You cleared level 2. The princess escaped both witches!', 5000);
           }
         }
@@ -1731,13 +1803,16 @@
             caughtBy.path = [];
             caughtBy.frozenUntil = now + 1800;
             state.score += 25;
+            playSfx('shieldBounce');
             showMessage('Shield repelled the witch +25.', 1500);
           } else {
             state.lives -= 1;
             if (state.lives <= 0) {
               state.over = true;
+              playSfx('witchCatch');
               showMessage('The witch caught the unicorn. Tap to restart.', 5000);
             } else {
+              playSfx('witchCatch');
               showMessage('Caught by the witch. Lives left: ' + state.lives, 1800);
               resetPositions();
             }
@@ -3428,6 +3503,9 @@
         musicNextChunk: 0,
         musicChunks: 1,
         musicSrc,
+        sfxPlays: state.sfxPlays,
+        lastSfx: state.lastSfx,
+        sfxCount: Object.keys(sfxDefinitions).length,
         failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
