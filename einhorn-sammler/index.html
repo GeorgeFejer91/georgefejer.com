@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-midi-sfx';
+      const assetVersion = '20260622-difficulty-v1';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -62,10 +62,126 @@
       const secondWitchStartCell = { c: 1, r: grid.rows - 2 };
       const urlParams = new URLSearchParams(window.location.search);
       const princessTestMode = urlParams.has('princesstest');
-      const defaultStartLevel = princessTestMode ? 2 : 1;
       const evilTreeTestMode = urlParams.has('eviltest');
       const leafTreeTestMode = urlParams.has('leaftest');
       const treePushTestMode = urlParams.get('treepushtest');
+      const aiValidationMode = urlParams.has('aitest');
+      const levelConfigs = [
+        {
+          level: 1,
+          title: 'Stufe 1',
+          subtitle: 'Einhornpfad: eine Hexe, wenige Baum-Tore.',
+          difficulty: 'leicht',
+          playerForm: 'unicorn',
+          playerSpeed: 275,
+          witchCount: 1,
+          witchSpeed: 150,
+          witch2Speed: 0,
+          mazeOpenings: 112,
+          treats: 22,
+          crumbs: 130,
+          minSpan: 5,
+          maxSpan: 8,
+          evilTreeSpeed: 84,
+          goodTreeSpeed: 76,
+          treeWaitScale: 1.45,
+          gatePlan: [['evil', 0.24], ['good', 0.42], ['evil', 0.67]]
+        },
+        {
+          level: 2,
+          title: 'Stufe 2',
+          subtitle: 'Prinzessinnenlauf: zwei Hexen, mehr Tore.',
+          difficulty: 'mittel',
+          playerForm: 'princess',
+          playerSpeed: 274,
+          witchCount: 2,
+          witchSpeed: 166,
+          witch2Speed: 178,
+          mazeOpenings: 104,
+          treats: 22,
+          crumbs: 126,
+          minSpan: 5,
+          maxSpan: 9,
+          evilTreeSpeed: 100,
+          goodTreeSpeed: 90,
+          treeWaitScale: 1.24,
+          gatePlan: [['evil', 0.14], ['good', 0.28], ['evil', 0.45], ['good', 0.62], ['evil', 0.78]]
+        },
+        {
+          level: 3,
+          title: 'Stufe 3',
+          subtitle: 'Hexenwald: schnellere Hexen, engere Fenster.',
+          difficulty: 'knifflig',
+          playerForm: 'princess',
+          playerSpeed: 282,
+          witchCount: 2,
+          witchSpeed: 182,
+          witch2Speed: 194,
+          mazeOpenings: 96,
+          treats: 21,
+          crumbs: 118,
+          minSpan: 5,
+          maxSpan: 10,
+          evilTreeSpeed: 108,
+          goodTreeSpeed: 98,
+          treeWaitScale: 1.02,
+          gatePlan: [['evil', 0.12], ['good', 0.24], ['evil', 0.4], ['good', 0.56], ['evil', 0.72], ['good', 0.88]]
+        },
+        {
+          level: 4,
+          title: 'Stufe 4',
+          subtitle: 'Verzauberte Tore: viele bewegte Baeume.',
+          difficulty: 'schwer',
+          playerForm: 'princess',
+          playerSpeed: 288,
+          witchCount: 2,
+          witchSpeed: 194,
+          witch2Speed: 206,
+          mazeOpenings: 88,
+          treats: 20,
+          crumbs: 112,
+          minSpan: 6,
+          maxSpan: 11,
+          evilTreeSpeed: 118,
+          goodTreeSpeed: 108,
+          treeWaitScale: 0.86,
+          gatePlan: [['evil', 0.1], ['good', 0.2], ['evil', 0.32], ['good', 0.46], ['evil', 0.6], ['good', 0.74], ['evil', 0.88]]
+        },
+        {
+          level: 5,
+          title: 'Stufe 5',
+          subtitle: 'Meisterwald: maximale Dynamik, loesbar.',
+          difficulty: 'meister',
+          playerForm: 'princess',
+          playerSpeed: 294,
+          witchCount: 2,
+          witchSpeed: 206,
+          witch2Speed: 218,
+          mazeOpenings: 82,
+          treats: 20,
+          crumbs: 108,
+          minSpan: 6,
+          maxSpan: 12,
+          evilTreeSpeed: 128,
+          goodTreeSpeed: 116,
+          treeWaitScale: 0.74,
+          gatePlan: [['evil', 0.08], ['good', 0.18], ['evil', 0.29], ['good', 0.4], ['evil', 0.52], ['good', 0.64], ['evil', 0.76], ['good', 0.88]]
+        }
+      ];
+      function boundedLevel(value) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return 1;
+        return Math.max(1, Math.min(levelConfigs.length, Math.round(parsed)));
+      }
+      function configForLevel(level) {
+        return levelConfigs[boundedLevel(level) - 1];
+      }
+      const requestedStartLevel = urlParams.get('level');
+      const defaultStartLevel = requestedStartLevel
+        ? boundedLevel(requestedStartLevel)
+        : princessTestMode
+          ? 2
+          : 1;
       const dirs = [
         { dc: 1, dr: 0 },
         { dc: -1, dr: 0 },
@@ -86,7 +202,7 @@
         witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
         witch2: { x: 0, y: 0, path: [], speed: 210, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: 1, active: false },
         level: defaultStartLevel,
-        maxLevel: 2,
+        maxLevel: levelConfigs.length,
         score: 0,
         lives: 3,
         best: Number(localStorage.getItem(storageKey) || 0),
@@ -94,6 +210,9 @@
         activeUntil: 0,
         shieldUntil: 0,
         messageUntil: 0,
+        messageText: '',
+        levelIntroUntil: 0,
+        levelStartedAt: performance.now(),
         last: performance.now(),
         won: false,
         over: false,
@@ -124,6 +243,7 @@
         transformUntil: 0,
         musicStarted: false,
         musicBlocked: false,
+        validationMode: false,
         sfxPlays: 0,
         lastSfx: 'none'
       };
@@ -215,6 +335,12 @@
         const gap = minGap === null ? definition.gap : minGap;
         if (gap && sfxLastPlayed[name] && now - sfxLastPlayed[name] < gap) return;
         sfxLastPlayed[name] = now;
+        if (state.validationMode) {
+          state.sfxPlays += 1;
+          state.lastSfx = name;
+          updateHud();
+          return;
+        }
         const index = sfxPoolIndex[name] % pool.length;
         sfxPoolIndex[name] += 1;
         const audio = pool[index];
@@ -467,6 +593,7 @@
       }
 
       function generateMaze() {
+        const config = configForLevel(state.level);
         state.maze = Array.from({ length: grid.rows }, () => Array.from({ length: grid.cols }, () => 0));
         const carve = (c, r) => {
           state.maze[r][c] = 1;
@@ -483,7 +610,7 @@
         state.maze[witchStartCell.r][witchStartCell.c] = 1;
         state.maze[secondWitchStartCell.r][secondWitchStartCell.c] = 1;
 
-        for (let i = 0; i < 95; i += 1) {
+        for (let i = 0; i < config.mazeOpenings; i += 1) {
           const c = 2 + Math.floor(random() * (grid.cols - 4));
           const r = 2 + Math.floor(random() * (grid.rows - 4));
           if (state.maze[r][c] === 0) {
@@ -574,6 +701,7 @@
       }
 
       function placeTreats() {
+        const config = configForLevel(state.level);
         state.treats = [];
         state.crumbs = [];
         const cells = openCells().filter((cell) => {
@@ -581,12 +709,12 @@
           return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell) && key !== cellKey(secondWitchStartCell);
         });
         const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink', 'leaf'];
-        for (let i = 0; i < 20; i += 1) {
+        for (let i = 0; i < config.treats; i += 1) {
           const cell = chooseFarCell(cells, startCell, 8);
           const p = centerOf(cell);
           state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
         }
-        for (let i = 0; i < 120; i += 1) {
+        for (let i = 0; i < config.crumbs; i += 1) {
           const cell = cells[Math.floor(random() * cells.length)];
           const p = centerOf(cell);
           state.crumbs.push({ x: p.x, y: p.y, taken: false });
@@ -635,14 +763,19 @@
       }
 
       function showMessage(text, ms) {
+        state.messageText = text;
         state.messageUntil = performance.now() + ms;
       }
 
       function updateHud() {
+        const config = configForLevel(state.level);
         const now = performance.now();
         const active = state.activeTreat && now < state.activeUntil ? state.activeTreat + ' ' + Math.ceil((state.activeUntil - now) / 1000) + 's' : 'none';
         canvas.dataset.playerCell = cellKey(cellOf(state.player.x, state.player.y));
         canvas.dataset.level = String(state.level);
+        canvas.dataset.levelTitle = config.title;
+        canvas.dataset.levelDifficulty = config.difficulty;
+        canvas.dataset.levelIntroVisible = String(Boolean(state.levelIntroUntil && now < state.levelIntroUntil));
         canvas.dataset.witchCell = cellKey(cellOf(state.witch.x, state.witch.y));
         canvas.dataset.witch2Cell = state.witch2.active ? cellKey(cellOf(state.witch2.x, state.witch2.y)) : 'inactive';
         canvas.dataset.score = String(state.score);
@@ -703,32 +836,37 @@
       }
 
       function resetPositions() {
+        const config = configForLevel(state.level);
         const w = centerOf(witchStartCell);
         const w2 = centerOf(secondWitchStartCell);
         resetPlayerToStart(false);
+        state.player.speed = config.playerSpeed;
         state.witch.x = w.x;
         state.witch.y = w.y;
         state.witch.path = [];
+        state.witch.speed = config.witchSpeed;
         state.witch.repath = 0;
         state.witch.stenchUntil = 0;
         state.witch.facing = -1;
         state.witch2.x = w2.x;
         state.witch2.y = w2.y;
         state.witch2.path = [];
+        state.witch2.speed = config.witch2Speed || config.witchSpeed;
         state.witch2.step = 0;
         state.witch2.repath = 0;
         state.witch2.frozenUntil = 0;
         state.witch2.stenchUntil = 0;
         state.witch2.facing = 1;
-        state.witch2.active = state.level >= 2;
+        state.witch2.active = config.witchCount > 1;
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
         clampCamera();
       }
 
       function startLevel(level) {
-        state.level = level;
-        state.playerForm = level >= 2 ? 'princess' : 'unicorn';
+        state.level = boundedLevel(level);
+        const config = configForLevel(state.level);
+        state.playerForm = config.playerForm;
         generateMaze();
         placeTreats();
         resetPositions();
@@ -767,7 +905,10 @@
         state.won = false;
         state.over = false;
         state.last = performance.now();
-        showMessage(level === 1 ? 'Level 1. Reach B as the unicorn.' : 'Level 2. Princess maze run: two witches are chasing.', 2600);
+        state.levelStartedAt = performance.now();
+        state.levelIntroUntil = state.levelStartedAt + 20000;
+        state.messageText = config.title + ': ' + config.difficulty;
+        showMessage(config.title + '. ' + config.subtitle, 2600);
         if (leafTreeTestMode) {
           state.activeTreat = 'leaf';
           state.activeUntil = performance.now() + 60000;
@@ -1232,6 +1373,7 @@
       }
 
       function makePatrolTree(kind, cells, index, gateWindow = false, gateMetrics = null) {
+        const config = configForLevel(state.level);
         const p = centerOf(cells[0]);
         const next = cells[1] || cells[0];
         return {
@@ -1240,7 +1382,9 @@
           x: p.x,
           y: p.y,
           path: [],
-          speed: kind === 'evil' ? (evilTreeTestMode ? 185 : 118) : (evilTreeTestMode ? 170 : 102),
+          speed: kind === 'evil'
+            ? (evilTreeTestMode ? 185 : config.evilTreeSpeed)
+            : (evilTreeTestMode ? 170 : config.goodTreeSpeed),
           step: random() * 6,
           facing: next.c < cells[0].c ? -1 : 1,
           patrolCells: cells,
@@ -1260,18 +1404,19 @@
       }
 
       function setupTreePatrols() {
+        const config = configForLevel(state.level);
         state.evilTrees = [];
         state.goodTrees = [];
         const route = findPath(startCell, exitCell);
         if (!route.length) return;
         const witchRoutes = [
           findPath(witchStartCell, startCell),
-          state.level >= 2 ? findPath(secondWitchStartCell, startCell) : []
+          config.witchCount > 1 ? findPath(secondWitchStartCell, startCell) : []
         ].filter((witchRoute) => witchRoute.length);
         const strategicRoutes = [route, ...witchRoutes];
         const reserved = new Set([cellKey(startCell), cellKey(exitCell), cellKey(witchStartCell), cellKey(secondWitchStartCell)]);
-        const minSpan = 5;
-        const maxSpan = state.level >= 2 ? 10 : 9;
+        const minSpan = config.minSpan;
+        const maxSpan = config.maxSpan;
         const addedByKind = { evil: 0, good: 0 };
         const addTree = (kind, ratio) => {
           const patrol = pickTreePatrolCells(strategicRoutes, ratio, minSpan, maxSpan, reserved);
@@ -1283,25 +1428,7 @@
           if (kind === 'evil') state.evilTrees.push(tree);
           else state.goodTrees.push(tree);
         };
-        const gatePlan = state.level >= 2
-          ? [
-            ['evil', 0.12],
-            ['good', 0.2],
-            ['evil', 0.3],
-            ['good', 0.4],
-            ['evil', 0.5],
-            ['good', 0.6],
-            ['evil', 0.7],
-            ['good', 0.8],
-            ['evil', 0.9]
-          ]
-          : [
-            ['evil', 0.2],
-            ['good', 0.35],
-            ['evil', 0.5],
-            ['good', 0.65],
-            ['evil', 0.8]
-          ];
+        const gatePlan = config.gatePlan;
         gatePlan.forEach(([kind, ratio]) => addTree(kind, ratio));
         state.evilTreeEventCount = state.evilTrees.length;
         state.evilTreeWaveTarget = state.evilTrees.length + state.goodTrees.length;
@@ -1358,7 +1485,7 @@
         }
         const nextCell = tree.patrolCells[nextIndex];
         if (!nextCell || cellReservedByOtherTree(nextCell, tree)) {
-          tree.wait = evilTreeTestMode ? 0.12 : 0.28;
+          tree.wait = evilTreeTestMode ? 0.12 : 0.28 * configForLevel(state.level).treeWaitScale;
           return;
         }
         const current = cellOf(tree.x, tree.y);
@@ -1375,7 +1502,7 @@
         if (!cellsMatch(cellOf(tree.x, tree.y), tree.nextCell)) return;
         tree.currentCell = tree.nextCell;
         tree.nextCell = null;
-        tree.wait = evilTreeTestMode ? 0.05 : 0.12 + random() * 0.22;
+        tree.wait = evilTreeTestMode ? 0.05 : (0.12 + random() * 0.22) * configForLevel(state.level).treeWaitScale;
       }
 
       function updateTreePatrols(dt, now = performance.now()) {
@@ -1393,7 +1520,7 @@
             tree.currentCell = current;
             tree.nextCell = null;
             tree.path = [];
-            tree.wait = evilTreeTestMode ? 0.1 : 0.22;
+            tree.wait = evilTreeTestMode ? 0.1 : 0.22 * configForLevel(state.level).treeWaitScale;
             continue;
           }
           if (!resolveEvilTreePlayerPush(tree, now)) continue;
@@ -1780,14 +1907,17 @@
           state.best = Math.max(state.best, state.score);
           localStorage.setItem(storageKey, String(state.best));
           if (state.level < state.maxLevel) {
+            const previousLevel = state.level;
             startLevel(state.level + 1);
             state.transformUntil = performance.now() + 2800;
             playSfx('levelUp');
-            showMessage('Magic at B: the unicorn becomes a princess.', 3200);
+            showMessage(previousLevel === 1
+              ? 'Magie bei B: Das Einhorn wird zur Prinzessin.'
+              : 'Geschafft. Die naechste Waldstufe beginnt.', 3200);
           } else {
             state.won = true;
             playSfx('win');
-            showMessage('You cleared level 2. The princess escaped both witches!', 5000);
+            showMessage('Du hast Stufe 5 geschafft. Die Prinzessin ist entkommen!', 5000);
           }
         }
         if (state.over || state.won) return;
@@ -3264,6 +3394,39 @@
         ctx.restore();
       }
 
+      function drawLevelIntro(now) {
+        if (!state.levelIntroUntil || now >= state.levelIntroUntil) return;
+        const config = configForLevel(state.level);
+        const remaining = Math.max(0, state.levelIntroUntil - now);
+        const alpha = Math.min(1, remaining / 900);
+        const pad = Math.max(12, Math.min(20, state.vw * 0.035));
+        const width = Math.min(state.vw - pad * 2, 560);
+        const x = (state.vw - width) / 2;
+        const y = 12;
+        const height = state.vw < 430 ? 82 : 92;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = 'rgb(3 12 9 / 78%)';
+        ctx.strokeStyle = 'rgb(232 255 238 / 42%)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x, y, width, height, 8) : ctx.rect(x, y, width, height);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#f4fff5';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 ' + (state.vw < 430 ? 25 : 30) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillText(config.title + ' - ' + config.difficulty, state.vw / 2, y + 27);
+        ctx.font = '700 ' + (state.vw < 430 ? 13 : 15) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillStyle = '#d9ffe5';
+        ctx.fillText(config.subtitle, state.vw / 2, y + 56);
+        ctx.font = '700 12px Arial, Helvetica, sans-serif';
+        ctx.fillStyle = '#ffd866';
+        ctx.fillText('Anzeige endet in ' + Math.ceil(remaining / 1000) + ' s', state.vw / 2, y + height - 15);
+        ctx.restore();
+      }
+
       function draw() {
         ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
         ctx.clearRect(0, 0, state.vw, state.vh);
@@ -3299,6 +3462,7 @@
         for (const actor of actors) actor.draw();
         drawCrushBursts(now);
         drawMinimap();
+        drawLevelIntro(now);
       }
 
       let lastDrawAt = 0;
@@ -3425,11 +3589,353 @@
         const now = performance.now();
         if (now - lastDrawAt > 140) stepFrame(now);
       }, 80);
+      function aiRouteToExit(now) {
+        const current = cellOf(state.player.x, state.player.y);
+        const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
+        if (!passable(current) || !passable(exitCell)) return [];
+        const hazardCost = (cell) => {
+          let cost = 1;
+          for (const witch of activeWitches()) {
+            const d = cellDistance(cell, cellOf(witch.x, witch.y));
+            if (d === 0) cost += 220;
+            else if (d === 1) cost += 52;
+            else if (d === 2) cost += 16;
+            else if (d === 3) cost += 5;
+          }
+          for (const tree of state.evilTrees) {
+            const d = cellDistance(cell, cellOf(tree.x, tree.y));
+            if (d === 0) cost += 160;
+            else if (d === 1) cost += 22;
+          }
+          return cost;
+        };
+        const startKey = cellKey(current);
+        const costs = new Map([[startKey, 0]]);
+        const previous = new Map();
+        const queue = [{ cell: current, cost: 0 }];
+        while (queue.length) {
+          queue.sort((a, b) => a.cost - b.cost);
+          const currentEntry = queue.shift();
+          const cur = currentEntry.cell;
+          const curKey = cellKey(cur);
+          if (currentEntry.cost !== costs.get(curKey)) continue;
+          if (cellsMatch(cur, exitCell)) {
+            const path = [cur];
+            let key = curKey;
+            while (previous.has(key)) {
+              const prior = previous.get(key);
+              path.push(prior);
+              key = cellKey(prior);
+            }
+            return path.reverse();
+          }
+          for (const dir of dirs) {
+            const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
+            if (!passable(next)) continue;
+            const nextKey = cellKey(next);
+            const nextCost = currentEntry.cost + hazardCost(next);
+            if (costs.has(nextKey) && costs.get(nextKey) <= nextCost) continue;
+            costs.set(nextKey, nextCost);
+            previous.set(nextKey, cur);
+            queue.push({ cell: next, cost: nextCost });
+          }
+        }
+        return [];
+      }
+
+      function aiWitchPressure(cell) {
+        return activeWitches().reduce((nearest, witch) => {
+          const witchCell = cellOf(witch.x, witch.y);
+          return Math.min(nearest, cellDistance(cell, witchCell));
+        }, 99);
+      }
+
+      function aiPlanSurvivalMove(now, stats) {
+        const current = cellOf(state.player.x, state.player.y);
+        const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
+        const queue = [current];
+        const seen = new Set([cellKey(current)]);
+        const previous = new Map();
+        let best = current;
+        let bestScore = -Infinity;
+        while (queue.length) {
+          const cur = queue.shift();
+          const pressure = aiWitchPressure(cur);
+          const score = pressure * 9 - cellDistance(cur, exitCell) * 0.35 - cellDistance(cur, current) * 0.08;
+          if (score > bestScore) {
+            bestScore = score;
+            best = cur;
+          }
+          for (const dir of dirs) {
+            const next = { c: cur.c + dir.dc, r: cur.r + dir.dr };
+            const key = cellKey(next);
+            if (seen.has(key) || !passable(next)) continue;
+            seen.add(key);
+            previous.set(key, cur);
+            queue.push(next);
+          }
+        }
+        if (cellsMatch(best, current)) return false;
+        const path = [best];
+        let key = cellKey(best);
+        while (previous.has(key)) {
+          const prior = previous.get(key);
+          path.push(prior);
+          key = cellKey(prior);
+        }
+        path.reverse();
+        state.player.path = path.slice(1, Math.min(path.length, 5)).map(centerOf);
+        state.lastTarget = cellKey(best);
+        state.lastPathLength = path.length;
+        stats.replans += 1;
+        return true;
+      }
+
+      function aiPlanNextMove(now, stats) {
+        const route = aiRouteToExit(now);
+        stats.routeSamples += 1;
+        stats.routeLengthTotal += route.length;
+        stats.maxRouteLength = Math.max(stats.maxRouteLength, route.length);
+        if (route.length <= 1) {
+          stats.noRouteFrames += 1;
+          return aiPlanSurvivalMove(now, stats);
+        }
+        const next = route[1];
+        if (aiWitchPressure(next) <= 1 && route.length > 4) {
+          const current = route[0];
+          const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
+          const detours = dirs
+            .map((dir) => ({ c: current.c + dir.dc, r: current.r + dir.dr }))
+            .filter((cell) => passable(cell) && !cellsMatch(cell, next))
+            .map((cell) => {
+              const path = findPath(cell, exitCell, passable);
+              return {
+                cell,
+                routeLength: path.length || 999,
+                pressure: aiWitchPressure(cell)
+              };
+            })
+            .filter((candidate) => candidate.routeLength < 999)
+            .sort((a, b) => (b.pressure - a.pressure) || (a.routeLength - b.routeLength));
+          stats.cautionFrames += 1;
+          if (detours.length && detours[0].pressure > aiWitchPressure(next)) {
+            state.player.path = [centerOf(detours[0].cell)];
+            state.lastTarget = cellKey(detours[0].cell);
+            state.lastPathLength = detours[0].routeLength;
+            stats.replans += 1;
+            return true;
+          }
+        }
+        const lookahead = Math.min(route.length - 1, 2 + Math.min(4, state.level));
+        state.player.path = route.slice(1, lookahead + 1).map(centerOf);
+        state.lastTarget = cellKey(route[lookahead]);
+        state.lastPathLength = route.length;
+        stats.replans += 1;
+        return true;
+      }
+
+      function observedDifficultyScore(stats, config, completed) {
+        const avgRoute = stats.routeSamples ? stats.routeLengthTotal / stats.routeSamples : 0;
+        const noRouteSeconds = stats.noRouteFrames * stats.tickSeconds;
+        const risk = stats.witchNearFrames * 0.05
+          + stats.treePushes * 2.2
+          + stats.treeCrushes * 8
+          + stats.livesLost * 6
+          + noRouteSeconds * 1.4
+          + stats.cautionFrames * 0.025;
+        const base = config.level * 8
+          + (config.level - 1) * 4
+          + config.gatePlan.length * 1.3
+          + (config.witchCount - 1) * 5
+          + Math.max(0, config.witchSpeed - 160) * 0.08
+          + Math.max(0, config.evilTreeSpeed - 90) * 0.05;
+        return Math.round((base + avgRoute * 0.12 + risk + (completed ? 0 : 12)) * 10) / 10;
+      }
+
+      function runDifficultyTrial(level, options = {}) {
+        const config = configForLevel(level);
+        const tickMs = options.tickMs || 55;
+        const maxSeconds = options.maxSeconds || 100;
+        const maxFrames = Math.ceil(maxSeconds * 1000 / tickMs);
+        const previousValidationMode = state.validationMode;
+        state.validationMode = true;
+        state.score = 0;
+        state.lives = 3;
+        startLevel(level);
+        state.levelIntroUntil = 0;
+        state.messageUntil = 0;
+        const startLives = state.lives;
+        const startPushes = state.treePushes;
+        const startCrushes = state.treeCrushes;
+        const targetLevel = state.level;
+        const stats = {
+          level: targetLevel,
+          tickSeconds: tickMs / 1000,
+          replans: 0,
+          routeSamples: 0,
+          routeLengthTotal: 0,
+          maxRouteLength: 0,
+          noRouteFrames: 0,
+          cautionFrames: 0,
+          witchNearFrames: 0,
+          treePushes: 0,
+          treeCrushes: 0,
+          livesLost: 0,
+          treeGateWindows: movingTreeGateWindowCount(),
+          maxTreeOverlaps: movingTreeOverlapCount()
+        };
+        let simNow = performance.now();
+        state.last = simNow;
+        let completed = false;
+        let frames = 0;
+        for (; frames < maxFrames; frames += 1) {
+          if (!state.player.path.length || frames % 12 === 0) aiPlanNextMove(simNow, stats);
+          const playerCell = cellOf(state.player.x, state.player.y);
+          if (aiWitchPressure(playerCell) <= 3) stats.witchNearFrames += 1;
+          update(tickMs / 1000, simNow);
+          stats.maxTreeOverlaps = Math.max(stats.maxTreeOverlaps, movingTreeOverlapCount());
+          if (state.level !== targetLevel || state.won) {
+            completed = true;
+            frames += 1;
+            break;
+          }
+          if (state.over) {
+            frames += 1;
+            break;
+          }
+          simNow += tickMs;
+        }
+        stats.treePushes = state.treePushes - startPushes;
+        stats.treeCrushes = state.treeCrushes - startCrushes;
+        stats.livesLost = startLives - state.lives;
+        const avgRouteLength = stats.routeSamples ? stats.routeLengthTotal / stats.routeSamples : 0;
+        const result = {
+          level: targetLevel,
+          title: config.title,
+          difficultyLabel: config.difficulty,
+          completed,
+          outcome: completed ? 'completed' : state.over ? 'caught-or-crushed' : 'timeout',
+          simulatedSeconds: Math.round(frames * tickMs / 100) / 10,
+          avgRouteLength: Math.round(avgRouteLength * 10) / 10,
+          maxRouteLength: stats.maxRouteLength,
+          noRouteSeconds: Math.round(stats.noRouteFrames * tickMs / 100) / 10,
+          replans: stats.replans,
+          cautionFrames: stats.cautionFrames,
+          witchNearFrames: stats.witchNearFrames,
+          treePushes: stats.treePushes,
+          treeCrushes: stats.treeCrushes,
+          livesLost: stats.livesLost,
+          treeGateWindows: stats.treeGateWindows,
+          treeOverlaps: stats.maxTreeOverlaps,
+          difficultyScore: observedDifficultyScore(stats, config, completed)
+        };
+        state.validationMode = previousValidationMode;
+        return result;
+      }
+
+      function average(list, field) {
+        if (!list.length) return 0;
+        return list.reduce((sum, item) => sum + Number(item[field] || 0), 0) / list.length;
+      }
+
+      function summarizeDifficultyRuns(level, runs) {
+        const completed = runs.filter((run) => run.completed).length;
+        const successRate = runs.length ? completed / runs.length : 0;
+        const avgScore = average(runs, 'difficultyScore');
+        return {
+          level,
+          runs: runs.length,
+          completed,
+          successRate: Math.round(successRate * 100) / 100,
+          avgSimulatedSeconds: Math.round(average(runs, 'simulatedSeconds') * 10) / 10,
+          avgDifficultyScore: Math.round(avgScore * 10) / 10,
+          avgRouteLength: Math.round(average(runs, 'avgRouteLength') * 10) / 10,
+          avgNoRouteSeconds: Math.round(average(runs, 'noRouteSeconds') * 10) / 10,
+          avgTreePushes: Math.round(average(runs, 'treePushes') * 10) / 10,
+          avgTreeCrushes: Math.round(average(runs, 'treeCrushes') * 10) / 10,
+          avgLivesLost: Math.round(average(runs, 'livesLost') * 10) / 10,
+          verdict: successRate >= 0.75 ? 'playable' : successRate >= 0.45 ? 'borderline' : 'too-hard'
+        };
+      }
+
+      function runDifficultyBatch(options = {}) {
+        const runsPerLevel = Math.max(1, Math.min(12, Math.round(options.runsPerLevel || 3)));
+        const levels = (options.levels || levelConfigs.map((config) => config.level)).map(boundedLevel);
+        const report = {
+          generatedAt: new Date().toISOString(),
+          assetVersion,
+          protocol: 'actual-canvas-game-fast-forward',
+          runsPerLevel,
+          maxSeconds: options.maxSeconds || 100,
+          tickMs: options.tickMs || 55,
+          levels: []
+        };
+        for (const level of levels) {
+          const runs = [];
+          for (let i = 0; i < runsPerLevel; i += 1) {
+            runs.push(runDifficultyTrial(level, options));
+          }
+          report.levels.push({
+            config: configForLevel(level),
+            summary: summarizeDifficultyRuns(level, runs),
+            runs
+          });
+        }
+        report.aggregate = {
+          levelCount: report.levels.length,
+          avgDifficultyScore: Math.round(average(report.levels.map((entry) => entry.summary), 'avgDifficultyScore') * 10) / 10,
+          minSuccessRate: Math.min(...report.levels.map((entry) => entry.summary.successRate)),
+          treeOverlapFailures: report.levels.reduce((sum, entry) => sum + entry.runs.filter((run) => run.treeOverlaps > 0).length, 0)
+        };
+        window.__lastUnicornDifficultyReport = report;
+        writeDifficultyReport(report);
+        reset();
+        return report;
+      }
+
+      function writeDifficultyReport(report) {
+        let node = document.getElementById('difficulty-report');
+        if (!node) {
+          node = document.createElement('script');
+          node.id = 'difficulty-report';
+          node.type = 'application/json';
+          document.body.appendChild(node);
+        }
+        node.textContent = JSON.stringify(report, null, 2);
+        canvas.dataset.validationStatus = 'complete';
+        canvas.dataset.validationRuns = String(report.levels.reduce((sum, entry) => sum + entry.runs.length, 0));
+        canvas.dataset.validationMinSuccess = String(report.aggregate.minSuccessRate);
+        canvas.dataset.validationAvgDifficulty = String(report.aggregate.avgDifficultyScore);
+        canvas.dataset.validationTreeOverlapFailures = String(report.aggregate.treeOverlapFailures);
+      }
+
+      window.__unicornMazeDifficultyProtocol = {
+        runTrial: runDifficultyTrial,
+        runBatch: runDifficultyBatch,
+        configs: () => levelConfigs.map((config) => ({ ...config })),
+        lastReport: () => window.__lastUnicornDifficultyReport || null
+      };
+
+      if (aiValidationMode) {
+        canvas.dataset.validationStatus = 'running';
+        setTimeout(() => {
+          runDifficultyBatch({
+            runsPerLevel: Number(urlParams.get('runs') || 3),
+            maxSeconds: Number(urlParams.get('seconds') || 100),
+            tickMs: Number(urlParams.get('tick') || 55)
+          });
+        }, 250);
+      }
+
       window.__unicornMazeDebug = () => ({
         playerCell: cellOf(state.player.x, state.player.y),
         witchCell: cellOf(state.witch.x, state.witch.y),
         witch2Cell: state.witch2.active ? cellOf(state.witch2.x, state.witch2.y) : null,
         level: state.level,
+        levelTitle: configForLevel(state.level).title,
+        levelDifficulty: configForLevel(state.level).difficulty,
+        levelIntroVisible: Boolean(state.levelIntroUntil && performance.now() < state.levelIntroUntil),
+        maxLevel: state.maxLevel,
         playerForm: state.playerForm,
         score: state.score,
         lives: state.lives,
