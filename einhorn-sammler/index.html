@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Unicorn Forest Run | GeorgeFejer.com</title>
+  <title>Unicorn Forest Explorer | GeorgeFejer.com</title>
   <style>
     :root {
-      color-scheme: light;
-      --ink: #17202a;
-      --muted: #5d6a76;
-      --line: #d5dce3;
-      --panel: rgb(255 255 255 / 90%);
+      color-scheme: dark;
+      --panel: rgb(7 15 18 / 72%);
+      --panel-strong: rgb(7 15 18 / 86%);
+      --line: rgb(221 255 236 / 20%);
+      --text: #f2fff7;
+      --muted: #b8d9cd;
+      --glow: #9af7da;
     }
 
     * {
@@ -20,720 +22,868 @@
 
     html,
     body {
+      width: 100%;
+      height: 100%;
       margin: 0;
-      min-height: 100%;
+      overflow: hidden;
+      background: #06130f;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
       overscroll-behavior: none;
     }
 
-    body {
-      min-height: 100svh;
-      display: grid;
-      place-items: center;
-      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 18% 0%, rgb(129 234 218 / 26%), transparent 28%),
-        linear-gradient(160deg, #e8fbff 0%, #f8fbff 52%, #edf1ff 100%);
-      color: var(--ink);
-      font-family: Arial, Helvetica, sans-serif;
-      touch-action: manipulation;
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100svh;
+      display: block;
+      background: #0c2418;
+      touch-action: none;
+      cursor: crosshair;
     }
 
-    .game {
-      width: min(100%, 740px);
+    .topbar,
+    .hud,
+    .message {
+      position: fixed;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .topbar {
+      top: max(10px, env(safe-area-inset-top));
+      left: max(10px, env(safe-area-inset-left));
+      right: max(10px, env(safe-area-inset-right));
       display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
       gap: 10px;
     }
 
-    header {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 12px;
+    .brand,
+    .restart,
+    .hud,
+    .message {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
+      backdrop-filter: blur(12px);
     }
 
-    .site {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
+    .brand,
+    .restart {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      padding: 0 13px;
+      color: var(--text);
+      font-weight: 800;
+      text-decoration: none;
+      pointer-events: auto;
+    }
+
+    .title {
+      min-width: 0;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
+      backdrop-filter: blur(12px);
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(24px, 7vw, 42px);
-      line-height: 1;
+      font-size: clamp(18px, 4vw, 28px);
+      line-height: 1.05;
       letter-spacing: 0;
     }
 
-    .hud {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+    .title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
     }
 
-    .pill,
-    button,
-    .home-link {
-      min-height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--ink);
-      box-shadow: 0 2px 9px rgb(24 32 42 / 10%);
-      font: 700 15px/1 Arial, Helvetica, sans-serif;
-    }
-
-    .pill {
-      display: grid;
-      place-items: center;
-      padding: 0 8px;
-      white-space: nowrap;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: end;
-    }
-
-    button,
-    .home-link {
+    .restart {
+      appearance: none;
+      border-color: var(--line);
       cursor: pointer;
-      touch-action: manipulation;
+      font: 800 14px/1 Arial, Helvetica, sans-serif;
     }
 
-    .home-link {
-      min-height: 42px;
-      display: grid;
-      place-items: center;
-      padding: 0 12px;
-      text-decoration: none;
-    }
-
-    button:active,
-    .home-link:active {
-      transform: translateY(1px);
-    }
-
-    button:focus-visible,
-    .home-link:focus-visible {
-      outline: 3px solid #2358ff;
+    .restart:focus-visible,
+    .brand:focus-visible {
+      outline: 3px solid var(--glow);
       outline-offset: 2px;
     }
 
-    .board-wrap {
-      position: relative;
-      min-height: min(66svh, 500px);
-      border: 1px solid #263645;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #020713;
-      box-shadow: 0 14px 34px rgb(10 19 30 / 22%);
-      touch-action: none;
+    .hud {
+      top: calc(max(10px, env(safe-area-inset-top)) + 64px);
+      left: max(10px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-columns: repeat(3, minmax(84px, auto));
+      gap: 8px;
+      padding: 9px;
+      color: var(--text);
+      font-weight: 800;
     }
 
-    .board-wrap::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 34%, rgb(92 224 203 / 18%), transparent 31%),
-        linear-gradient(rgb(1 4 12 / 0), rgb(1 4 12 / 42%));
-      mix-blend-mode: screen;
-    }
-
-    #viewport {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: clamp(8px, 2vw, 15px);
-      overflow: hidden;
-      background:
-        linear-gradient(#071126 0%, #10243a 33%, #173924 34%, #08100b 100%);
-      color: #dffdf1;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: clamp(8px, 1.63vw, 13px);
-      line-height: 0.96;
-      letter-spacing: 0;
-      white-space: pre;
-      user-select: none;
-      text-shadow: 0 0 5px rgb(123 244 225 / 42%);
-    }
-
-    #viewport .sky { color: #9cc4d8; }
-    #viewport .star { color: #f8e9a1; text-shadow: 0 0 8px rgb(255 223 122 / 80%); }
-    #viewport .moon { color: #fff5b9; text-shadow: 0 0 12px rgb(255 239 160 / 72%); }
-    #viewport .mount { color: #83b0bb; }
-    #viewport .keep { color: #d3c2a8; text-shadow: 0 0 7px rgb(250 216 157 / 42%); }
-    #viewport .wood { color: #8b6d42; }
-    #viewport .leaf1 { color: #3eb45f; }
-    #viewport .leaf2 { color: #1e7e46; }
-    #viewport .path { color: #a98954; }
-    #viewport .edge { color: #f0d38b; text-shadow: 0 0 7px rgb(246 207 111 / 50%); }
-    #viewport .grass { color: #3b8f47; }
-    #viewport .dark { color: #173b2d; }
-    #viewport .magic { color: #fce36c; text-shadow: 0 0 11px rgb(255 232 107 / 92%); }
-    #viewport .mushroom { color: #f6b1da; text-shadow: 0 0 9px rgb(255 136 210 / 80%); }
-    #viewport .hazard { color: #ff8c64; text-shadow: 0 0 9px rgb(255 100 64 / 70%); }
-    #viewport .hero { color: #f8f7ff; text-shadow: 0 0 11px rgb(185 239 255 / 92%); font-weight: 700; }
-    #viewport .mane { color: #ff83c9; text-shadow: 0 0 9px rgb(255 131 201 / 82%); font-weight: 700; }
-    #viewport .hudtext { color: #c8f7ef; }
-    #viewport .warn { color: #ffcf76; }
-
-    .status {
-      min-height: 38px;
+    .hud div {
+      min-height: 34px;
       display: grid;
       place-items: center;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--ink);
+      padding: 0 10px;
+      border-radius: 7px;
+      background: rgb(255 255 255 / 8%);
+      white-space: nowrap;
+    }
+
+    .message {
+      left: 50%;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      max-width: min(92vw, 620px);
+      padding: 10px 14px;
+      color: var(--text);
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       text-align: center;
-      padding: 8px 10px;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(58px, 74px));
-      grid-template-rows: repeat(2, minmax(54px, 64px));
-      justify-content: center;
-      gap: 8px;
-    }
+    @media (max-width: 620px) {
+      .topbar {
+        grid-template-columns: 1fr auto;
+      }
 
-    .controls button {
-      font-size: 24px;
-      background: #ffffff;
-    }
+      .brand {
+        display: none;
+      }
 
-    .controls .up {
-      grid-column: 2;
-    }
+      .title {
+        padding: 8px 10px;
+      }
 
-    .controls .left {
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    .controls .down {
-      grid-column: 2;
-      grid-row: 2;
-    }
-
-    .controls .right {
-      grid-column: 3;
-      grid-row: 2;
-    }
-
-    @media (max-width: 560px) {
-      body {
-        align-items: start;
+      .title p {
+        font-size: 12px;
       }
 
       .hud {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        top: calc(max(10px, env(safe-area-inset-top)) + 75px);
+        right: max(10px, env(safe-area-inset-right));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        font-size: 13px;
       }
 
-      header {
-        align-items: start;
-        flex-direction: column;
-        gap: 8px;
+      .hud div {
+        min-height: 32px;
+        padding: 0 6px;
       }
 
-      .actions {
-        width: 100%;
-        justify-content: stretch;
-      }
-
-      .actions > * {
-        flex: 1;
-      }
-
-      .pill,
-      button,
-      .home-link {
-        min-height: 40px;
-        font-size: 14px;
-      }
-
-      .board-wrap {
-        min-height: min(45svh, 340px);
-      }
-
-      #viewport {
-        font-size: clamp(7px, 2.05vw, 10px);
-        padding: 8px;
-      }
-
-      .controls {
-        grid-template-columns: repeat(3, minmax(54px, 66px));
-        grid-template-rows: repeat(2, minmax(48px, 58px));
+      .message {
+        font-size: 13px;
       }
     }
   </style>
 </head>
 <body>
-  <main class="game">
-    <header>
-      <div>
-        <div class="site">GeorgeFejer.com</div>
-        <h1>Unicorn Forest Run</h1>
-      </div>
-      <div class="actions">
-        <a class="home-link" href="../">Home</a>
-        <button id="restart" type="button">Restart</button>
-      </div>
-    </header>
+  <canvas id="world" aria-label="Fullscreen open world unicorn forest explorer"></canvas>
 
-    <section class="hud" aria-label="Scoreboard">
-      <div class="pill" id="score">Score 0</div>
-      <div class="pill" id="lives">Lives 3</div>
-      <div class="pill" id="time">Time 60</div>
-      <div class="pill" id="best">Best 0</div>
-    </section>
+  <header class="topbar">
+    <a class="brand" href="../">GeorgeFejer.com</a>
+    <div class="title">
+      <h1>Unicorn Forest Explorer</h1>
+      <p>Point or tap anywhere to move through the open forest.</p>
+    </div>
+    <button class="restart" id="restart" type="button">Restart</button>
+  </header>
 
-    <section class="board-wrap" aria-label="Game field">
-      <pre id="viewport" role="img" aria-label="Pseudo 3D text-rendered unicorn forest runner"></pre>
-    </section>
+  <section class="hud" aria-label="Explorer status">
+    <div id="magic">Magic 0</div>
+    <div id="found">Found 0/0</div>
+    <div id="best">Best 0</div>
+  </section>
 
-    <div class="status" id="status">Run the forest trail</div>
-
-    <nav class="controls" aria-label="Controls">
-      <button class="up" type="button" data-move="jump" aria-label="Jump">&uarr;</button>
-      <button class="left" type="button" data-move="left" aria-label="Left">&larr;</button>
-      <button class="down" type="button" data-move="duck" aria-label="Duck">&darr;</button>
-      <button class="right" type="button" data-move="right" aria-label="Right">&rarr;</button>
-    </nav>
-  </main>
+  <div class="message" id="message">Tap a clearing, ruin, riverbank, or glowing flower to explore.</div>
 
   <script>
     (() => {
-      const roundSeconds = 60;
-      const lanes = [-1, 0, 1];
-      const board = document.querySelector('.board-wrap');
-      const viewport = document.getElementById('viewport');
-      const scoreEl = document.getElementById('score');
-      const livesEl = document.getElementById('lives');
-      const timeEl = document.getElementById('time');
+      const canvas = document.getElementById('world');
+      const ctx = canvas.getContext('2d');
+      const magicEl = document.getElementById('magic');
+      const foundEl = document.getElementById('found');
       const bestEl = document.getElementById('best');
-      const statusEl = document.getElementById('status');
+      const messageEl = document.getElementById('message');
       const restartBtn = document.getElementById('restart');
+      const world = { w: 4400, h: 3400 };
+      const storageKey = 'unicornExplorerBest';
       const state = {
-        lane: 0,
+        dpr: 1,
+        vw: 0,
+        vh: 0,
+        camera: { x: world.w / 2, y: world.h / 2 },
+        player: { x: world.w / 2, y: world.h / 2, tx: world.w / 2 + 180, ty: world.h / 2 - 90, speed: 255, angle: 0, moving: false, step: 0 },
         score: 0,
-        lives: 3,
-        best: Number(localStorage.getItem('unicornForestBest') || 0),
-        time: roundSeconds,
-        running: true,
-        startedAt: performance.now(),
-        elapsed: 0,
-        lastFrame: performance.now(),
-        nextSpawn: 0.45,
-        distance: 0,
-        speed: 0.34,
-        jumpUntil: 0,
-        duckUntil: 0,
-        flashUntil: 0,
-        entities: [],
-        message: 'Collect magic. Jump logs. Duck branches. Dodge trunks.'
+        found: 0,
+        best: Number(localStorage.getItem(storageKey) || 0),
+        targetPulse: 0,
+        last: performance.now(),
+        pointerDown: false,
+        messageUntil: 0
       };
+      const objects = [];
+      const colliders = [];
+      const collectibles = [];
+      const pathPoints = [
+        { x: 310, y: 2870 },
+        { x: 920, y: 2480 },
+        { x: 1460, y: 2660 },
+        { x: 2140, y: 2210 },
+        { x: 2360, y: 1700 },
+        { x: 2920, y: 1330 },
+        { x: 3580, y: 1000 },
+        { x: 4080, y: 610 }
+      ];
+      const landmarks = [
+        { type: 'ruin', x: 760, y: 770, name: 'Moon Gate' },
+        { type: 'lake', x: 1090, y: 1800, name: 'Silver Lake' },
+        { type: 'grove', x: 2290, y: 930, name: 'Crystal Grove' },
+        { type: 'keep', x: 3480, y: 2390, name: 'Forest Keep' },
+        { type: 'portal', x: 3820, y: 1660, name: 'Star Well' }
+      ];
 
-      function reset() {
-        state.lane = 0;
-        state.score = 0;
-        state.lives = 3;
-        state.time = roundSeconds;
-        state.running = true;
-        state.startedAt = performance.now();
-        state.elapsed = 0;
-        state.lastFrame = performance.now();
-        state.nextSpawn = 0.45;
-        state.distance = 0;
-        state.speed = 0.34;
-        state.jumpUntil = 0;
-        state.duckUntil = 0;
-        state.flashUntil = 0;
-        state.entities = [
-          { type: 'magic', lane: 0, z: 0.22, hit: false, points: 10 },
-          { type: 'log', lane: -1, z: 0.34, hit: false },
-          { type: 'mushroom', lane: 1, z: 0.48, hit: false, points: 25 }
-        ];
-        state.message = 'Collect magic. Jump logs. Duck branches. Dodge trunks.';
-        statusEl.textContent = state.message;
-        updateHud();
-        render();
+      function rng(seed) {
+        let value = seed >>> 0;
+        return () => {
+          value += 0x6D2B79F5;
+          let t = value;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      const random = rng(7622026);
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+      function nearPath(x, y, limit) {
+        for (let i = 0; i < pathPoints.length - 1; i += 1) {
+          const a = pathPoints[i];
+          const b = pathPoints[i + 1];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const len2 = dx * dx + dy * dy;
+          const t = clamp(((x - a.x) * dx + (y - a.y) * dy) / len2, 0, 1);
+          const px = a.x + dx * t;
+          const py = a.y + dy * t;
+          if (Math.hypot(x - px, y - py) < limit) return true;
+        }
+        return false;
+      }
+
+      function inProtectedClearing(x, y, radius) {
+        if (Math.hypot(x - world.w / 2, y - world.h / 2) < 260 + radius) return true;
+        return landmarks.some((landmark) => Math.hypot(x - landmark.x, y - landmark.y) < 230 + radius);
+      }
+
+      function addTree(x, y, r, kind) {
+        objects.push({ type: 'tree', x, y, r, kind, h: 62 + r * 1.3, sway: random() * 6.28 });
+        colliders.push({ x, y, r: r * 0.58 });
+      }
+
+      function addRock(x, y, r) {
+        objects.push({ type: 'rock', x, y, r });
+        colliders.push({ x, y, r: r * 0.75 });
+      }
+
+      function addCollectible(x, y, type) {
+        collectibles.push({ x, y, type, r: type === 'crystal' ? 28 : 22, collected: false, pulse: random() * 6.28 });
+      }
+
+      function generateWorld() {
+        objects.length = 0;
+        colliders.length = 0;
+        collectibles.length = 0;
+
+        for (const landmark of landmarks) objects.push(landmark);
+
+        for (let i = 0; i < 560; i += 1) {
+          const x = 120 + random() * (world.w - 240);
+          const y = 120 + random() * (world.h - 240);
+          const edgeBias = Math.min(x, y, world.w - x, world.h - y);
+          const forestChance = edgeBias < 620 ? 0.92 : 0.66;
+          if (random() > forestChance || nearPath(x, y, 115) || inProtectedClearing(x, y, 40)) continue;
+          addTree(x, y, 24 + random() * 34, random() < 0.72 ? 'pine' : 'oak');
+        }
+
+        for (let i = 0; i < 95; i += 1) {
+          const x = 160 + random() * (world.w - 320);
+          const y = 160 + random() * (world.h - 320);
+          if (inProtectedClearing(x, y, 20)) continue;
+          addRock(x, y, 13 + random() * 23);
+        }
+
+        for (let i = 0; i < 84; i += 1) {
+          let x = 180 + random() * (world.w - 360);
+          let y = 180 + random() * (world.h - 360);
+          if (i < pathPoints.length * 7) {
+            const p = pathPoints[i % pathPoints.length];
+            x = p.x + (random() - 0.5) * 360;
+            y = p.y + (random() - 0.5) * 360;
+          }
+          addCollectible(clamp(x, 90, world.w - 90), clamp(y, 90, world.h - 90), random() < 0.28 ? 'crystal' : 'flower');
+        }
+      }
+
+      function resize() {
+        state.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+        state.vw = window.innerWidth;
+        state.vh = window.innerHeight;
+        canvas.width = Math.floor(state.vw * state.dpr);
+        canvas.height = Math.floor(state.vh * state.dpr);
+        canvas.style.width = state.vw + 'px';
+        canvas.style.height = state.vh + 'px';
+      }
+
+      function screenToWorld(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: clamp(state.camera.x - state.vw / 2 + clientX - rect.left, 0, world.w),
+          y: clamp(state.camera.y - state.vh / 2 + clientY - rect.top, 0, world.h)
+        };
+      }
+
+      function setTarget(clientX, clientY) {
+        const target = screenToWorld(clientX, clientY);
+        state.player.tx = target.x;
+        state.player.ty = target.y;
+        state.targetPulse = 0;
+        showMessage('Exploring: ' + Math.round(target.x) + ', ' + Math.round(target.y), 1200);
+      }
+
+      function showMessage(text, ms) {
+        state.messageUntil = performance.now() + ms;
+        messageEl.textContent = text;
+      }
+
+      function isBlocked(x, y) {
+        if (x < 35 || y < 35 || x > world.w - 35 || y > world.h - 35) return true;
+        for (const collider of colliders) {
+          if (Math.hypot(x - collider.x, y - collider.y) < collider.r + 18) return true;
+        }
+        return false;
+      }
+
+      function updatePlayer(dt) {
+        const p = state.player;
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const dist = Math.hypot(dx, dy);
+        p.moving = dist > 4;
+        if (!p.moving) return;
+
+        p.angle = Math.atan2(dy, dx);
+        p.step += dt * 8;
+        const step = Math.min(p.speed * dt, dist);
+        const nx = p.x + (dx / dist) * step;
+        const ny = p.y + (dy / dist) * step;
+
+        if (!isBlocked(nx, ny)) {
+          p.x = nx;
+          p.y = ny;
+        } else if (!isBlocked(nx, p.y)) {
+          p.x = nx;
+        } else if (!isBlocked(p.x, ny)) {
+          p.y = ny;
+        } else {
+          p.tx = p.x;
+          p.ty = p.y;
+          showMessage('The forest is too dense there.', 1300);
+        }
+      }
+
+      function updateCollectibles() {
+        for (const item of collectibles) {
+          if (item.collected) continue;
+          if (Math.hypot(item.x - state.player.x, item.y - state.player.y) < item.r + 20) {
+            item.collected = true;
+            state.found += 1;
+            state.score += item.type === 'crystal' ? 25 : 10;
+            state.best = Math.max(state.best, state.score);
+            localStorage.setItem(storageKey, String(state.best));
+            showMessage(item.type === 'crystal' ? 'Crystal glade +25' : 'Forest bloom +10', 1300);
+          }
+        }
       }
 
       function updateHud() {
-        scoreEl.textContent = 'Score ' + state.score;
-        livesEl.textContent = 'Lives ' + state.lives;
-        timeEl.textContent = 'Time ' + state.time;
+        magicEl.textContent = 'Magic ' + state.score;
+        foundEl.textContent = 'Found ' + state.found + '/' + collectibles.length;
         bestEl.textContent = 'Best ' + state.best;
+        canvas.dataset.playerX = String(Math.round(state.player.x));
+        canvas.dataset.playerY = String(Math.round(state.player.y));
+        canvas.dataset.targetX = String(Math.round(state.player.tx));
+        canvas.dataset.targetY = String(Math.round(state.player.ty));
+        canvas.dataset.found = String(state.found);
       }
 
-      function chooseEntity() {
-        const roll = Math.random();
-        const lane = lanes[Math.floor(Math.random() * lanes.length)];
-        if (roll < 0.42) return { type: 'magic', lane, z: 0, hit: false, points: 10 };
-        if (roll < 0.58) return { type: 'mushroom', lane, z: 0, hit: false, points: 25 };
-        if (roll < 0.75) return { type: 'log', lane, z: 0, hit: false };
-        if (roll < 0.88) return { type: 'branch', lane, z: 0, hit: false };
-        return { type: 'trunk', lane, z: 0, hit: false };
-      }
-
-      function spawnEntity() {
-        const entity = chooseEntity();
-        const tooClose = state.entities.some((other) => other.lane === entity.lane && other.z < 0.22);
-        if (!tooClose) state.entities.push(entity);
-      }
-
-      function isJumping(now) {
-        return now < state.jumpUntil;
-      }
-
-      function isDucking(now) {
-        return now < state.duckUntil;
-      }
-
-      function laneMove(delta) {
-        if (!state.running) {
-          reset();
-          return;
-        }
-        state.lane = Math.max(-1, Math.min(1, state.lane + delta));
-        state.message = state.lane === -1 ? 'Left trail' : state.lane === 1 ? 'Right trail' : 'Center trail';
-        statusEl.textContent = state.message;
-        render();
-      }
-
-      function jump() {
-        const now = performance.now();
-        if (!state.running) {
-          reset();
-          return;
-        }
-        state.jumpUntil = now + 620;
-        state.duckUntil = 0;
-        state.message = 'Jump';
-        statusEl.textContent = state.message;
-        render();
-      }
-
-      function duck() {
-        const now = performance.now();
-        if (!state.running) {
-          reset();
-          return;
-        }
-        state.duckUntil = now + 620;
-        state.jumpUntil = 0;
-        state.message = 'Duck';
-        statusEl.textContent = state.message;
-        render();
-      }
-
-      function end(text) {
-        state.running = false;
-        state.best = Math.max(state.best, state.score);
-        localStorage.setItem('unicornForestBest', String(state.best));
-        state.message = text;
-        statusEl.textContent = text;
+      function reset() {
+        state.player.x = world.w / 2;
+        state.player.y = world.h / 2;
+        state.player.tx = world.w / 2 + 180;
+        state.player.ty = world.h / 2 - 90;
+        state.player.step = 0;
+        state.player.moving = false;
+        state.camera.x = state.player.x;
+        state.camera.y = state.player.y;
+        state.score = 0;
+        state.found = 0;
+        for (const item of collectibles) item.collected = false;
+        showMessage('Tap anywhere in the forest to set a destination.', 1800);
         updateHud();
       }
 
-      function loseLife(message) {
-        const now = performance.now();
-        state.lives -= 1;
-        state.flashUntil = now + 420;
-        state.message = message;
-        statusEl.textContent = message;
-        if (state.lives <= 0) end('Lost in the forest. Score ' + state.score);
+      function worldToScreen(x, y) {
+        return { x: x - state.camera.x + state.vw / 2, y: y - state.camera.y + state.vh / 2 };
       }
 
-      function resolveEntity(entity, now) {
-        if (entity.hit || entity.z < 0.84 || entity.z > 0.96 || entity.lane !== state.lane) return;
-        entity.hit = true;
-        if (entity.type === 'magic' || entity.type === 'mushroom') {
-          state.score += entity.points;
-          state.message = entity.type === 'mushroom' ? 'Moon mushroom +' + entity.points : 'Forest magic +' + entity.points;
-          statusEl.textContent = state.message;
+      function drawGround() {
+        const g = ctx.createLinearGradient(0, 0, 0, state.vh);
+        g.addColorStop(0, '#163342');
+        g.addColorStop(0.38, '#255c3e');
+        g.addColorStop(1, '#123219');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, state.vw, state.vh);
+
+        ctx.save();
+        ctx.translate(-state.camera.x + state.vw / 2, -state.camera.y + state.vh / 2);
+        ctx.fillStyle = '#1f6a3a';
+        for (let gx = -200; gx < world.w + 200; gx += 170) {
+          for (let gy = -200; gy < world.h + 200; gy += 150) {
+            const n = Math.sin(gx * 0.017 + gy * 0.021) * 0.5 + 0.5;
+            ctx.globalAlpha = 0.07 + n * 0.08;
+            ctx.beginPath();
+            ctx.ellipse(gx + Math.sin(gy) * 20, gy + Math.cos(gx) * 18, 95, 58, n * 3.14, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+        drawRiver();
+        drawPaths();
+        ctx.restore();
+      }
+
+      function drawPaths() {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#a78755';
+        ctx.lineWidth = 96;
+        ctx.beginPath();
+        pathPoints.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+        ctx.stroke();
+        ctx.strokeStyle = '#c0a36a';
+        ctx.lineWidth = 34;
+        ctx.globalAlpha = 0.55;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      function drawRiver() {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#2e9fd1';
+        ctx.lineWidth = 90;
+        ctx.globalAlpha = 0.82;
+        ctx.beginPath();
+        ctx.moveTo(0, 1460);
+        ctx.bezierCurveTo(700, 1270, 910, 2050, 1480, 1810);
+        ctx.bezierCurveTo(2180, 1510, 2630, 2260, 3330, 1900);
+        ctx.bezierCurveTo(3820, 1640, 4060, 1380, world.w, 1510);
+        ctx.stroke();
+        ctx.strokeStyle = '#96e7ff';
+        ctx.lineWidth = 18;
+        ctx.globalAlpha = 0.45;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawLake(landmark, sx, sy) {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.fillStyle = '#2d9cc9';
+        ctx.globalAlpha = 0.82;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 260, 150, -0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#b6f3ff';
+        ctx.lineWidth = 6;
+        ctx.globalAlpha = 0.42;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawTree(tree, sx, sy) {
+        const sway = Math.sin(performance.now() / 900 + tree.sway) * 2.5;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.fillStyle = 'rgb(0 0 0 / 22%)';
+        ctx.beginPath();
+        ctx.ellipse(0, tree.r * 0.25, tree.r * 0.75, tree.r * 0.32, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#7a5133';
+        ctx.fillRect(-tree.r * 0.16, -tree.r * 0.55, tree.r * 0.32, tree.r * 0.9);
+        if (tree.kind === 'pine') {
+          for (let i = 0; i < 3; i += 1) {
+            ctx.fillStyle = i === 0 ? '#1d7b43' : i === 1 ? '#27904e' : '#32a65d';
+            ctx.beginPath();
+            ctx.moveTo(sway, -tree.h - i * tree.r * 0.05);
+            ctx.lineTo(-tree.r * (0.95 - i * 0.12), -tree.r * (0.18 + i * 0.34));
+            ctx.lineTo(tree.r * (0.95 - i * 0.12), -tree.r * (0.18 + i * 0.34));
+            ctx.closePath();
+            ctx.fill();
+          }
+        } else {
+          const crown = ctx.createRadialGradient(sway, -tree.r * 0.86, tree.r * 0.1, sway, -tree.r * 0.86, tree.r * 1.12);
+          crown.addColorStop(0, '#58c269');
+          crown.addColorStop(1, '#24783e');
+          ctx.fillStyle = crown;
+          ctx.beginPath();
+          ctx.arc(sway, -tree.r * 0.85, tree.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawRock(rock, sx, sy) {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.fillStyle = 'rgb(0 0 0 / 18%)';
+        ctx.beginPath();
+        ctx.ellipse(0, rock.r * 0.35, rock.r, rock.r * 0.42, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#79867c';
+        ctx.beginPath();
+        ctx.moveTo(-rock.r, rock.r * 0.25);
+        ctx.lineTo(-rock.r * 0.5, -rock.r * 0.62);
+        ctx.lineTo(rock.r * 0.28, -rock.r * 0.82);
+        ctx.lineTo(rock.r, -rock.r * 0.05);
+        ctx.lineTo(rock.r * 0.52, rock.r * 0.48);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawLandmark(landmark, sx, sy) {
+        if (landmark.type === 'lake') {
+          drawLake(landmark, sx, sy);
           return;
         }
-        if (entity.type === 'log' && isJumping(now)) {
-          state.score += 5;
-          state.message = 'Cleared the log +5';
-          statusEl.textContent = state.message;
-          return;
+        ctx.save();
+        ctx.translate(sx, sy);
+        if (landmark.type === 'ruin') {
+          ctx.fillStyle = '#b9b2a2';
+          for (let i = -2; i <= 2; i += 1) ctx.fillRect(i * 42 - 12, -70, 24, 96);
+          ctx.strokeStyle = '#e4dcc9';
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.arc(0, -36, 86, Math.PI, Math.PI * 2);
+          ctx.stroke();
+        } else if (landmark.type === 'grove') {
+          ctx.fillStyle = '#69e0c0';
+          for (let i = 0; i < 7; i += 1) {
+            const a = i / 7 * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 72, Math.sin(a) * 44 - 20);
+            ctx.lineTo(Math.cos(a + 0.35) * 34, Math.sin(a + 0.35) * 22 - 94);
+            ctx.lineTo(Math.cos(a - 0.35) * 34, Math.sin(a - 0.35) * 22 - 94);
+            ctx.closePath();
+            ctx.fill();
+          }
+        } else if (landmark.type === 'keep') {
+          ctx.fillStyle = '#93866e';
+          ctx.fillRect(-88, -96, 176, 132);
+          ctx.fillStyle = '#6f604f';
+          ctx.fillRect(-124, -54, 42, 90);
+          ctx.fillRect(82, -54, 42, 90);
+          ctx.fillStyle = '#d9c48d';
+          ctx.fillRect(-22, -20, 44, 56);
+        } else if (landmark.type === 'portal') {
+          ctx.strokeStyle = '#b987ff';
+          ctx.lineWidth = 16;
+          ctx.beginPath();
+          ctx.ellipse(0, -34, 70, 96, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = 'rgb(172 121 255 / 34%)';
+          ctx.beginPath();
+          ctx.ellipse(0, -34, 48, 74, 0, 0, Math.PI * 2);
+          ctx.fill();
         }
-        if (entity.type === 'branch' && isDucking(now)) {
-          state.score += 5;
-          state.message = 'Under the branch +5';
-          statusEl.textContent = state.message;
-          return;
+        ctx.fillStyle = 'rgb(0 0 0 / 54%)';
+        ctx.font = '700 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(landmark.name, 0, 64);
+        ctx.restore();
+      }
+
+      function drawCollectible(item, sx, sy, now) {
+        const pulse = Math.sin(now / 300 + item.pulse) * 0.18 + 1;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.globalAlpha = item.collected ? 0.18 : 1;
+        ctx.fillStyle = item.type === 'crystal' ? '#83f5ff' : '#ffe46e';
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = ctx.fillStyle;
+        if (item.type === 'crystal') {
+          ctx.beginPath();
+          ctx.moveTo(0, -21 * pulse);
+          ctx.lineTo(15 * pulse, -2 * pulse);
+          ctx.lineTo(6 * pulse, 22 * pulse);
+          ctx.lineTo(-6 * pulse, 22 * pulse);
+          ctx.lineTo(-15 * pulse, -2 * pulse);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          for (let i = 0; i < 8; i += 1) {
+            const a = i / 8 * Math.PI * 2;
+            ctx.beginPath();
+            ctx.ellipse(Math.cos(a) * 12 * pulse, Math.sin(a) * 12 * pulse, 5 * pulse, 11 * pulse, a, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#fff8b8';
+          ctx.beginPath();
+          ctx.arc(0, 0, 6 * pulse, 0, Math.PI * 2);
+          ctx.fill();
         }
-        loseLife(entity.type === 'trunk' ? 'Tree collision' : entity.type === 'log' ? 'Jump the logs' : 'Duck the branches');
+        ctx.restore();
+      }
+
+      function drawUnicorn(sx, sy, now) {
+        const p = state.player;
+        const bob = p.moving ? Math.sin(p.step) * 3 : Math.sin(now / 650) * 1.5;
+        const flip = Math.cos(p.angle) < 0 ? -1 : 1;
+        ctx.save();
+        ctx.translate(sx, sy + bob);
+        ctx.scale(flip, 1);
+        ctx.fillStyle = 'rgb(0 0 0 / 24%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 22, 42, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff9ff';
+        ctx.strokeStyle = '#354151';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 36, 21, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(34, -14, 17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffd866';
+        ctx.beginPath();
+        ctx.moveTo(42, -29);
+        ctx.lineTo(63, -48);
+        ctx.lineTo(52, -20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#ff78c8';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(18, -19);
+        ctx.quadraticCurveTo(2, -40, -22, -20);
+        ctx.stroke();
+        ctx.strokeStyle = '#73d6ff';
+        ctx.beginPath();
+        ctx.moveTo(18, -11);
+        ctx.quadraticCurveTo(0, -28, -26, -5);
+        ctx.stroke();
+        ctx.strokeStyle = '#354151';
+        ctx.lineWidth = 4;
+        const leg = p.moving ? Math.sin(p.step) * 7 : 0;
+        for (const pair of [[-18, leg], [8, -leg]]) {
+          ctx.beginPath();
+          ctx.moveTo(pair[0], 18);
+          ctx.lineTo(pair[0] + pair[1] * 0.15, 37);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = '#ff78c8';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(-34, -2);
+        ctx.quadraticCurveTo(-58, -20, -50, -42);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawTarget() {
+        const t = worldToScreen(state.player.tx, state.player.ty);
+        if (t.x < -80 || t.y < -80 || t.x > state.vw + 80 || t.y > state.vh + 80) return;
+        const r = 22 + Math.sin(state.targetPulse) * 5;
+        ctx.save();
+        ctx.strokeStyle = '#d7ff88';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(t.x - r - 8, t.y);
+        ctx.lineTo(t.x - r + 8, t.y);
+        ctx.moveTo(t.x + r - 8, t.y);
+        ctx.lineTo(t.x + r + 8, t.y);
+        ctx.moveTo(t.x, t.y - r - 8);
+        ctx.lineTo(t.x, t.y - r + 8);
+        ctx.moveTo(t.x, t.y + r - 8);
+        ctx.lineTo(t.x, t.y + r + 8);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function roundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function drawMinimap() {
+        const size = Math.min(150, Math.max(104, state.vw * 0.18));
+        const x = state.vw - size - 14;
+        const y = state.vh - size - 14;
+        ctx.save();
+        ctx.fillStyle = 'rgb(3 10 8 / 62%)';
+        ctx.strokeStyle = 'rgb(223 255 236 / 32%)';
+        ctx.lineWidth = 1;
+        roundedRect(x, y, size, size, 8);
+        ctx.fill();
+        ctx.stroke();
+        const sx = size / world.w;
+        const sy = size / world.h;
+        ctx.strokeStyle = '#c0a36a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        pathPoints.forEach((p, i) => i ? ctx.lineTo(x + p.x * sx, y + p.y * sy) : ctx.moveTo(x + p.x * sx, y + p.y * sy));
+        ctx.stroke();
+        ctx.fillStyle = '#ffe46e';
+        for (const item of collectibles) {
+          if (!item.collected) ctx.fillRect(x + item.x * sx - 1, y + item.y * sy - 1, 2, 2);
+        }
+        ctx.fillStyle = '#ff80c8';
+        ctx.beginPath();
+        ctx.arc(x + state.player.x * sx, y + state.player.y * sy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function draw() {
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        ctx.clearRect(0, 0, state.vw, state.vh);
+        drawGround();
+
+        const visible = [];
+        for (const landmark of landmarks) visible.push({ y: landmark.y + 90, draw: () => drawLandmark(landmark, worldToScreen(landmark.x, landmark.y).x, worldToScreen(landmark.x, landmark.y).y) });
+        for (const item of collectibles) {
+          if (item.collected) continue;
+          const s = worldToScreen(item.x, item.y);
+          if (s.x > -80 && s.y > -80 && s.x < state.vw + 80 && s.y < state.vh + 80) visible.push({ y: item.y, draw: () => drawCollectible(item, s.x, s.y, performance.now()) });
+        }
+        for (const object of objects) {
+          if (object.type !== 'tree' && object.type !== 'rock') continue;
+          const s = worldToScreen(object.x, object.y);
+          if (s.x < -150 || s.y < -180 || s.x > state.vw + 150 || s.y > state.vh + 150) continue;
+          visible.push({ y: object.y, draw: () => object.type === 'tree' ? drawTree(object, s.x, s.y) : drawRock(object, s.x, s.y) });
+        }
+        visible.push({ y: state.player.y, draw: () => {
+          const s = worldToScreen(state.player.x, state.player.y);
+          drawUnicorn(s.x, s.y, performance.now());
+        }});
+        visible.sort((a, b) => a.y - b.y).forEach((item) => item.draw());
+
+        drawTarget();
+        drawMinimap();
       }
 
       function update(dt, now) {
-        if (!state.running) return;
-        state.elapsed += dt;
-        state.time = Math.max(0, roundSeconds - Math.floor(state.elapsed));
-        state.distance += dt * 7.4;
-        state.nextSpawn -= dt;
-        state.speed = Math.min(0.56, 0.34 + state.score / 1500);
-        if (state.nextSpawn <= 0) {
-          spawnEntity();
-          state.nextSpawn = Math.max(0.42, 0.86 - state.score / 900) + Math.random() * 0.24;
+        updatePlayer(dt);
+        updateCollectibles();
+        state.camera.x += (state.player.x - state.camera.x) * Math.min(1, dt * 5.5);
+        state.camera.y += (state.player.y - state.camera.y) * Math.min(1, dt * 5.5);
+        state.camera.x = clamp(state.camera.x, state.vw / 2, world.w - state.vw / 2);
+        state.camera.y = clamp(state.camera.y, state.vh / 2, world.h - state.vh / 2);
+        state.targetPulse += dt * 5;
+        if (state.messageUntil && now > state.messageUntil) {
+          state.messageUntil = 0;
+          messageEl.textContent = 'Tap anywhere to set a destination. Drag to keep choosing a path.';
         }
-        for (const entity of state.entities) {
-          entity.z += dt * state.speed;
-          resolveEntity(entity, now);
-        }
-        state.entities = state.entities.filter((entity) => entity.z < 1.08 && !((entity.type === 'magic' || entity.type === 'mushroom') && entity.hit));
-        if (state.time <= 0) end('The forest fades. Score ' + state.score);
         updateHud();
       }
 
-      function makeLayer(rows, cols, char, cls) {
-        return {
-          chars: Array.from({ length: rows }, () => Array.from({ length: cols }, () => char)),
-          cls: Array.from({ length: rows }, () => Array.from({ length: cols }, () => cls))
-        };
-      }
-
-      function setCell(layer, row, col, char, cls) {
-        if (row < 0 || row >= layer.chars.length || col < 0 || col >= layer.chars[0].length) return;
-        layer.chars[row][col] = char;
-        layer.cls[row][col] = cls;
-      }
-
-      function write(layer, row, col, text, cls) {
-        for (let i = 0; i < text.length; i += 1) setCell(layer, row, col + i, text[i], cls);
-      }
-
-      function escapeHtml(text) {
-        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      }
-
-      function classNameAt(layer, row, col) {
-        return layer.cls[row][col] || '';
-      }
-
-      function renderHtml(layer) {
-        let html = '';
-        for (let row = 0; row < layer.chars.length; row += 1) {
-          let active = null;
-          let run = '';
-          for (let col = 0; col < layer.chars[row].length; col += 1) {
-            const cls = classNameAt(layer, row, col);
-            if (cls !== active) {
-              if (run) html += active ? '<span class="' + active + '">' + escapeHtml(run) + '</span>' : escapeHtml(run);
-              active = cls;
-              run = '';
-            }
-            run += layer.chars[row][col];
-          }
-          if (run) html += active ? '<span class="' + active + '">' + escapeHtml(run) + '</span>' : escapeHtml(run);
-          if (row < layer.chars.length - 1) html += '\n';
-        }
-        return html;
-      }
-
-      function depthForRow(row, horizon, rows) {
-        return Math.max(0, Math.min(1, (row - horizon) / (rows - horizon - 1)));
-      }
-
-      function pathWidthAt(row, horizon, rows, cols) {
-        const d = depthForRow(row, horizon, rows);
-        return Math.max(4, Math.floor((cols * 0.08) + Math.pow(d, 1.55) * cols * 0.7));
-      }
-
-      function pathCenterAt(row, horizon, rows, cols) {
-        const d = depthForRow(row, horizon, rows);
-        return Math.round(cols / 2 + Math.sin(state.distance * 0.52 + d * 4.1) * (1 + d * 4));
-      }
-
-      function laneCol(lane, row, horizon, rows, cols) {
-        const width = pathWidthAt(row, horizon, rows, cols);
-        const center = pathCenterAt(row, horizon, rows, cols);
-        return Math.round(center + lane * width * 0.24);
-      }
-
-      function drawBackground(layer, rows, cols, horizon) {
-        const t = Math.floor(state.distance * 10);
-        for (let row = 0; row < rows; row += 1) {
-          for (let col = 0; col < cols; col += 1) {
-            if (row < horizon) {
-              setCell(layer, row, col, ' ', 'sky');
-              if ((row * 17 + col * 29 + t) % 181 === 0) setCell(layer, row, col, '.', 'star');
-            } else {
-              const width = pathWidthAt(row, horizon, rows, cols);
-              const center = pathCenterAt(row, horizon, rows, cols);
-              const edge = Math.abs(col - center);
-              const d = depthForRow(row, horizon, rows);
-              if (edge < width / 2) {
-                const dust = (row * 5 + col * 3 + t) % 11 === 0 ? ',' : '.';
-                setCell(layer, row, col, dust, 'path');
-              } else if (Math.abs(edge - width / 2) < 1.5) {
-                setCell(layer, row, col, col < center ? '/' : '\\', 'edge');
-              } else {
-                const pattern = (row * 7 + col * 5 + t) % 10;
-                setCell(layer, row, col, pattern < 2 ? '"' : pattern < 5 ? '^' : '.', d > 0.55 ? 'leaf2' : 'grass');
-              }
-            }
-          }
-        }
-
-        write(layer, 1, Math.floor(cols * 0.71), ' .  *', 'star');
-        write(layer, 2, Math.floor(cols * 0.71), '  \\ | /', 'moon');
-        write(layer, 3, Math.floor(cols * 0.71), ' -- O --', 'moon');
-        write(layer, horizon - 5, Math.floor(cols * 0.05), '       /\\       /\\', 'mount');
-        write(layer, horizon - 4, Math.floor(cols * 0.05), '  /\\  /  \\_/\\_/  \\  /\\', 'mount');
-        write(layer, horizon - 3, Math.floor(cols * 0.05), '_/  \\/_/\\_/  \\_/\\_\\/  \\_', 'mount');
-        write(layer, horizon - 5, Math.floor(cols * 0.54), '       /\\   /\\', 'keep');
-        write(layer, horizon - 4, Math.floor(cols * 0.54), '  ____/  \\_/  \\____', 'keep');
-        write(layer, horizon - 3, Math.floor(cols * 0.54), ' /_[]_[]_[]_[]_[]_\\', 'keep');
-        write(layer, horizon - 2, Math.floor(cols * 0.54), '   | FOREST KEEP |', 'keep');
-      }
-
-      function drawForest(layer, rows, cols, horizon) {
-        for (let i = 0; i < 18; i += 1) {
-          const d = ((i * 0.113 + state.distance * 0.035) % 1);
-          const row = horizon + Math.floor(Math.pow(d, 1.55) * (rows - horizon - 3));
-          const side = i % 2 === 0 ? -1 : 1;
-          const center = pathCenterAt(row, horizon, rows, cols);
-          const pathWidth = pathWidthAt(row, horizon, rows, cols);
-          const col = Math.round(center + side * (pathWidth * 0.62 + d * cols * 0.16));
-          const large = d > 0.58;
-          const leaves = large ? '/YYY\\' : '/Y\\';
-          const trunk = large ? ' || ' : ' | ';
-          write(layer, row - 2, col - Math.floor(leaves.length / 2), leaves, d > 0.65 ? 'leaf1' : 'leaf2');
-          write(layer, row - 1, col - Math.floor(leaves.length / 2), leaves, d > 0.65 ? 'leaf1' : 'leaf2');
-          write(layer, row, col - Math.floor(trunk.length / 2), trunk, 'wood');
-        }
-      }
-
-      function drawEntity(layer, entity, rows, cols, horizon) {
-        const row = horizon + Math.floor(Math.pow(entity.z, 1.45) * (rows - horizon - 5));
-        const col = laneCol(entity.lane, row, horizon, rows, cols);
-        if (entity.hit) return;
-        if (entity.type === 'magic') {
-          const art = entity.z > 0.65 ? ['  *  ', ' *** ', '  *  '] : [' * ', '***', ' * '];
-          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'magic'));
-        } else if (entity.type === 'mushroom') {
-          const art = entity.z > 0.62 ? [' _M_ ', '(mmm)', '  |  '] : ['_m_', ' | '];
-          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'mushroom'));
-        } else if (entity.type === 'log') {
-          const line = entity.z > 0.6 ? '[=====]' : '[===]';
-          write(layer, row, col - Math.floor(line.length / 2), line, 'hazard');
-        } else if (entity.type === 'branch') {
-          const line = entity.z > 0.62 ? '--<###>--' : '-<##>-';
-          write(layer, row - 3, col - Math.floor(line.length / 2), line, 'hazard');
-        } else {
-          const art = entity.z > 0.58 ? ['  #  ', ' ### ', '##|##', '  |  '] : ['###', ' | '];
-          art.forEach((line, index) => write(layer, row - art.length + 1 + index, col - Math.floor(line.length / 2), line, 'hazard'));
-        }
-      }
-
-      function drawHero(layer, rows, cols, horizon, now) {
-        const row = rows - 4 - (isJumping(now) ? 3 : 0);
-        const col = laneCol(state.lane, row, horizon, rows, cols);
-        const blinking = now < state.flashUntil && Math.floor(now / 90) % 2 === 0;
-        if (blinking) return;
-        if (isDucking(now)) {
-          write(layer, row - 1, col - 3, '  ^  ', 'hero');
-          write(layer, row, col - 4, '_/U\\__', 'mane');
-          return;
-        }
-        write(layer, row - 3, col - 2, '  ^', 'hero');
-        write(layer, row - 2, col - 3, ' /U\\ ', 'hero');
-        write(layer, row - 1, col - 4, '<===>', 'mane');
-        write(layer, row, col - 3, ' / \\ ', 'hero');
-      }
-
-      function drawInSceneHud(layer, rows, cols) {
-        const action = isJumping(performance.now()) ? 'JUMP' : isDucking(performance.now()) ? 'DUCK' : 'RUN';
-        write(layer, rows - 2, 2, 'LANE ' + (state.lane + 2) + '/3  ' + action, 'hudtext');
-        write(layer, rows - 1, 2, 'LEFT/RIGHT LANES   UP JUMP   DOWN DUCK', 'hudtext');
-        if (!state.running) write(layer, Math.floor(rows * 0.48), Math.floor(cols / 2) - 12, 'PRESS ANY CONTROL TO RESTART', 'warn');
-      }
-
-      function render() {
-        const mobile = window.innerWidth <= 560;
-        const cols = mobile ? 62 : 92;
-        const rows = mobile ? 31 : 38;
-        const horizon = Math.floor(rows * 0.34);
-        const layer = makeLayer(rows, cols, ' ', 'sky');
-        drawBackground(layer, rows, cols, horizon);
-        drawForest(layer, rows, cols, horizon);
-        [...state.entities].sort((a, b) => a.z - b.z).forEach((entity) => drawEntity(layer, entity, rows, cols, horizon));
-        drawHero(layer, rows, cols, horizon, performance.now());
-        drawInSceneHud(layer, rows, cols);
-        viewport.innerHTML = renderHtml(layer);
-      }
-
       function frame(now) {
-        const dt = Math.min(0.05, Math.max(0, (now - state.lastFrame) / 1000));
-        state.lastFrame = now;
+        const dt = Math.min(0.05, (now - state.last) / 1000);
+        state.last = now;
         update(dt, now);
-        render();
+        draw();
       }
 
-      const keyMoves = {
-        ArrowLeft: () => laneMove(-1),
-        ArrowRight: () => laneMove(1),
-        ArrowUp: jump,
-        ArrowDown: duck,
-        a: () => laneMove(-1),
-        d: () => laneMove(1),
-        w: jump,
-        s: duck
-      };
+      canvas.addEventListener('pointerdown', (event) => {
+        state.pointerDown = true;
+        canvas.setPointerCapture(event.pointerId);
+        setTarget(event.clientX, event.clientY);
+      });
+
+      canvas.addEventListener('pointermove', (event) => {
+        if (state.pointerDown) setTarget(event.clientX, event.clientY);
+      });
+
+      canvas.addEventListener('pointerup', () => {
+        state.pointerDown = false;
+      });
+
+      canvas.addEventListener('pointercancel', () => {
+        state.pointerDown = false;
+      });
 
       window.addEventListener('keydown', (event) => {
-        const action = keyMoves[event.key];
-        if (!action) return;
+        const step = 180;
+        if (event.key === 'ArrowLeft' || event.key === 'a') state.player.tx = clamp(state.player.tx - step, 0, world.w);
+        else if (event.key === 'ArrowRight' || event.key === 'd') state.player.tx = clamp(state.player.tx + step, 0, world.w);
+        else if (event.key === 'ArrowUp' || event.key === 'w') state.player.ty = clamp(state.player.ty - step, 0, world.h);
+        else if (event.key === 'ArrowDown' || event.key === 's') state.player.ty = clamp(state.player.ty + step, 0, world.h);
+        else return;
         event.preventDefault();
-        action();
-      });
-
-      document.querySelectorAll('[data-move]').forEach((button) => {
-        const map = {
-          left: () => laneMove(-1),
-          right: () => laneMove(1),
-          jump,
-          duck
-        };
-        button.addEventListener('click', map[button.dataset.move]);
-      });
-
-      let touchStart = null;
-      board.addEventListener('pointerdown', (event) => {
-        touchStart = { x: event.clientX, y: event.clientY };
-        board.setPointerCapture(event.pointerId);
-      });
-      board.addEventListener('pointerup', (event) => {
-        if (!touchStart) return;
-        const dx = event.clientX - touchStart.x;
-        const dy = event.clientY - touchStart.y;
-        touchStart = null;
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          laneMove(dx > 0 ? 1 : -1);
-        } else if (dy < 0) {
-          jump();
-        } else {
-          duck();
-        }
       });
 
       restartBtn.addEventListener('click', reset);
+      window.addEventListener('resize', resize);
+      generateWorld();
+      resize();
       reset();
-      setInterval(() => frame(performance.now()), 33);
+      setInterval(() => frame(performance.now()), 16);
+      window.__unicornExplorerDebug = () => ({
+        player: { x: state.player.x, y: state.player.y, tx: state.player.tx, ty: state.player.ty },
+        camera: { x: state.camera.x, y: state.camera.y },
+        score: state.score,
+        found: state.found,
+        collectibles: collectibles.length,
+        objects: objects.length,
+        canvas: { width: canvas.width, height: canvas.height, dpr: state.dpr },
+        viewport: { width: state.vw, height: state.vh }
+      });
     })();
   </script>
 </body>
