@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260622-current-sprites';
+      const assetVersion = '20260622-music-chunks';
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -116,7 +116,9 @@
         nextEvilTreeWalkerAt: 0,
         mazeRevision: 0,
         lastGateWait: 'none',
-        transformUntil: 0
+        transformUntil: 0,
+        musicStarted: false,
+        musicBlocked: false
       };
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32),
@@ -132,6 +134,78 @@
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
+      const musicChunkCount = 21;
+      const musicChunkSrcs = Array.from({ length: musicChunkCount }, (_, index) => {
+        return 'assets/music/mlp-theme-loop-8bit-' + String(index).padStart(3, '0') + '.mp3?v=' + assetVersion;
+      });
+      let musicChunkIndex = 0;
+      let musicPreloadIndex = -1;
+      const backgroundMusic = new Audio(musicChunkSrcs[musicChunkIndex]);
+      const nextBackgroundMusic = new Audio();
+      backgroundMusic.loop = false;
+      backgroundMusic.preload = 'auto';
+      backgroundMusic.volume = 0.36;
+      nextBackgroundMusic.preload = 'auto';
+
+      function musicStatus() {
+        if (backgroundMusic.error) return 'failed';
+        if (!state.musicStarted) return 'waiting';
+        if (!backgroundMusic.paused) return 'playing';
+        return state.musicBlocked ? 'blocked' : 'paused';
+      }
+
+      function preloadNextMusicChunk() {
+        const nextIndex = (musicChunkIndex + 1) % musicChunkSrcs.length;
+        if (musicPreloadIndex === nextIndex) return;
+        musicPreloadIndex = nextIndex;
+        nextBackgroundMusic.src = musicChunkSrcs[nextIndex];
+        nextBackgroundMusic.load();
+      }
+
+      function loadMusicChunk(index) {
+        musicChunkIndex = (index + musicChunkSrcs.length) % musicChunkSrcs.length;
+        backgroundMusic.src = musicChunkSrcs[musicChunkIndex];
+        backgroundMusic.load();
+        preloadNextMusicChunk();
+      }
+
+      function playLoadedMusic() {
+        const playPromise = backgroundMusic.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise
+            .then(() => {
+              state.musicBlocked = false;
+              updateHud();
+            })
+            .catch(() => {
+              state.musicBlocked = true;
+              updateHud();
+            });
+        }
+      }
+
+      function startBackgroundMusic() {
+        if (backgroundMusic.error || !backgroundMusic.paused) return;
+        state.musicStarted = true;
+        state.musicBlocked = false;
+        preloadNextMusicChunk();
+        playLoadedMusic();
+        updateHud();
+      }
+
+      backgroundMusic.addEventListener('ended', () => {
+        loadMusicChunk(musicChunkIndex + 1);
+        if (state.musicStarted) playLoadedMusic();
+        updateHud();
+      });
+
+      ['canplaythrough', 'playing', 'pause', 'error', 'loadedmetadata'].forEach((eventName) => {
+        backgroundMusic.addEventListener(eventName, () => {
+          if (eventName === 'playing') state.musicBlocked = false;
+          if (canvas.width) updateHud();
+        });
+      });
+      preloadNextMusicChunk();
 
       function allSprites() {
         return [...Object.values(characterSprites), ...Object.values(scenerySprites)];
@@ -575,6 +649,11 @@
         canvas.dataset.zoom = state.zoom.toFixed(2);
         canvas.dataset.won = String(state.won);
         canvas.dataset.over = String(state.over);
+        canvas.dataset.music = musicStatus();
+        canvas.dataset.musicChunk = String(musicChunkIndex);
+        canvas.dataset.musicNextChunk = String((musicChunkIndex + 1) % musicChunkSrcs.length);
+        canvas.dataset.musicChunks = String(musicChunkSrcs.length);
+        canvas.dataset.musicSrc = musicChunkSrcs[musicChunkIndex];
       }
 
       function resetPositions() {
@@ -3009,6 +3088,7 @@
       function handleCanvasInput(clientX, clientY, source) {
         lastCanvasInput = performance.now();
         state.lastInput = source + ':' + Math.round(clientX) + ',' + Math.round(clientY);
+        startBackgroundMusic();
         setDestination(clientX, clientY);
         updateHud();
       }
@@ -3076,16 +3156,19 @@
         let next = null;
         if (event.key === '+' || event.key === '=') {
           event.preventDefault();
+          startBackgroundMusic();
           setZoom(state.zoom * 1.12);
           return;
         }
         if (event.key === '-' || event.key === '_') {
           event.preventDefault();
+          startBackgroundMusic();
           setZoom(state.zoom / 1.12);
           return;
         }
         if (event.key === '0') {
           event.preventDefault();
+          startBackgroundMusic();
           setZoom(0.75);
           return;
         }
@@ -3095,6 +3178,7 @@
         else if (event.key === 'ArrowDown' || event.key === 's') next = { c: current.c, r: current.r + 1 };
         else return;
         event.preventDefault();
+        startBackgroundMusic();
         if (next && isPlayerPassable(next, performance.now())) state.player.path = [centerOf(next)];
       });
 
@@ -3169,6 +3253,11 @@
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         assetVersion,
         currentSpritesReady: currentSpriteSetReady(),
+        music: musicStatus(),
+        musicChunk: musicChunkIndex,
+        musicNextChunk: (musicChunkIndex + 1) % musicChunkSrcs.length,
+        musicChunks: musicChunkSrcs.length,
+        musicSrc: musicChunkSrcs[musicChunkIndex],
         failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
