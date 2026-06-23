@@ -7,6 +7,7 @@ After changing gameplay goals, mechanics, validation rules, assets, or deploymen
 
 Build a smartphone-playable 2D fantasy maze chase game at `/einhorn-sammler/` on GeorgeFejer.com.
 The player starts as a unicorn, reaches point B on early levels, then from level 3 onward chases a roaming frog as the objective.
+From level 4 onward a hostile evil frog also hunts the player; if it catches the player, the player corrupts into a green witch and the current round restarts as a witch chasing a roaming princess.
 The player alternates form between unicorn and princess across level transitions through a visible morph animation.
 The game is about escaping witches through a dynamic forest labyrinth.
 
@@ -19,6 +20,8 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Do not bring back obstructive counters or large HUD panels.
 - Preserve the established committed sprite identities for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
 - The frog endpoint keeps `frog-wave.png` for normal waiting/waving and uses `frog-walk.png` as an eight-frame walking sprite for victory, transition, and frog-test rendering. Keep both derived from the same frog identity.
+- The hostile frog uses `evil-frog-walk.png` as an eight-frame walking sprite from level 4 onward. It must read as a separate bad-frog actor, not as a recolored good frog dot.
+- The player witch form uses `green-witch-run.png`, and evil-frog capture uses `hero-witch-corruption-walk.png` as a staged corruption sprite sheet. Keep these assets lazy-loaded; they are not boot-critical.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
 - The in-game princess walking sprite must visually match the princess endpoint of `unicorn-princess-morph.png`. Its current `princess-run.png` sheet is derived from the pure-princess morph frames and uses 220x230 frames.
 - Morph transitions must use `unicorn-princess-morph-walk.png`, an 18 x 8 grid sprite: 18 transformation rows by 8 walking phases. The static `unicorn-princess-morph.png` remains the identity source and fallback, but visible level transitions should animate the current morph form as walking.
@@ -33,6 +36,9 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - The unicorn/princess moves through maze corridors toward tapped destinations.
 - Levels 1-2 use the old point-B objective. From level 3 onward the frog is no longer stationary at B; it walks around the maze, and catching the frog is the objective.
 - While the roaming frog objective is active, the player should visibly use the graded morph walking sprite as a proximity indicator: far from the frog reads as unicorn, close to the frog reads as princess.
+- From level 4 onward, normal rounds include the good frog target, an evil frog chasing the player, and the two witches. The evil frog catch is not an ordinary life-loss; it triggers the green witch corruption animation and starts a reversed-role round.
+- In a reversed-role round, the player form is `witch`, witches are disabled as enemies, the evil frog and good frog are inactive, and the objective becomes catching a roaming princess target. Completing that target advances the level or wins the game.
+- Evil-frog and reversed-role logic must remain included in validation; level 4+ validation targets the good frog unless the evil frog catches the player, in which case validation must switch to the princess objective.
 - Reaching B or catching the frog should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
 - Level forms alternate: unicorn, princess, unicorn, princess, unicorn.
 - Every level-to-level transition must use the morph sprite as a foreground travel animation from the lower-right screen quadrant toward the upper-left screen quadrant. The forms alternate every time: unicorn to princess, princess to unicorn, and so on.
