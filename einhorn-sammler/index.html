@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-evil-frog-v1';
+      const assetVersion = '20260623-broom-v1';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -69,6 +69,7 @@
       const morphTestMode = urlParams.get('morphtest');
       const frogTestMode = urlParams.has('frogtest');
       const evilFrogTestMode = urlParams.has('evilfrogtest');
+      const broomTestMode = urlParams.has('broomtest');
       const aiValidationMode = urlParams.has('aitest');
       const levelConfigs = [
         {
@@ -198,6 +199,8 @@
         : frogTestMode
           ? 3
         : evilFrogTestMode
+          ? 4
+        : broomTestMode
           ? 4
         : princessTestMode
           ? 2
@@ -332,6 +335,7 @@
         spark: { src: 'spark.wav', volume: 0.45, gap: 0 },
         stink: { src: 'stink.wav', volume: 0.42, gap: 0 },
         leaf: { src: 'leaf.wav', volume: 0.42, gap: 0 },
+        broom: { src: 'speed.wav', volume: 0.42, gap: 0 },
         blocked: { src: 'blocked.wav', volume: 0.36, gap: 140 },
         treePush: { src: 'tree-push.wav', volume: 0.50, gap: 80 },
         treeCrush: { src: 'tree-crush.wav', volume: 0.62, gap: 0 },
@@ -759,16 +763,31 @@
         return state.activeTreat === 'leaf' && now < state.activeUntil;
       }
 
+      function broomFlightActive(now) {
+        return state.reversal.active && state.playerForm === 'witch' && state.activeTreat === 'broom' && now < state.activeUntil;
+      }
+
+      function isInsidePlayableMap(cell) {
+        return cell
+          && cell.c > 0
+          && cell.r > 0
+          && cell.c < grid.cols - 1
+          && cell.r < grid.rows - 1;
+      }
+
       function isPlayerPassable(cell, now = performance.now()) {
+        if (broomFlightActive(now)) return isInsidePlayableMap(cell);
         if (evilTreeBlocksPlayer(cell)) return false;
         return isPlayerTerrainPassable(cell, now);
       }
 
       function isPlayerTerrainPassable(cell, now = performance.now()) {
+        if (broomFlightActive(now)) return isInsidePlayableMap(cell);
         return isOpen(cell) || (leafTreePassActive(now) && isWavingTreePathCell(cell));
       }
 
       function isPlayerPushTargetPassable(cell, now = performance.now(), ignoredTree = null) {
+        if (broomFlightActive(now)) return isInsidePlayableMap(cell);
         return isPlayerTerrainPassable(cell, now) && !evilTreeBlocksPlayer(cell, ignoredTree);
       }
 
@@ -940,17 +959,28 @@
           const key = cellKey(cell);
           return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell) && key !== cellKey(secondWitchStartCell);
         });
-        const treatTypes = ['speed', 'shield', 'freeze', 'spark', 'stink', 'leaf'];
+        const treatTypes = state.reversal.active
+          ? ['broom', 'spark', 'broom', 'speed']
+          : ['speed', 'shield', 'freeze', 'spark', 'stink', 'leaf'];
         for (let i = 0; i < config.treats; i += 1) {
           const cell = chooseFarCell(cells, startCell, 8);
           const p = centerOf(cell);
           state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
         }
-        const extraStinkTreats = Math.max(18, Math.round(config.treats * 1.35));
-        for (let i = 0; i < extraStinkTreats; i += 1) {
-          const cell = chooseFarCell(cells, startCell, 6);
-          const p = centerOf(cell);
-          state.treats.push({ ...p, cell, type: 'stink', taken: false, pulse: random() * 6.28 });
+        if (state.reversal.active) {
+          const extraBrooms = Math.max(10, Math.round(config.treats * 0.9));
+          for (let i = 0; i < extraBrooms; i += 1) {
+            const cell = chooseFarCell(cells, startCell, 5);
+            const p = centerOf(cell);
+            state.treats.push({ ...p, cell, type: 'broom', taken: false, pulse: random() * 6.28 });
+          }
+        } else {
+          const extraStinkTreats = Math.max(18, Math.round(config.treats * 1.35));
+          for (let i = 0; i < extraStinkTreats; i += 1) {
+            const cell = chooseFarCell(cells, startCell, 6);
+            const p = centerOf(cell);
+            state.treats.push({ ...p, cell, type: 'stink', taken: false, pulse: random() * 6.28 });
+          }
         }
         for (let i = 0; i < config.crumbs; i += 1) {
           const cell = cells[Math.floor(random() * cells.length)];
@@ -1089,6 +1119,7 @@
         canvas.dataset.treat = active;
         canvas.dataset.stinkTreats = String(state.treats.filter((item) => !item.taken && item.type === 'stink').length);
         canvas.dataset.leafTreats = String(state.treats.filter((item) => !item.taken && item.type === 'leaf').length);
+        canvas.dataset.broomTreats = String(state.treats.filter((item) => !item.taken && item.type === 'broom').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.assetVersion = assetVersion;
         canvas.dataset.assetPhase = state.assetPhase;
@@ -1142,6 +1173,7 @@
         canvas.dataset.witchSlowed = String(performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil);
         canvas.dataset.witchesPassable = String(mushroomPassThroughActive(now));
         canvas.dataset.leafTreePass = String(leafTreePassActive(now));
+        canvas.dataset.broomFlight = String(broomFlightActive(now));
         canvas.dataset.lastInput = state.lastInput || 'none';
         canvas.dataset.lastTarget = state.lastTarget || 'none';
         canvas.dataset.lastPathLength = String(state.lastPathLength || 0);
@@ -1446,16 +1478,22 @@
         if (evilFrogTestMode) {
           showMessage('Evil frog catch test.', 1800);
         }
+        if (broomTestMode && state.reversal.active) {
+          state.activeTreat = 'broom';
+          state.activeUntil = performance.now() + 60000;
+          showMessage('Broomstick flight test.', 1800);
+        }
         updateHud();
       }
 
       function reset() {
         state.score = 0;
         state.lives = 3;
-        startLevel(defaultStartLevel);
+        startLevel(defaultStartLevel, null, { reversal: broomTestMode });
       }
 
       function currentPlayerSpeed(now) {
+        if (broomFlightActive(now)) return Math.max(390, state.player.speed);
         return state.activeTreat === 'speed' && now < state.activeUntil ? 405 : state.player.speed;
       }
 
@@ -1508,7 +1546,7 @@
       function movePlayerAlongPath(dt, now) {
         if (!state.player.path.length) return;
         const nextCell = cellOf(state.player.path[0].x, state.player.path[0].y);
-        if (evilTreeBlocksPlayer(nextCell)) {
+        if (!broomFlightActive(now) && evilTreeBlocksPlayer(nextCell)) {
           state.player.step += dt * 2;
           state.lastGateWait = cellKey(nextCell);
           return;
@@ -1583,6 +1621,7 @@
 
       function resolveEvilTreePlayerPush(tree, now) {
         if (tree.kind !== 'evil' || !tree.path.length) return true;
+        if (broomFlightActive(now)) return true;
         const travel = treeTravelInfo(tree);
         if (!travel) return true;
         const playerCell = cellOf(state.player.x, state.player.y);
@@ -2389,7 +2428,7 @@
       function applyTreat(type) {
         const now = performance.now();
         state.activeTreat = type;
-        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' || type === 'leaf' ? 9000 : 7000);
+        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' || type === 'leaf' || type === 'broom' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
         if (type === 'freeze') {
           for (const witch of activeWitches()) witch.frozenUntil = now + 3500;
@@ -2406,7 +2445,8 @@
           freeze: 'Sleep mushroom: witch slowed.',
           spark: 'Star treat: bonus magic.',
           stink: 'Rotten strawberry: stinky bubbles trail behind.',
-          leaf: 'Green leaf: waving trees become paths.'
+          leaf: 'Green leaf: waving trees become paths.',
+          broom: 'Broomstick flight: witch crosses every obstacle.'
         }[type];
         showMessage(label, 1700);
       }
@@ -2905,7 +2945,7 @@
         ctx.translate(s.x, s.y);
         ctx.scale(state.zoom, state.zoom);
         ctx.shadowBlur = 18;
-        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b', leaf: '#9dff65' };
+        const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b', leaf: '#9dff65', broom: '#d7a257' };
         ctx.fillStyle = colors[treat.type];
         ctx.shadowColor = colors[treat.type];
         if (treat.type === 'speed') {
@@ -2987,6 +3027,41 @@
           ctx.moveTo(5 * pulse, 0);
           ctx.quadraticCurveTo(10 * pulse, 4 * pulse, 15 * pulse, 0);
           ctx.stroke();
+        } else if (treat.type === 'broom') {
+          ctx.shadowBlur = 12;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = '#5b3219';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(-22 * pulse, 14 * pulse);
+          ctx.lineTo(17 * pulse, -19 * pulse);
+          ctx.stroke();
+          ctx.strokeStyle = '#f3d28a';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-18 * pulse, 10 * pulse);
+          ctx.lineTo(14 * pulse, -16 * pulse);
+          ctx.stroke();
+          ctx.fillStyle = '#c17b39';
+          ctx.strokeStyle = '#4a2412';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(12 * pulse, -15 * pulse);
+          ctx.lineTo(30 * pulse, -25 * pulse);
+          ctx.lineTo(22 * pulse, -6 * pulse);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = '#7a421f';
+          ctx.lineWidth = 1.5;
+          for (let i = 0; i < 4; i += 1) {
+            ctx.beginPath();
+            ctx.moveTo((14 + i * 3) * pulse, (-15 - i * 2) * pulse);
+            ctx.lineTo((21 + i * 2) * pulse, (-6 - i) * pulse);
+            ctx.stroke();
+          }
+          drawStarMark(-8 * pulse, -13 * pulse, 4 * pulse, '#ffe767');
+          drawStarMark(4 * pulse, 9 * pulse, 3 * pulse, '#73ff62');
         } else {
           ctx.shadowBlur = 16;
           ctx.fillStyle = '#9dff65';
@@ -3591,6 +3666,21 @@
         ctx.beginPath();
         ctx.ellipse(0, 25, 40, 10, 0, 0, Math.PI * 2);
         ctx.fill();
+        if (broomFlightActive(now)) {
+          ctx.strokeStyle = 'rgb(255 214 116 / 78%)';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.ellipse(0, -21, 58 + Math.sin(now / 160) * 5, 42 + Math.cos(now / 190) * 4, -0.18, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = 'rgb(115 255 98 / 45%)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-48, 17);
+          ctx.bezierCurveTo(-18, 35 + Math.sin(now / 120) * 6, 18, 35 + Math.cos(now / 130) * 6, 50, 17);
+          ctx.stroke();
+          drawStarMark(35, -58 + Math.sin(now / 180) * 5, 5, '#ffe767');
+          drawStarMark(-38, -47 + Math.cos(now / 210) * 5, 4, '#73ff62');
+        }
         if (drawSpriteFrame(characterSprites.greenWitch, frameIndex, state.player.facing || 1)) {
           ctx.restore();
           return;
@@ -4964,6 +5054,7 @@
         treatsLeft: state.treats.filter((item) => !item.taken).length,
         stinkTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'stink').length,
         leafTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'leaf').length,
+        broomTreatsLeft: state.treats.filter((item) => !item.taken && item.type === 'broom').length,
         crumbsLeft: state.crumbs.filter((item) => !item.taken).length,
         stenchBubbles: state.stenchTrail.length,
         stenchFogs: state.stenchFogs.length,
@@ -4972,6 +5063,7 @@
         witchSlowed: performance.now() < state.witch.stenchUntil || performance.now() < state.witch2.stenchUntil,
         witchesPassable: mushroomPassThroughActive(performance.now()),
         leafTreePass: leafTreePassActive(performance.now()),
+        broomFlight: broomFlightActive(performance.now()),
         leafTreePassableCells: (() => {
           let total = 0;
           for (let r = 1; r < grid.rows - 1; r += 1) {
