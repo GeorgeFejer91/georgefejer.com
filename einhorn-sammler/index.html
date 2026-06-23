@@ -52,9 +52,9 @@
   <script>
     (() => {
       const canvas = document.getElementById('world');
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-default-level4-v1';
+      const assetVersion = '20260623-mobile-perf-gates-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -104,14 +104,14 @@
           subtitle: 'Prinzessin, losgekuesst!',
           difficulty: 'Maerchen-Magie!',
           playerForm: 'princess',
-          playerSpeed: 274,
+          playerSpeed: 310,
           witchCount: 2,
-          witchSpeed: 166,
-          witch2Speed: 178,
-          witchStartDelay: 1.8,
-          mazeOpenings: 104,
-          treats: 22,
-          crumbs: 126,
+          witchSpeed: 122,
+          witch2Speed: 130,
+          witchStartDelay: 6.2,
+          mazeOpenings: 118,
+          treats: 28,
+          crumbs: 140,
           minSpan: 5,
           maxSpan: 9,
           evilTreeSpeed: 100,
@@ -286,7 +286,16 @@
         validationMode: false,
         sfxPlays: 0,
         lastSfx: 'none',
-        assetPhase: 'preloading'
+        assetPhase: 'preloading',
+        nextHudUpdate: 0,
+        frameMs: 0,
+        averageFrameMs: 0,
+        renderCacheStatus: 'empty'
+      };
+      const mazeBaseCache = {
+        canvas: null,
+        ctx: null,
+        revision: -1
       };
       const assetStats = {
         total: 0,
@@ -423,7 +432,7 @@
           state.assetPhase = 'preloading';
         }
         if (canvas.width) {
-          updateHud();
+          updateHud(true);
           draw();
         }
       }
@@ -603,7 +612,7 @@
         state.musicStarted = true;
         state.musicBlocked = false;
         playBackgroundMusic();
-        updateHud();
+        updateHud(true);
       }
 
       function playSfx(name, minGap = null) {
@@ -638,7 +647,7 @@
             updateHud();
           });
         }
-        updateHud();
+        updateHud(true);
       }
 
       ['canplaythrough', 'playing', 'pause', 'error', 'loadedmetadata'].forEach((eventName) => {
@@ -726,6 +735,7 @@
         sprite.ready = true;
         sprite.decoded = true;
         sprite.drawable = drawable || sprite.image;
+        primeSpriteScaleCache(sprite);
         assetStats.decoded += 1;
         if (sprite.usingWebp) assetStats.webp += 1;
         maybeStartAudioPreload();
@@ -827,7 +837,8 @@
           required: Boolean(options.required),
           priority: options.priority || 'normal',
           usingWebp: false,
-          currentSrc: ''
+          currentSrc: '',
+          scaledSheets: new Map()
         };
         assetStats.total += 1;
         preloadImage(preferredSrc);
@@ -835,25 +846,85 @@
         return sprite;
       }
 
+      function createRenderCanvas(width, height) {
+        const w = Math.max(1, Math.ceil(width));
+        const h = Math.max(1, Math.ceil(height));
+        const target = typeof OffscreenCanvas === 'function'
+          ? new OffscreenCanvas(w, h)
+          : document.createElement('canvas');
+        target.width = w;
+        target.height = h;
+        return target;
+      }
+
+      function drawableWidth(drawable) {
+        return drawable ? (drawable.width || drawable.naturalWidth || 0) : 0;
+      }
+
+      function drawableHeight(drawable) {
+        return drawable ? (drawable.height || drawable.naturalHeight || 0) : 0;
+      }
+
+      function getScaledSheet(sprite, drawW, drawH) {
+        if (!sprite.ready) return null;
+        const frameW = Math.max(1, Math.round(drawW));
+        const frameH = Math.max(1, Math.round(drawH));
+        const key = frameW + 'x' + frameH;
+        if (sprite.scaledSheets.has(key)) return sprite.scaledSheets.get(key);
+        const drawable = sprite.drawable || sprite.image;
+        const sourceW = drawableWidth(drawable);
+        const sourceH = drawableHeight(drawable);
+        const cols = Math.max(1, Math.floor(sourceW / sprite.frameW));
+        const rows = Math.max(1, Math.floor(sourceH / sprite.frameH));
+        const sheet = createRenderCanvas(cols * frameW, rows * frameH);
+        const sheetCtx = sheet.getContext('2d', { alpha: true });
+        sheetCtx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in sheetCtx) sheetCtx.imageSmoothingQuality = 'low';
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
+            sheetCtx.drawImage(
+              drawable,
+              col * sprite.frameW,
+              row * sprite.frameH,
+              sprite.frameW,
+              sprite.frameH,
+              col * frameW,
+              row * frameH,
+              frameW,
+              frameH
+            );
+          }
+        }
+        const cached = { drawable: sheet, frameW, frameH, cols, rows };
+        sprite.scaledSheets.set(key, cached);
+        return cached;
+      }
+
+      function primeSpriteScaleCache(sprite) {
+        getScaledSheet(sprite, sprite.frameW * sprite.scale, sprite.frameH * sprite.scale);
+      }
+
       function drawSpriteFrame(sprite, frameIndex, facing) {
         if (!sprite.ready) return false;
-        const drawable = sprite.drawable || sprite.image;
+        const sheet = getScaledSheet(sprite, sprite.frameW * sprite.scale, sprite.frameH * sprite.scale);
+        if (!sheet) return false;
         const sourceFacesLeft = true;
         const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
-        const dx = -sprite.frameW * sprite.scale / 2;
-        const dy = -sprite.frameH * sprite.scale + sprite.ground;
+        const sourceCol = Math.abs(frameIndex) % sheet.cols;
+        const dx = -sheet.frameW / 2;
+        const dy = -sheet.frameH + sprite.ground;
         ctx.save();
         ctx.scale(flip, 1);
         ctx.drawImage(
-          drawable,
-          frameIndex * sprite.frameW,
+          sheet.drawable,
+          sourceCol * sheet.frameW,
           0,
-          sprite.frameW,
-          sprite.frameH,
+          sheet.frameW,
+          sheet.frameH,
           dx,
           dy,
-          sprite.frameW * sprite.scale,
-          sprite.frameH * sprite.scale
+          sheet.frameW,
+          sheet.frameH
         );
         ctx.restore();
         return true;
@@ -861,23 +932,26 @@
 
       function drawSpriteGridFrame(sprite, colIndex, rowIndex, facing) {
         if (!sprite.ready) return false;
-        const drawable = sprite.drawable || sprite.image;
+        const sheet = getScaledSheet(sprite, sprite.frameW * sprite.scale, sprite.frameH * sprite.scale);
+        if (!sheet) return false;
         const sourceFacesLeft = true;
         const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
-        const dx = -sprite.frameW * sprite.scale / 2;
-        const dy = -sprite.frameH * sprite.scale + sprite.ground;
+        const sourceCol = Math.abs(colIndex) % sheet.cols;
+        const sourceRow = Math.abs(rowIndex) % sheet.rows;
+        const dx = -sheet.frameW / 2;
+        const dy = -sheet.frameH + sprite.ground;
         ctx.save();
         ctx.scale(flip, 1);
         ctx.drawImage(
-          drawable,
-          colIndex * sprite.frameW,
-          rowIndex * sprite.frameH,
-          sprite.frameW,
-          sprite.frameH,
-          flip < 0 ? -dx - sprite.frameW * sprite.scale : dx,
+          sheet.drawable,
+          sourceCol * sheet.frameW,
+          sourceRow * sheet.frameH,
+          sheet.frameW,
+          sheet.frameH,
+          flip < 0 ? -dx - sheet.frameW : dx,
           dy,
-          sprite.frameW * sprite.scale,
-          sprite.frameH * sprite.scale
+          sheet.frameW,
+          sheet.frameH
         );
         ctx.restore();
         return true;
@@ -949,6 +1023,23 @@
 
       function movingTreeGateWindowCount() {
         return allMovingTrees().reduce((count, tree) => count + (tree.gateWindow ? 1 : 0), 0);
+      }
+
+      function treeHasTemporalGateWindow(tree) {
+        const metrics = tree && tree.gateMetrics;
+        if (metrics) return Boolean(metrics.hasWindow && metrics.crossingWindows > 0);
+        const cells = tree && tree.patrolCells ? tree.patrolCells : [];
+        if (cells.length < 5) return false;
+        return cells.some((cell, index) => {
+          if (index < 2 || index > cells.length - 3) return false;
+          const up = { c: cell.c, r: cell.r - 1 };
+          const down = { c: cell.c, r: cell.r + 1 };
+          return isOpen(up) && isOpen(down);
+        });
+      }
+
+      function movingTreeGateWindowFailureCount() {
+        return allMovingTrees().reduce((count, tree) => count + (treeHasTemporalGateWindow(tree) ? 0 : 1), 0);
       }
 
       function evilTreeBlocksPlayer(cell, ignoredTree = null) {
@@ -1047,7 +1138,7 @@
         state.camera.x += before.x - after.x;
         state.camera.y += before.y - after.y;
         clampCamera();
-        updateHud();
+        updateHud(true);
       }
 
       function shuffle(list) {
@@ -1204,15 +1295,26 @@
         }
       }
 
+      function mobileRenderDprCap() {
+        const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        const compact = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 720;
+        const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
+        if (coarse || compact) return lowMemory ? 1.15 : 1.35;
+        return 1.75;
+      }
+
       function resize() {
-        state.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+        state.dpr = Math.min(mobileRenderDprCap(), window.devicePixelRatio || 1);
         state.vw = window.innerWidth;
         state.vh = window.innerHeight;
         canvas.width = Math.floor(state.vw * state.dpr);
         canvas.height = Math.floor(state.vh * state.dpr);
         canvas.style.width = state.vw + 'px';
         canvas.style.height = state.vh + 'px';
+        ctx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'low';
         clampCamera();
+        updateHud(true);
       }
 
       function setDestination(clientX, clientY) {
@@ -1302,9 +1404,12 @@
         startHeroMorph(from, to, levelTransitionMorphDuration, { travel: true, facing: -1 });
       }
 
-      function updateHud() {
+      function updateHud(force = false) {
         const config = configForLevel(state.level);
         const now = performance.now();
+        const hudCadence = state.assetPhase === 'ready' ? 250 : 90;
+        if (!force && now < state.nextHudUpdate) return;
+        state.nextHudUpdate = now + hudCadence;
         const active = state.activeTreat && now < state.activeUntil ? state.activeTreat + ' ' + Math.ceil((state.activeUntil - now) / 1000) + 's' : 'none';
         canvas.dataset.playerCell = cellKey(cellOf(state.player.x, state.player.y));
         canvas.dataset.level = String(state.level);
@@ -1355,6 +1460,10 @@
         canvas.dataset.musicTimedOut = String(assetStats.musicTimedOut);
         canvas.dataset.musicRawFallback = String(assetStats.musicRawFallback);
         canvas.dataset.audioReady = String(audioPreloadReady());
+        canvas.dataset.dpr = state.dpr.toFixed(2);
+        canvas.dataset.frameMs = state.frameMs.toFixed(1);
+        canvas.dataset.averageFrameMs = state.averageFrameMs.toFixed(1);
+        canvas.dataset.mazeCache = state.renderCacheStatus;
         canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.morph.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.playerForm = state.playerForm;
@@ -1379,6 +1488,7 @@
         canvas.dataset.goodTrees = String(state.goodTrees.length);
         canvas.dataset.treeOverlaps = String(movingTreeOverlapCount());
         canvas.dataset.treeGateWindows = String(movingTreeGateWindowCount());
+        canvas.dataset.treeGateWindowFailures = String(movingTreeGateWindowFailureCount());
         canvas.dataset.longestTreePatrol = String(longestMovingTreePatrol());
         canvas.dataset.gateWait = state.lastGateWait || 'none';
         canvas.dataset.evilTreeEvents = String(state.evilTreeEventCount);
@@ -1672,6 +1782,7 @@
         state.lastTreeCollision = 'none';
         setupTreePatrols();
         setupTreePushTest();
+        invalidateMazeCache();
         state.won = false;
         state.over = false;
         state.last = performance.now();
@@ -1708,7 +1819,7 @@
           state.activeUntil = performance.now() + 60000;
           showMessage('Broomstick flight test.', 1800);
         }
-        updateHud();
+        updateHud(true);
       }
 
       function reset() {
@@ -1830,7 +1941,7 @@
           playSfx('treeCrush');
           showMessage('Crushed by an evil tree. Respawned at A.', 1900);
         }
-        updateHud();
+        updateHud(true);
       }
 
       function treeTravelInfo(tree) {
@@ -1866,7 +1977,7 @@
         state.lastTreeCollision = 'pushed:' + cellKey(playerCell) + '->' + cellKey(pushCell);
         state.lastGateWait = cellKey(travel.to);
         playSfx('treePush');
-        updateHud();
+        updateHud(true);
         return true;
       }
 
@@ -2063,11 +2174,13 @@
         if (!routeSet) {
           return {
             direct: 0,
+            directIndices: [],
             adjacent: 0,
             offRoute: cells.length,
             endpointOffRoute: 0,
             sideRoom: 0,
             sideGate: false,
+            crossingWindows: 0,
             hasWindow: false,
             followsRoutePenalty: 0,
             noGatePenalty: 0
@@ -2075,6 +2188,7 @@
         }
         const directIndices = [];
         let adjacent = 0;
+        let crossingWindows = 0;
         for (let i = 0; i < cells.length; i += 1) {
           const cell = cells[i];
           if (routeSet.has(cellKey(cell))) {
@@ -2082,6 +2196,9 @@
           } else if (dirs.some((dir) => routeSet.has(cellKey({ c: cell.c + dir.dc, r: cell.r + dir.dr })))) {
             adjacent += 1;
           }
+          const up = { c: cell.c, r: cell.r - 1 };
+          const down = { c: cell.c, r: cell.r + 1 };
+          if (i >= 2 && i <= cells.length - 3 && isOpen(up) && isOpen(down)) crossingWindows += 1;
         }
         const direct = directIndices.length;
         const offRoute = cells.length - direct;
@@ -2095,18 +2212,53 @@
           && offRoute >= 2
           && sideRoom >= 2
           && direct <= Math.max(2, Math.floor(cells.length * 0.55));
-        const hasWindow = direct > 0 && cells.length >= 3;
+        const hasWindow = sideGate && cells.length >= 5;
         return {
           direct,
+          directIndices,
           adjacent,
           offRoute,
           endpointOffRoute,
           sideRoom,
           sideGate,
+          crossingWindows,
           hasWindow,
           followsRoutePenalty: Math.max(0, direct - maxRouteCells) * 3.4,
           noGatePenalty: direct ? (hasWindow ? 0 : 7.5) : 13
         };
+      }
+
+      function openTemporalGatePocket(cells, gateMetrics) {
+        const indexes = [
+          ...(gateMetrics && gateMetrics.directIndices ? gateMetrics.directIndices : []),
+          Math.floor(cells.length / 2),
+          Math.floor(cells.length / 2) - 1,
+          Math.floor(cells.length / 2) + 1
+        ].filter((index, position, list) => (
+          Number.isInteger(index)
+          && index >= 2
+          && index <= cells.length - 3
+          && list.indexOf(index) === position
+        ));
+        for (const index of indexes) {
+          const cell = cells[index];
+          const up = { c: cell.c, r: cell.r - 1 };
+          const down = { c: cell.c, r: cell.r + 1 };
+          if (!editableMazeCell(up) || !editableMazeCell(down)) continue;
+          if (isProtectedMazeCell(up, 0) || isProtectedMazeCell(down, 0)) continue;
+          let changed = false;
+          if (!isOpen(up)) {
+            state.maze[up.r][up.c] = 1;
+            changed = true;
+          }
+          if (!isOpen(down)) {
+            state.maze[down.r][down.c] = 1;
+            changed = true;
+          }
+          if (changed) state.mazeRevision += 1;
+          if (isOpen(up) && isOpen(down)) return true;
+        }
+        return false;
       }
 
       function localChokeScore(cells) {
@@ -2150,7 +2302,8 @@
                     - gateMetrics.adjacent * 0.28
                     - gateMetrics.endpointOffRoute * 1.15
                     - gateMetrics.sideRoom * 0.42
-                    - (gateMetrics.sideGate ? 8.5 : gateMetrics.hasWindow ? 3.5 : 0)
+                    - gateMetrics.crossingWindows * 1.6
+                    - (gateMetrics.hasWindow ? 12 : gateMetrics.sideGate ? 5 : 0)
                 });
               }
             }
@@ -2204,17 +2357,17 @@
         const openRuns = collectOpenHorizontalRuns(minSpan);
         let candidates = patrolCandidateSlices(openRuns, anchor, minSpan, maxSpan, reserved, routeSet, 0);
         let gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
-        if (!candidates.length) {
-          candidates = patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, routeSet, 8);
+        if (!gateCandidates.length) {
+          candidates = candidates.concat(patrolCandidateSlices(routeRuns, anchor, minSpan, maxSpan, reserved, routeSet, 8));
           gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
         }
-        if (!candidates.length && minSpan > 5) {
+        if (!gateCandidates.length && minSpan > 5) {
           const shorterOpenRuns = collectOpenHorizontalRuns(5);
-          candidates = patrolCandidateSlices(shorterOpenRuns, anchor, 5, Math.min(8, maxSpan), reserved, routeSet, 12);
+          candidates = candidates.concat(patrolCandidateSlices(shorterOpenRuns, anchor, 5, Math.min(8, maxSpan), reserved, routeSet, 12));
           gateCandidates = candidates.filter((candidate) => candidate.gateMetrics && candidate.gateMetrics.hasWindow);
         }
-        if (!candidates.length) return null;
-        const pool = gateCandidates.length ? gateCandidates : candidates;
+        if (!gateCandidates.length) return null;
+        const pool = gateCandidates;
         pool.sort((a, b) => a.score - b.score);
         const best = pool[0];
         return {
@@ -2270,15 +2423,26 @@
         if (movingFrogObjectiveActive()) reserved.add(cellKey(cellOf(state.frog.x, state.frog.y)));
         if (evilFrogActive()) reserved.add(cellKey(cellOf(state.evilFrog.x, state.evilFrog.y)));
         if (princessObjectiveActive()) reserved.add(cellKey(cellOf(state.princessTarget.x, state.princessTarget.y)));
+        const strategicRouteSet = new Set(combineRoutes(strategicRoutes).map(cellKey));
         const minSpan = config.minSpan;
         const maxSpan = config.maxSpan;
         const addedByKind = { evil: 0, good: 0 };
         const addTree = (kind, ratio) => {
-          const patrol = pickTreePatrolCells(strategicRoutes, ratio, minSpan, maxSpan, reserved);
+          const offsets = [0, -0.06, 0.06, -0.12, 0.12, -0.18, 0.18];
+          let patrol = null;
+          for (const offset of offsets) {
+            patrol = pickTreePatrolCells(strategicRoutes, clamp(ratio + offset, 0.04, 0.96), minSpan, maxSpan, reserved);
+            if (patrol && patrol.cells) break;
+          }
           if (!patrol || !patrol.cells) return;
           const cells = patrol.cells;
+          if (!patrol.gateMetrics || patrol.gateMetrics.crossingWindows <= 0) {
+            openTemporalGatePocket(cells, patrol.gateMetrics);
+          }
+          const gateMetrics = routeGateMetrics(cells, strategicRouteSet);
+          if (!gateMetrics.hasWindow || gateMetrics.crossingWindows <= 0) return;
           reservePatrolCells(reserved, cells);
-          const tree = makePatrolTree(kind, cells, addedByKind[kind], patrol.gateWindow, patrol.gateMetrics);
+          const tree = makePatrolTree(kind, cells, addedByKind[kind], true, gateMetrics);
           addedByKind[kind] += 1;
           if (kind === 'evil') state.evilTrees.push(tree);
           else state.goodTrees.push(tree);
@@ -2898,22 +3062,72 @@
         return ((c * 31 + r * 17) % 13 === 0 && (c + r) % 2 === 0) || (c * 7 + r * 29) % 41 === 0;
       }
 
-      function drawPineTreeTile(x, y) {
+      function invalidateMazeCache() {
+        mazeBaseCache.revision = -1;
+        state.renderCacheStatus = 'dirty';
+      }
+
+      function drawPineTreeTileOn(targetCtx, x, y) {
         const cx = x + grid.tile / 2;
-        ctx.fillStyle = '#1e7b3f';
-        ctx.beginPath();
-        ctx.moveTo(cx, y + 9);
-        ctx.lineTo(x + 11, y + grid.tile - 10);
-        ctx.lineTo(x + grid.tile - 11, y + grid.tile - 10);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#14592e';
-        ctx.beginPath();
-        ctx.moveTo(cx + 8, y + 18);
-        ctx.lineTo(x + 18, y + grid.tile - 4);
-        ctx.lineTo(x + grid.tile - 4, y + grid.tile - 6);
-        ctx.closePath();
-        ctx.fill();
+        targetCtx.fillStyle = '#1e7b3f';
+        targetCtx.beginPath();
+        targetCtx.moveTo(cx, y + 9);
+        targetCtx.lineTo(x + 11, y + grid.tile - 10);
+        targetCtx.lineTo(x + grid.tile - 11, y + grid.tile - 10);
+        targetCtx.closePath();
+        targetCtx.fill();
+        targetCtx.fillStyle = '#14592e';
+        targetCtx.beginPath();
+        targetCtx.moveTo(cx + 8, y + 18);
+        targetCtx.lineTo(x + 18, y + grid.tile - 4);
+        targetCtx.lineTo(x + grid.tile - 4, y + grid.tile - 6);
+        targetCtx.closePath();
+        targetCtx.fill();
+      }
+
+      function drawPineTreeTile(x, y) {
+        drawPineTreeTileOn(ctx, x, y);
+      }
+
+      function drawPathTileOn(targetCtx, x, y, c, r) {
+        const shade = (r * 7 + c * 11) % 4;
+        targetCtx.fillStyle = shade < 2 ? '#9a7b46' : '#8c6e3f';
+        targetCtx.fillRect(x, y, grid.tile, grid.tile);
+        targetCtx.fillStyle = 'rgb(255 239 170 / 8%)';
+        targetCtx.beginPath();
+        targetCtx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.34, grid.tile * 0.22, 0.4, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+
+      function rebuildMazeBaseCache() {
+        if (mazeBaseCache.canvas && mazeBaseCache.revision === state.mazeRevision) return;
+        mazeBaseCache.canvas = createRenderCanvas(world.w, world.h);
+        mazeBaseCache.ctx = mazeBaseCache.canvas.getContext('2d', { alpha: false });
+        const targetCtx = mazeBaseCache.ctx;
+        targetCtx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in targetCtx) targetCtx.imageSmoothingQuality = 'low';
+        targetCtx.fillStyle = '#14331d';
+        targetCtx.fillRect(0, 0, world.w, world.h);
+        for (let r = 0; r < grid.rows; r += 1) {
+          for (let c = 0; c < grid.cols; c += 1) {
+            const x = c * grid.tile;
+            const y = r * grid.tile;
+            if (state.maze[r] && state.maze[r][c] === 1) {
+              drawPathTileOn(targetCtx, x, y, c, r);
+            } else {
+              targetCtx.fillStyle = '#0d2818';
+              targetCtx.fillRect(x, y, grid.tile, grid.tile);
+              if (!isWavingTreeCell(c, r)) drawPineTreeTileOn(targetCtx, x, y);
+            }
+          }
+        }
+        mazeBaseCache.revision = state.mazeRevision;
+        state.renderCacheStatus = 'ready';
+      }
+
+      function drawMazeBaseCache() {
+        rebuildMazeBaseCache();
+        if (mazeBaseCache.canvas) ctx.drawImage(mazeBaseCache.canvas, 0, 0);
       }
 
       function drawWavingTreeTile(x, y, c, r, now) {
@@ -2927,20 +3141,20 @@
         const drawW = grid.tile * 1.48;
         const drawH = grid.tile * 1.48;
         const sway = Math.sin(now / 640 + c * 0.73 + r * 0.41) * 0.035;
-        const drawable = sprite.drawable || sprite.image;
+        const sheet = getScaledSheet(sprite, drawW, drawH);
         ctx.save();
         ctx.translate(x + grid.tile / 2, y + grid.tile + 9);
         ctx.rotate(sway);
         ctx.drawImage(
-          drawable,
-          frameIndex * sprite.frameW,
+          sheet.drawable,
+          frameIndex * sheet.frameW,
           0,
-          sprite.frameW,
-          sprite.frameH,
-          -drawW / 2,
-          -drawH,
-          drawW,
-          drawH
+          sheet.frameW,
+          sheet.frameH,
+          -sheet.frameW / 2,
+          -sheet.frameH,
+          sheet.frameW,
+          sheet.frameH
         );
         ctx.restore();
       }
@@ -2958,26 +3172,17 @@
         ctx.translate(state.vw / 2, state.vh / 2);
         ctx.scale(state.zoom, state.zoom);
         ctx.translate(-state.camera.x, -state.camera.y);
-        ctx.fillStyle = '#14331d';
-        ctx.fillRect(0, 0, world.w, world.h);
+        drawMazeBaseCache();
         for (let r = startR; r <= endR; r += 1) {
           for (let c = startC; c <= endC; c += 1) {
             const x = c * grid.tile;
             const y = r * grid.tile;
-            if (state.maze[r][c] === 1) {
-              const shade = (r * 7 + c * 11) % 4;
-              ctx.fillStyle = shade < 2 ? '#9a7b46' : '#8c6e3f';
-              ctx.fillRect(x, y, grid.tile, grid.tile);
-              ctx.fillStyle = 'rgb(255 239 170 / 8%)';
-              ctx.beginPath();
-              ctx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.34, grid.tile * 0.22, 0.4, 0, Math.PI * 2);
-              ctx.fill();
-            } else {
+            if (state.maze[r][c] !== 1) {
               const waving = isWavingTreeCell(c, r);
-              ctx.fillStyle = leafActive && waving ? '#335c2a' : '#0d2818';
-              ctx.fillRect(x, y, grid.tile, grid.tile);
               if (waving) {
                 if (leafActive) {
+                  ctx.fillStyle = '#335c2a';
+                  ctx.fillRect(x, y, grid.tile, grid.tile);
                   ctx.fillStyle = 'rgb(200 255 121 / 21%)';
                   ctx.beginPath();
                   ctx.ellipse(x + grid.tile / 2, y + grid.tile / 2, grid.tile * 0.38, grid.tile * 0.24, 0, 0, Math.PI * 2);
@@ -2989,8 +3194,6 @@
                 } else {
                   drawWavingTreeTile(x, y, c, r, now);
                 }
-              } else {
-                drawPineTreeTile(x, y);
               }
             }
           }
@@ -3011,18 +3214,18 @@
         ctx.ellipse(center.x, center.y + grid.tile * 0.25, grid.tile * 0.42, grid.tile * 0.21, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
-          const drawable = sprite.drawable || sprite.image;
+          const sheet = getScaledSheet(sprite, drawW, drawH);
           const frameIndex = Math.floor(now / 145) % frameCount;
           ctx.drawImage(
-            drawable,
-            frameIndex * sprite.frameW,
+            sheet.drawable,
+            frameIndex * sheet.frameW,
             0,
-            sprite.frameW,
-            sprite.frameH,
-            center.x - drawW / 2,
-            center.y + grid.tile * 0.52 - drawH,
-            drawW,
-            drawH
+            sheet.frameW,
+            sheet.frameH,
+            center.x - sheet.frameW / 2,
+            center.y + grid.tile * 0.52 - sheet.frameH,
+            sheet.frameW,
+            sheet.frameH
           );
         } else {
           ctx.fillStyle = '#ffd866';
@@ -3054,19 +3257,19 @@
         ctx.ellipse(0, 27, 42 * pulse, 12 * pulse, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
-          const drawable = sprite.drawable || sprite.image;
+          const sheet = getScaledSheet(sprite, drawW, drawH);
           ctx.save();
           ctx.scale((state.frog.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            drawable,
-            frameIndex * sprite.frameW,
+            sheet.drawable,
+            frameIndex * sheet.frameW,
             0,
-            sprite.frameW,
-            sprite.frameH,
-            -drawW / 2,
-            -drawH + 24,
-            drawW,
-            drawH
+            sheet.frameW,
+            sheet.frameH,
+            -sheet.frameW / 2,
+            -sheet.frameH + 24,
+            sheet.frameW,
+            sheet.frameH
           );
           ctx.restore();
         } else {
@@ -3104,19 +3307,19 @@
         ctx.arc(0, -30, 46 + Math.sin(now / 180) * 4, 0, Math.PI * 2);
         ctx.stroke();
         if (scenerySprites.evilFrogWalk.ready) {
-          const drawable = scenerySprites.evilFrogWalk.drawable || scenerySprites.evilFrogWalk.image;
+          const sheet = getScaledSheet(scenerySprites.evilFrogWalk, drawW, drawH);
           ctx.save();
           ctx.scale((state.evilFrog.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            drawable,
-            frameIndex * scenerySprites.evilFrogWalk.frameW,
+            sheet.drawable,
+            frameIndex * sheet.frameW,
             0,
-            scenerySprites.evilFrogWalk.frameW,
-            scenerySprites.evilFrogWalk.frameH,
-            -drawW / 2,
-            -drawH + 24,
-            drawW,
-            drawH
+            sheet.frameW,
+            sheet.frameH,
+            -sheet.frameW / 2,
+            -sheet.frameH + 24,
+            sheet.frameW,
+            sheet.frameH
           );
           ctx.restore();
         } else {
@@ -4535,19 +4738,19 @@
         ctx.ellipse(0, 31, 40, 11, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
-          const drawable = sprite.drawable || sprite.image;
+          const sheet = getScaledSheet(sprite, drawW, drawH);
           ctx.save();
           ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            drawable,
-            frameIndex * sprite.frameW,
+            sheet.drawable,
+            frameIndex * sheet.frameW,
             0,
-            sprite.frameW,
-            sprite.frameH,
-            -drawW / 2,
-            -drawH + 26,
-            drawW,
-            drawH
+            sheet.frameW,
+            sheet.frameH,
+            -sheet.frameW / 2,
+            -sheet.frameH + 26,
+            sheet.frameW,
+            sheet.frameH
           );
           ctx.restore();
         } else {
@@ -4586,19 +4789,19 @@
         ctx.ellipse(0, 31, 38, 10, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
-          const drawable = sprite.drawable || sprite.image;
+          const sheet = getScaledSheet(sprite, drawW, drawH);
           ctx.save();
           ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            drawable,
-            frameIndex * sprite.frameW,
+            sheet.drawable,
+            frameIndex * sheet.frameW,
             0,
-            sprite.frameW,
-            sprite.frameH,
-            -drawW / 2,
-            -drawH + 26,
-            drawW,
-            drawH
+            sheet.frameW,
+            sheet.frameH,
+            -sheet.frameW / 2,
+            -sheet.frameH + 26,
+            sheet.frameW,
+            sheet.frameH
           );
           ctx.restore();
         } else {
@@ -4777,11 +4980,16 @@
       let lastDrawAt = 0;
 
       function stepFrame(now) {
+        const frameStart = performance.now();
         const dt = Math.min(0.05, (now - state.last) / 1000);
         state.last = now;
         if (gameplayReady()) update(dt, now);
         draw();
         lastDrawAt = performance.now();
+        state.frameMs = lastDrawAt - frameStart;
+        state.averageFrameMs = state.averageFrameMs
+          ? state.averageFrameMs * 0.92 + state.frameMs * 0.08
+          : state.frameMs;
       }
 
       function frame(now) {
@@ -4799,7 +5007,7 @@
         state.lastInput = source + ':' + Math.round(clientX) + ',' + Math.round(clientY);
         startBackgroundMusic();
         setDestination(clientX, clientY);
-        updateHud();
+        updateHud(true);
       }
 
       canvas.addEventListener('pointerdown', (event) => {
