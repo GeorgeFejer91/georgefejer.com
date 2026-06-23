@@ -54,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-witch-morph-arches-v1';
+      const assetVersion = '20260623-smooth-broom-flight-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -351,6 +351,8 @@
       const morphFrameCount = 18;
       const morphWalkFrameCount = 8;
       const witchCorruptionStageCount = 8;
+      const broomFlightFrameCount = 16;
+      const broomFlightFrameMs = 70;
       const musicVariants = [
         'assets/music/mlp-theme-arcade-variant-1.mp3',
         'assets/music/mlp-theme-arcade-variant-2.mp3',
@@ -4214,7 +4216,7 @@
           ctx.stroke();
           drawStarMark(35, -58 + Math.sin(now / 180) * 5, 5, '#ffe767');
           drawStarMark(-38, -47 + Math.cos(now / 210) * 5, 4, '#73ff62');
-          const broomFrame = Math.floor(now / 95) % 8;
+          const broomFrame = Math.floor(now / broomFlightFrameMs) % broomFlightFrameCount;
           if (drawSpriteFrame(characterSprites.witchBroom, broomFrame, state.player.facing || 1)) {
             ctx.restore();
             return;
