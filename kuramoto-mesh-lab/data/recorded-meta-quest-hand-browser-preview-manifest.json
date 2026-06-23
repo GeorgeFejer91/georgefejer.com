@@ -1,0 +1,983 @@
+{
+  "bounds": {
+    "max": [
+      -0.07000300288200378,
+      1.9154770374298096,
+      -0.14527000486850739
+    ],
+    "min": [
+      -0.25063401460647583,
+      1.6417349576950073,
+      -0.37898799777030945
+    ]
+  },
+  "encoding": {
+    "byte_order": "little-endian",
+    "float": "float32",
+    "index": "uint32"
+  },
+  "mesh": {
+    "frame_count": 120,
+    "source_frame_indices": {
+      "byte_length": 480,
+      "path": "recorded-meta-quest-hand-source-frame-indices.u32.bin",
+      "shape": [
+        120
+      ],
+      "type": "uint32"
+    },
+    "triangle_count": 2314,
+    "triangles": {
+      "byte_length": 27768,
+      "path": "recorded-meta-quest-hand-mesh-triangles.u32.bin",
+      "shape": [
+        2314,
+        3
+      ],
+      "type": "uint32"
+    },
+    "vertex_count": 1360,
+    "vertices": {
+      "byte_length": 1958400,
+      "path": "recorded-meta-quest-hand-mesh-frames.f32.bin",
+      "shape": [
+        120,
+        1360,
+        3
+      ],
+      "type": "float32"
+    }
+  },
+  "palm_anchor": {
+    "bind_joint_index": 0,
+    "bind_joint_name": "palm_ext",
+    "duration_seconds": 10.001225471496582,
+    "hand": "left",
+    "kind": "recorded-left-compact-joint-frame",
+    "path": "S:\\Work\\tmp\\quest-handmesh-matter-full-20260601-123844\\pulled\\hand-recordings\\quest-handmesh-1780310333778406776\\left.clip.jsonl",
+    "positions": {
+      "byte_length": 1440,
+      "path": "recorded-meta-quest-hand-palm-anchors.f32.bin",
+      "shape": [
+        120,
+        3
+      ],
+      "type": "float32"
+    },
+    "runtime_joint_index": 0,
+    "runtime_joint_name": "palm",
+    "source_sample_count": 791
+  },
+  "profile": {
+    "artifact_prefix": "recorded-meta-quest-hand",
+    "coherence": "low",
+    "default_sample_count": 1024,
+    "dt_seconds": 0.0833439975976944,
+    "exported_frame_count": 120,
+    "hand": "left",
+    "jerk": "high",
+    "label": "low-coherence/high-jerk",
+    "sample_counts": [
+      64,
+      128,
+      192,
+      256,
+      384,
+      512,
+      768,
+      1024
+    ]
+  },
+  "sample_sets": {
+    "1024": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.1024",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 12288,
+          "path": "recorded-meta-quest-hand-samples-1024-coordinate-barycentric.f32.bin",
+          "shape": [
+            1024,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 4096,
+          "path": "recorded-meta-quest-hand-samples-1024-coordinate-triangles.u32.bin",
+          "shape": [
+            1024
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 8192,
+          "path": "recorded-meta-quest-hand-samples-1024-small-world-edges.u32.bin",
+          "shape": [
+            1024,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 788080,
+          "path": "recorded-meta-quest-hand-samples-1024-surface-distance-edges.u32.bin",
+          "shape": [
+            98510,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 394040,
+          "path": "recorded-meta-quest-hand-samples-1024-surface-distance-meters.f32.bin",
+          "shape": [
+            98510
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 28120,
+          "path": "recorded-meta-quest-hand-samples-1024-tier1-edges.u32.bin",
+          "shape": [
+            3515,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 67832,
+          "path": "recorded-meta-quest-hand-samples-1024-tier2-edges.u32.bin",
+          "shape": [
+            8479,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.1024",
+        "sample_set_id": "kuramoto.browser.recorded.samples.1024",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 1024
+    },
+    "128": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.128",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 1536,
+          "path": "recorded-meta-quest-hand-samples-128-coordinate-barycentric.f32.bin",
+          "shape": [
+            128,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 512,
+          "path": "recorded-meta-quest-hand-samples-128-coordinate-triangles.u32.bin",
+          "shape": [
+            128
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 1024,
+          "path": "recorded-meta-quest-hand-samples-128-small-world-edges.u32.bin",
+          "shape": [
+            128,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 11360,
+          "path": "recorded-meta-quest-hand-samples-128-surface-distance-edges.u32.bin",
+          "shape": [
+            1420,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 5680,
+          "path": "recorded-meta-quest-hand-samples-128-surface-distance-meters.f32.bin",
+          "shape": [
+            1420
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 3624,
+          "path": "recorded-meta-quest-hand-samples-128-tier1-edges.u32.bin",
+          "shape": [
+            453,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 9752,
+          "path": "recorded-meta-quest-hand-samples-128-tier2-edges.u32.bin",
+          "shape": [
+            1219,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.128",
+        "sample_set_id": "kuramoto.browser.recorded.samples.128",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 128
+    },
+    "192": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.192",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 2304,
+          "path": "recorded-meta-quest-hand-samples-192-coordinate-barycentric.f32.bin",
+          "shape": [
+            192,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 768,
+          "path": "recorded-meta-quest-hand-samples-192-coordinate-triangles.u32.bin",
+          "shape": [
+            192
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 1536,
+          "path": "recorded-meta-quest-hand-samples-192-small-world-edges.u32.bin",
+          "shape": [
+            192,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 25640,
+          "path": "recorded-meta-quest-hand-samples-192-surface-distance-edges.u32.bin",
+          "shape": [
+            3205,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 12820,
+          "path": "recorded-meta-quest-hand-samples-192-surface-distance-meters.f32.bin",
+          "shape": [
+            3205
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 5216,
+          "path": "recorded-meta-quest-hand-samples-192-tier1-edges.u32.bin",
+          "shape": [
+            652,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 14008,
+          "path": "recorded-meta-quest-hand-samples-192-tier2-edges.u32.bin",
+          "shape": [
+            1751,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.192",
+        "sample_set_id": "kuramoto.browser.recorded.samples.192",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 192
+    },
+    "256": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.256",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 3072,
+          "path": "recorded-meta-quest-hand-samples-256-coordinate-barycentric.f32.bin",
+          "shape": [
+            256,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 1024,
+          "path": "recorded-meta-quest-hand-samples-256-coordinate-triangles.u32.bin",
+          "shape": [
+            256
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 2048,
+          "path": "recorded-meta-quest-hand-samples-256-small-world-edges.u32.bin",
+          "shape": [
+            256,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 46128,
+          "path": "recorded-meta-quest-hand-samples-256-surface-distance-edges.u32.bin",
+          "shape": [
+            5766,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 23064,
+          "path": "recorded-meta-quest-hand-samples-256-surface-distance-meters.f32.bin",
+          "shape": [
+            5766
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 7096,
+          "path": "recorded-meta-quest-hand-samples-256-tier1-edges.u32.bin",
+          "shape": [
+            887,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 18480,
+          "path": "recorded-meta-quest-hand-samples-256-tier2-edges.u32.bin",
+          "shape": [
+            2310,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.256",
+        "sample_set_id": "kuramoto.browser.recorded.samples.256",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 256
+    },
+    "384": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.384",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 4608,
+          "path": "recorded-meta-quest-hand-samples-384-coordinate-barycentric.f32.bin",
+          "shape": [
+            384,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 1536,
+          "path": "recorded-meta-quest-hand-samples-384-coordinate-triangles.u32.bin",
+          "shape": [
+            384
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 3072,
+          "path": "recorded-meta-quest-hand-samples-384-small-world-edges.u32.bin",
+          "shape": [
+            384,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 106664,
+          "path": "recorded-meta-quest-hand-samples-384-surface-distance-edges.u32.bin",
+          "shape": [
+            13333,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 53332,
+          "path": "recorded-meta-quest-hand-samples-384-surface-distance-meters.f32.bin",
+          "shape": [
+            13333
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 10504,
+          "path": "recorded-meta-quest-hand-samples-384-tier1-edges.u32.bin",
+          "shape": [
+            1313,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 26312,
+          "path": "recorded-meta-quest-hand-samples-384-tier2-edges.u32.bin",
+          "shape": [
+            3289,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.384",
+        "sample_set_id": "kuramoto.browser.recorded.samples.384",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 384
+    },
+    "512": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.512",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 6144,
+          "path": "recorded-meta-quest-hand-samples-512-coordinate-barycentric.f32.bin",
+          "shape": [
+            512,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 2048,
+          "path": "recorded-meta-quest-hand-samples-512-coordinate-triangles.u32.bin",
+          "shape": [
+            512
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 4096,
+          "path": "recorded-meta-quest-hand-samples-512-small-world-edges.u32.bin",
+          "shape": [
+            512,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 190992,
+          "path": "recorded-meta-quest-hand-samples-512-surface-distance-edges.u32.bin",
+          "shape": [
+            23874,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 95496,
+          "path": "recorded-meta-quest-hand-samples-512-surface-distance-meters.f32.bin",
+          "shape": [
+            23874
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 13960,
+          "path": "recorded-meta-quest-hand-samples-512-tier1-edges.u32.bin",
+          "shape": [
+            1745,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 34472,
+          "path": "recorded-meta-quest-hand-samples-512-tier2-edges.u32.bin",
+          "shape": [
+            4309,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.512",
+        "sample_set_id": "kuramoto.browser.recorded.samples.512",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 512
+    },
+    "64": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.64",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 768,
+          "path": "recorded-meta-quest-hand-samples-64-coordinate-barycentric.f32.bin",
+          "shape": [
+            64,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 256,
+          "path": "recorded-meta-quest-hand-samples-64-coordinate-triangles.u32.bin",
+          "shape": [
+            64
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 512,
+          "path": "recorded-meta-quest-hand-samples-64-small-world-edges.u32.bin",
+          "shape": [
+            64,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 2792,
+          "path": "recorded-meta-quest-hand-samples-64-surface-distance-edges.u32.bin",
+          "shape": [
+            349,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 1396,
+          "path": "recorded-meta-quest-hand-samples-64-surface-distance-meters.f32.bin",
+          "shape": [
+            349
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 1880,
+          "path": "recorded-meta-quest-hand-samples-64-tier1-edges.u32.bin",
+          "shape": [
+            235,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 5032,
+          "path": "recorded-meta-quest-hand-samples-64-tier2-edges.u32.bin",
+          "shape": [
+            629,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.64",
+        "sample_set_id": "kuramoto.browser.recorded.samples.64",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 64
+    },
+    "768": {
+      "coordinate_map_id": "kuramoto.browser.recorded.coordinate_map.768",
+      "coordinates": {
+        "barycentric": {
+          "byte_length": 9216,
+          "path": "recorded-meta-quest-hand-samples-768-coordinate-barycentric.f32.bin",
+          "shape": [
+            768,
+            3
+          ],
+          "type": "float32"
+        },
+        "triangle_indices": {
+          "byte_length": 3072,
+          "path": "recorded-meta-quest-hand-samples-768-coordinate-triangles.u32.bin",
+          "shape": [
+            768
+          ],
+          "type": "uint32"
+        }
+      },
+      "graph": {
+        "small_world_edges": {
+          "byte_length": 6144,
+          "path": "recorded-meta-quest-hand-samples-768-small-world-edges.u32.bin",
+          "shape": [
+            768,
+            2
+          ],
+          "type": "uint32"
+        },
+        "small_world_neighbors_per_point": 1,
+        "small_world_seed": 12345,
+        "surface_distance_edges": {
+          "byte_length": 440512,
+          "path": "recorded-meta-quest-hand-samples-768-surface-distance-edges.u32.bin",
+          "shape": [
+            55064,
+            2
+          ],
+          "type": "uint32"
+        },
+        "surface_distance_kernel_export_max_m": 0.054999999701976776,
+        "surface_distance_meters": {
+          "byte_length": 220256,
+          "path": "recorded-meta-quest-hand-samples-768-surface-distance-meters.f32.bin",
+          "shape": [
+            55064
+          ],
+          "type": "float32"
+        },
+        "tier1_edges": {
+          "byte_length": 21080,
+          "path": "recorded-meta-quest-hand-samples-768-tier1-edges.u32.bin",
+          "shape": [
+            2635,
+            2
+          ],
+          "type": "uint32"
+        },
+        "tier2_edges": {
+          "byte_length": 51184,
+          "path": "recorded-meta-quest-hand-samples-768-tier2-edges.u32.bin",
+          "shape": [
+            6398,
+            2
+          ],
+          "type": "uint32"
+        }
+      },
+      "mesh_preprocess": {
+        "bridge_count": 96,
+        "bridge_vertex_pair_limit": 96,
+        "component_triangle_counts": [
+          1220,
+          1076,
+          18
+        ],
+        "component_vertex_counts": [
+          704,
+          636,
+          20
+        ],
+        "dropped_component_ranks": [
+          2
+        ],
+        "dropped_triangle_count": 18,
+        "kept_component_ranks": [
+          0,
+          1
+        ],
+        "policy": "keep_two_largest_components_drop_wrist_bridge_boundaries_v1",
+        "purpose": "particle_sampling_and_surface_walk_neighbors",
+        "sampling_triangle_count": 2296,
+        "source_component_count": 3,
+        "source_triangle_count": 2314
+      },
+      "sample_config": {
+        "first_tier_neighbor_count": 6,
+        "pattern": "LowDiscrepancy",
+        "sample_config_id": "kuramoto.browser.recorded.sample_config.768",
+        "sample_set_id": "kuramoto.browser.recorded.samples.768",
+        "second_tier_neighbor_count": 14,
+        "seed": 29791
+      },
+      "sample_count": 768
+    }
+  },
+  "schema_id": "rusty.kuramoto.mesh.browser_recording_manifest.v2",
+  "source": {
+    "animation_name": "hand_capture",
+    "bounds_max": [
+      -0.07000311464071274,
+      1.915476679801941,
+      -0.1452697068452835
+    ],
+    "bounds_min": [
+      -0.2506338059902191,
+      1.6417354345321655,
+      -0.37898775935173035
+    ],
+    "duration_seconds": 10.001225471496582,
+    "hand": "left",
+    "kind": "recorded-meta-quest-hand-mesh",
+    "mesh_name": "left_hand_mesh",
+    "palm_anchor": {
+      "bind_joint_index": 0,
+      "bind_joint_name": "palm_ext",
+      "duration_seconds": 10.001225471496582,
+      "hand": "left",
+      "kind": "recorded-left-compact-joint-frame",
+      "path": "S:\\Work\\tmp\\quest-handmesh-matter-full-20260601-123844\\pulled\\hand-recordings\\quest-handmesh-1780310333778406776\\left.clip.jsonl",
+      "runtime_joint_index": 0,
+      "runtime_joint_name": "palm",
+      "source_sample_count": 791
+    },
+    "path": "S:\\Work\\repos\\active\\rusty-quest-makepad\\local-artifacts\\quest-makepad-runtime-bundle-recorded-left\\mesh-replay\\recorded-meta-quest-hand-sequence-mesh0.json",
+    "sequence_id": "mesh.glb_surface_sequence.00.00.left_hand_mesh",
+    "source_frame_count": 120,
+    "triangle_count": 2314,
+    "vertex_count": 1360
+  }
+}
