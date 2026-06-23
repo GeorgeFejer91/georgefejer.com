@@ -27,9 +27,9 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Morph transitions must use `unicorn-princess-morph-walk.png`, an 18 x 8 grid sprite: 18 transformation rows by 8 walking phases. The static `unicorn-princess-morph.png` remains the identity source and fallback, but visible level transitions should animate the current morph form as walking.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
-- Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame.
+- Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame. Large sprite sheets may use the GitHub raw URL as a timed final fallback when the custom domain stalls.
 - Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Keep unused old melody exports out of the deployed asset folder.
-- Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, and `audioReady`.
+- Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetRawFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, and `audioReady`.
 
 ## Gameplay Rules To Preserve
 

@@ -53,9 +53,11 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-full-preload-v2';
+      const assetVersion = '20260623-full-preload-v3';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
+      const spriteRequestTimeoutMs = 18000;
+      const rawAssetBase = 'https://raw.githubusercontent.com/GeorgeFejer91/georgefejer.com/main/einhorn-sammler/';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -292,6 +294,7 @@
         failed: 0,
         webp: 0,
         pngFallback: 0,
+        rawFallback: 0,
         sfxTotal: 0,
         sfxReady: 0,
         sfxFailed: 0,
@@ -669,8 +672,16 @@
         return src.replace(/\.png$/i, '.webp');
       }
 
+      function isAbsoluteAsset(src) {
+        return /^https?:\/\//i.test(src);
+      }
+
+      function rawSpriteSrc(src) {
+        return rawAssetBase + src.replace(/^\/+/, '');
+      }
+
       function versionedAsset(src) {
-        return src + '?v=' + assetVersion;
+        return src + (src.includes('?') ? '&' : '?') + 'v=' + assetVersion;
       }
 
       function preloadImage(src) {
@@ -692,10 +703,10 @@
         refreshAssetPhase();
       }
 
-      function failSprite(sprite, usedFallback) {
-        if (!usedFallback && sprite.fallbackSrc) {
-          assetStats.pngFallback += 1;
-          requestSprite(sprite, true);
+      function failSprite(sprite, sourceIndex) {
+        const nextIndex = sourceIndex + 1;
+        if (nextIndex < sprite.sources.length) {
+          requestSprite(sprite, nextIndex);
           return;
         }
         sprite.failed = true;
@@ -703,18 +714,36 @@
         refreshAssetPhase();
       }
 
-      function requestSprite(sprite, useFallback = false) {
-        if (sprite.ready || (sprite.requested && !useFallback)) return;
+      function requestSprite(sprite, sourceIndex = 0) {
+        if (sprite.ready) return;
         sprite.requested = true;
         sprite.failed = false;
+        sprite.sourceIndex = sourceIndex;
+        sprite.requestId += 1;
+        const requestId = sprite.requestId;
         assetStats.requested += 1;
         const image = new Image();
-        const src = useFallback ? sprite.fallbackSrc : sprite.preferredSrc;
+        const src = sprite.sources[sourceIndex];
+        if (/\.png$/i.test(src) && !sprite.countedPngFallback) {
+          sprite.countedPngFallback = true;
+          assetStats.pngFallback += 1;
+        }
+        if (isAbsoluteAsset(src) && !sprite.countedRawFallback) {
+          sprite.countedRawFallback = true;
+          assetStats.rawFallback += 1;
+        }
+        let timeout = null;
+        const clearRequestTimeout = () => {
+          if (timeout) window.clearTimeout(timeout);
+          timeout = null;
+        };
         sprite.image = image;
         sprite.drawable = image;
         sprite.currentSrc = src;
-        sprite.usingWebp = !useFallback && /\.webp$/i.test(src);
+        sprite.usingWebp = /\.webp$/i.test(src);
         image.onload = () => {
+          if (requestId !== sprite.requestId) return;
+          clearRequestTimeout();
           const decodePromise = typeof image.decode === 'function' ? image.decode() : Promise.resolve();
           decodePromise
             .then(() => {
@@ -724,17 +753,33 @@
             .then((drawable) => completeSprite(sprite, drawable))
             .catch(() => completeSprite(sprite, image));
         };
-        image.onerror = () => failSprite(sprite, useFallback);
+        image.onerror = () => {
+          if (requestId !== sprite.requestId) return;
+          clearRequestTimeout();
+          failSprite(sprite, sourceIndex);
+        };
+        timeout = window.setTimeout(() => {
+          if (requestId !== sprite.requestId || sprite.ready) return;
+          image.onload = null;
+          image.onerror = null;
+          image.src = '';
+          failSprite(sprite, sourceIndex);
+        }, spriteRequestTimeoutMs);
         image.src = versionedAsset(src);
       }
 
       function loadSprite(src, frameW, frameH, scale, ground, options = {}) {
         const preferredSrc = options.preferPng ? src : webpSpriteSrc(src);
+        const sources = [preferredSrc, rawSpriteSrc(preferredSrc)];
+        if (preferredSrc !== src) {
+          sources.push(src, rawSpriteSrc(src));
+        }
         const sprite = {
           image: new Image(),
           src,
           preferredSrc,
           fallbackSrc: preferredSrc === src ? null : src,
+          sources,
           versionedSrc: versionedAsset(preferredSrc),
           frameW,
           frameH,
@@ -745,6 +790,10 @@
           decoded: false,
           drawable: null,
           requested: false,
+          requestId: 0,
+          sourceIndex: -1,
+          countedPngFallback: false,
+          countedRawFallback: false,
           required: Boolean(options.required),
           priority: options.priority || 'normal',
           usingWebp: false,
@@ -1266,6 +1315,7 @@
         canvas.dataset.assetFailed = String(assetStats.failed);
         canvas.dataset.assetWebp = String(assetStats.webp);
         canvas.dataset.assetPngFallback = String(assetStats.pngFallback);
+        canvas.dataset.assetRawFallback = String(assetStats.rawFallback);
         canvas.dataset.allSpritesReady = String(allSpritesReady());
         canvas.dataset.sfxReady = String(assetStats.sfxReady);
         canvas.dataset.sfxTotal = String(assetStats.sfxTotal);

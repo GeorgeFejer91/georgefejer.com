@@ -1,12 +1,12 @@
 # Full Preload Validation Log - 2026-06-23
 
-Change under test: startup full-preload gate for all gameplay sprites, SFX pools, and music variants before player movement. Sprites load and decode first; audio preload starts only after all sprites are ready so slow smartphone/custom-domain connections do not starve the large transformation sheets.
+Change under test: startup full-preload gate for all gameplay sprites, SFX pools, and music variants before player movement. Sprites load and decode first; audio preload starts only after all sprites are ready so slow smartphone/custom-domain connections do not starve the large transformation sheets. Sprite requests also have a timed GitHub raw fallback for large sheets when the custom domain stalls.
 
 ## Local Smartphone Browser Check
 
 - URL: `http://127.0.0.1:8766/einhorn-sammler/?localpreloadtest=2`
 - Viewport override: 393 x 852
-- Asset version: `20260623-full-preload-v2`
+- Asset version: `20260623-full-preload-v3`
 - `preloadMode`: `full`
 - `assetPhase`: `ready`
 - `currentSprites`: `ready`
@@ -16,6 +16,7 @@ Change under test: startup full-preload gate for all gameplay sprites, SFX pools
 - `assetDecoded`: `14`
 - `assetWebp`: `14`
 - `assetPngFallback`: `0`
+- `assetRawFallback`: `0` locally
 - `assetFailed`: `0`
 - `sfxReady`: `16 / 16`
 - `sfxTimedOut`: `0`
