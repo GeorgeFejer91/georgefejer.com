@@ -53,7 +53,9 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-broom-v1';
+      const assetVersion = '20260623-full-preload-v1';
+      const preloadMode = 'full';
+      const audioPreloadTimeoutMs = 12000;
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -281,7 +283,7 @@
         validationMode: false,
         sfxPlays: 0,
         lastSfx: 'none',
-        assetPhase: 'boot'
+        assetPhase: 'preloading'
       };
       const assetStats = {
         total: 0,
@@ -289,26 +291,34 @@
         decoded: 0,
         failed: 0,
         webp: 0,
-        pngFallback: 0
+        pngFallback: 0,
+        sfxTotal: 0,
+        sfxReady: 0,
+        sfxFailed: 0,
+        sfxTimedOut: 0,
+        musicTotal: 0,
+        musicReady: 0,
+        musicFailed: 0,
+        musicTimedOut: 0
       };
-      let deferredSpriteLoadStarted = false;
+      let preloadReadyApplied = false;
       const characterSprites = {
-        unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { required: true, priority: 'high' }),
-        princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30, { lazy: true }),
-        morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30, { lazy: true }),
-        morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30, { lazy: true }),
-        witchCorruption: loadSprite('assets/hero-witch-corruption-walk.png', 220, 230, 0.46, 30, { lazy: true }),
-        greenWitch: loadSprite('assets/green-witch-run.png', 214, 190, 0.43, 35, { lazy: true }),
-        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { required: true, priority: 'high' }),
-        witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35, { lazy: true })
+        unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { priority: 'high' }),
+        princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30),
+        morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30),
+        morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30),
+        witchCorruption: loadSprite('assets/hero-witch-corruption-walk.png', 220, 230, 0.46, 30),
+        greenWitch: loadSprite('assets/green-witch-run.png', 214, 190, 0.43, 35),
+        witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { priority: 'high' }),
+        witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
       const scenerySprites = {
-        wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0, { lazy: true }),
-        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
-        goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
-        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0, { lazy: true }),
-        frogWalk: loadSprite('assets/frog-walk.png', 180, 180, 0.52, 0, { lazy: true }),
-        evilFrogWalk: loadSprite('assets/evil-frog-walk.png', 180, 180, 0.52, 0, { lazy: true })
+        wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0),
+        evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0),
+        goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0),
+        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0),
+        frogWalk: loadSprite('assets/frog-walk.png', 180, 180, 0.52, 0),
+        evilFrogWalk: loadSprite('assets/evil-frog-walk.png', 180, 180, 0.52, 0)
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
@@ -323,9 +333,10 @@
       ];
       const backgroundMusic = new Audio();
       backgroundMusic.loop = false;
-      backgroundMusic.preload = 'none';
+      backgroundMusic.preload = 'auto';
       backgroundMusic.volume = 0.34;
       let currentMusicIndex = -1;
+      const musicPreloadElements = [];
       const sfxDefinitions = {
         crumb: { src: 'crumb.wav', volume: 0.34, gap: 70 },
         treat: { src: 'treat.wav', volume: 0.42, gap: 0 },
@@ -347,7 +358,9 @@
       const sfxPools = {};
       const sfxPoolIndex = {};
       const sfxLastPlayed = {};
-      const eagerSfx = new Set(['crumb', 'treat', 'blocked', 'levelUp', 'witchCatch']);
+      const eagerSfx = new Set(Object.keys(sfxDefinitions));
+      assetStats.sfxTotal = Object.keys(sfxDefinitions).length;
+      assetStats.musicTotal = musicVariants.length;
 
       function createSfxPool(name) {
         if (sfxPools[name]) return sfxPools[name];
@@ -355,7 +368,7 @@
         if (!definition) return null;
         sfxPools[name] = Array.from({ length: 3 }, () => {
           const audio = new Audio('assets/sfx/' + definition.src + '?v=' + assetVersion);
-          audio.preload = eagerSfx.has(name) ? 'auto' : 'none';
+          audio.preload = 'auto';
           audio.volume = definition.volume;
           return audio;
         });
@@ -366,6 +379,133 @@
       Object.keys(sfxDefinitions).forEach((name) => {
         if (eagerSfx.has(name)) createSfxPool(name);
       });
+
+      function audioDoneCount(type) {
+        return assetStats[type + 'Ready'] + assetStats[type + 'Failed'] + assetStats[type + 'TimedOut'];
+      }
+
+      function audioPreloadReady() {
+        return audioDoneCount('sfx') >= assetStats.sfxTotal
+          && audioDoneCount('music') >= assetStats.musicTotal;
+      }
+
+      function startupAssetsReady() {
+        return allSpritesReady() && audioPreloadReady();
+      }
+
+      function gameplayReady() {
+        return state.assetPhase === 'ready';
+      }
+
+      function refreshAssetPhase() {
+        if (assetStats.failed > 0) {
+          state.assetPhase = 'failed';
+        } else if (startupAssetsReady()) {
+          if (!preloadReadyApplied) {
+            const now = performance.now();
+            preloadReadyApplied = true;
+            state.last = now;
+            state.levelStartedAt = now;
+            state.levelIntroUntil = now + 10000;
+            if (state.messageText && (!state.messageUntil || state.messageUntil < now + 2600)) {
+              state.messageUntil = now + 2600;
+            }
+          }
+          state.assetPhase = 'ready';
+        } else {
+          state.assetPhase = 'preloading';
+        }
+        if (canvas.width) {
+          updateHud();
+          draw();
+        }
+      }
+
+      function waitForAudioElement(audio, timeoutMs) {
+        return new Promise((resolve) => {
+          let finished = false;
+          let timer = null;
+          const cleanup = () => {
+            ['canplaythrough', 'loadeddata', 'loadedmetadata', 'error'].forEach((eventName) => {
+              audio.removeEventListener(eventName, handlers[eventName]);
+            });
+            window.clearTimeout(timer);
+          };
+          const finish = (status) => {
+            if (finished) return;
+            finished = true;
+            cleanup();
+            resolve(status);
+          };
+          const handlers = {
+            canplaythrough: () => finish('ready'),
+            loadeddata: () => finish('ready'),
+            loadedmetadata: () => finish('ready'),
+            error: () => finish('failed')
+          };
+          if (audio.readyState >= 2) {
+            resolve('ready');
+            return;
+          }
+          ['canplaythrough', 'loadeddata', 'loadedmetadata', 'error'].forEach((eventName) => {
+            audio.addEventListener(eventName, handlers[eventName], { once: true });
+          });
+          timer = window.setTimeout(() => finish('timeout'), timeoutMs);
+          try {
+            audio.load();
+          } catch (_) {
+            finish('failed');
+          }
+        });
+      }
+
+      function preloadBytes(src, timeoutMs) {
+        if (!window.fetch) return Promise.resolve('timeout');
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+        return fetch(versionedAsset(src), {
+          cache: 'force-cache',
+          signal: controller ? controller.signal : undefined
+        })
+          .then((response) => response.ok ? response.arrayBuffer() : Promise.reject(new Error('asset fetch failed')))
+          .then(() => 'ready')
+          .catch((error) => error && error.name === 'AbortError' ? 'timeout' : 'failed')
+          .finally(() => {
+            if (timer) window.clearTimeout(timer);
+          });
+      }
+
+      function recordAudioStatus(type, status) {
+        if (status === 'ready') assetStats[type + 'Ready'] += 1;
+        else if (status === 'timeout') assetStats[type + 'TimedOut'] += 1;
+        else assetStats[type + 'Failed'] += 1;
+        refreshAssetPhase();
+      }
+
+      function startAudioPreload() {
+        Object.keys(sfxDefinitions).forEach((name) => {
+          const pool = createSfxPool(name) || [];
+          Promise.all(pool.map((audio) => waitForAudioElement(audio, Math.min(4200, audioPreloadTimeoutMs))))
+            .then((statuses) => {
+              recordAudioStatus('sfx', statuses.includes('ready') ? 'ready' : statuses.includes('timeout') ? 'timeout' : 'failed');
+            });
+        });
+
+        musicVariants.forEach((src) => {
+          const audio = new Audio(versionedAsset(src));
+          audio.preload = 'auto';
+          audio.volume = 0;
+          musicPreloadElements.push(audio);
+          Promise.all([
+            preloadBytes(src, audioPreloadTimeoutMs),
+            waitForAudioElement(audio, Math.min(6500, audioPreloadTimeoutMs))
+          ]).then((statuses) => {
+            if (statuses.includes('ready')) recordAudioStatus('music', 'ready');
+            else if (statuses.includes('timeout')) recordAudioStatus('music', 'timeout');
+            else recordAudioStatus('music', 'failed');
+          });
+        });
+      }
 
       function musicStatus() {
         if (backgroundMusic.error) return 'failed';
@@ -480,11 +620,11 @@
       }
 
       function requiredSprites() {
-        return allSprites().filter((sprite) => sprite.required);
+        return allSprites();
       }
 
       function currentSpriteSetReady() {
-        return requiredSprites().every((sprite) => sprite.ready);
+        return allSpritesReady();
       }
 
       function allSpritesReady() {
@@ -497,14 +637,24 @@
 
       function drawLoadingScreen() {
         const failed = failedSprites();
+        const spriteText = 'Bilder ' + assetStats.decoded + ' / ' + assetStats.total;
+        const sfxText = 'Sounds ' + audioDoneCount('sfx') + ' / ' + assetStats.sfxTotal;
+        const musicText = 'Musik ' + audioDoneCount('music') + ' / ' + assetStats.musicTotal;
         ctx.save();
         ctx.fillStyle = '#07150f';
         ctx.fillRect(0, 0, state.vw, state.vh);
         ctx.fillStyle = '#9df7d0';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '700 18px Arial';
-        ctx.fillText(failed.length ? 'Sprite load failed. Reloading may help.' : 'Loading enchanted forest...', state.vw / 2, state.vh / 2);
+        ctx.font = '700 20px Arial';
+        ctx.fillText(failed.length ? 'Sprite load failed. Reloading may help.' : 'Zauberwald wird vorgeladen...', state.vw / 2, state.vh / 2 - 30);
+        ctx.font = '700 14px Arial';
+        ctx.fillStyle = '#d8ffe8';
+        ctx.fillText(spriteText + '   ' + sfxText, state.vw / 2, state.vh / 2 + 4);
+        ctx.fillText(musicText, state.vw / 2, state.vh / 2 + 28);
+        ctx.font = '700 12px Arial';
+        ctx.fillStyle = '#ffd866';
+        ctx.fillText('Erster Start dauert laenger, danach laeuft es fluessiger.', state.vw / 2, state.vh / 2 + 54);
         ctx.restore();
       }
 
@@ -521,40 +671,17 @@
         preload.rel = 'preload';
         preload.as = 'image';
         preload.href = versionedAsset(src);
+        preload.fetchPriority = 'high';
         document.head.appendChild(preload);
       }
 
-      function maybeStartDeferredSpriteLoad() {
-        if (deferredSpriteLoadStarted || !currentSpriteSetReady()) return;
-        deferredSpriteLoadStarted = true;
-        state.assetPhase = 'deferred';
-        const loadDeferred = () => {
-          allSprites()
-            .filter((sprite) => sprite.lazy && !sprite.requested)
-            .forEach((sprite) => requestSprite(sprite));
-          if (canvas.width) {
-            updateHud();
-            draw();
-          }
-        };
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(loadDeferred, { timeout: 900 });
-        } else {
-          window.setTimeout(loadDeferred, 220);
-        }
-      }
-
-      function completeSprite(sprite) {
+      function completeSprite(sprite, drawable) {
         sprite.ready = true;
         sprite.decoded = true;
+        sprite.drawable = drawable || sprite.image;
         assetStats.decoded += 1;
         if (sprite.usingWebp) assetStats.webp += 1;
-        if (allSpritesReady()) state.assetPhase = 'complete';
-        maybeStartDeferredSpriteLoad();
-        if (canvas.width) {
-          updateHud();
-          draw();
-        }
+        refreshAssetPhase();
       }
 
       function failSprite(sprite, usedFallback) {
@@ -565,11 +692,7 @@
         }
         sprite.failed = true;
         assetStats.failed += 1;
-        maybeStartDeferredSpriteLoad();
-        if (canvas.width) {
-          updateHud();
-          draw();
-        }
+        refreshAssetPhase();
       }
 
       function requestSprite(sprite, useFallback = false) {
@@ -580,11 +703,18 @@
         const image = new Image();
         const src = useFallback ? sprite.fallbackSrc : sprite.preferredSrc;
         sprite.image = image;
+        sprite.drawable = image;
         sprite.currentSrc = src;
         sprite.usingWebp = !useFallback && /\.webp$/i.test(src);
         image.onload = () => {
           const decodePromise = typeof image.decode === 'function' ? image.decode() : Promise.resolve();
-          decodePromise.then(() => completeSprite(sprite)).catch(() => completeSprite(sprite));
+          decodePromise
+            .then(() => {
+              if (typeof createImageBitmap !== 'function') return image;
+              return createImageBitmap(image).catch(() => image);
+            })
+            .then((drawable) => completeSprite(sprite, drawable))
+            .catch(() => completeSprite(sprite, image));
         };
         image.onerror = () => failSprite(sprite, useFallback);
         image.src = versionedAsset(src);
@@ -605,25 +735,22 @@
           ready: false,
           failed: false,
           decoded: false,
+          drawable: null,
           requested: false,
           required: Boolean(options.required),
-          lazy: Boolean(options.lazy),
           priority: options.priority || 'normal',
           usingWebp: false,
           currentSrc: ''
         };
         assetStats.total += 1;
-        if (sprite.required || sprite.priority === 'high') {
-          preloadImage(preferredSrc);
-        }
-        if (!sprite.lazy) {
-          requestSprite(sprite);
-        }
+        preloadImage(preferredSrc);
+        requestSprite(sprite);
         return sprite;
       }
 
       function drawSpriteFrame(sprite, frameIndex, facing) {
         if (!sprite.ready) return false;
+        const drawable = sprite.drawable || sprite.image;
         const sourceFacesLeft = true;
         const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
         const dx = -sprite.frameW * sprite.scale / 2;
@@ -631,7 +758,7 @@
         ctx.save();
         ctx.scale(flip, 1);
         ctx.drawImage(
-          sprite.image,
+          drawable,
           frameIndex * sprite.frameW,
           0,
           sprite.frameW,
@@ -647,6 +774,7 @@
 
       function drawSpriteGridFrame(sprite, colIndex, rowIndex, facing) {
         if (!sprite.ready) return false;
+        const drawable = sprite.drawable || sprite.image;
         const sourceFacesLeft = true;
         const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
         const dx = -sprite.frameW * sprite.scale / 2;
@@ -654,7 +782,7 @@
         ctx.save();
         ctx.scale(flip, 1);
         ctx.drawImage(
-          sprite.image,
+          drawable,
           colIndex * sprite.frameW,
           rowIndex * sprite.frameH,
           sprite.frameW,
@@ -1122,6 +1250,7 @@
         canvas.dataset.broomTreats = String(state.treats.filter((item) => !item.taken && item.type === 'broom').length);
         canvas.dataset.best = String(state.best);
         canvas.dataset.assetVersion = assetVersion;
+        canvas.dataset.preloadMode = preloadMode;
         canvas.dataset.assetPhase = state.assetPhase;
         canvas.dataset.assetTotal = String(assetStats.total);
         canvas.dataset.assetRequested = String(assetStats.requested);
@@ -1130,6 +1259,13 @@
         canvas.dataset.assetWebp = String(assetStats.webp);
         canvas.dataset.assetPngFallback = String(assetStats.pngFallback);
         canvas.dataset.allSpritesReady = String(allSpritesReady());
+        canvas.dataset.sfxReady = String(assetStats.sfxReady);
+        canvas.dataset.sfxTotal = String(assetStats.sfxTotal);
+        canvas.dataset.sfxTimedOut = String(assetStats.sfxTimedOut);
+        canvas.dataset.musicReady = String(assetStats.musicReady);
+        canvas.dataset.musicTotal = String(assetStats.musicTotal);
+        canvas.dataset.musicTimedOut = String(assetStats.musicTimedOut);
+        canvas.dataset.audioReady = String(audioPreloadReady());
         canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.morph.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
         canvas.dataset.playerForm = state.playerForm;
@@ -2702,11 +2838,12 @@
         const drawW = grid.tile * 1.48;
         const drawH = grid.tile * 1.48;
         const sway = Math.sin(now / 640 + c * 0.73 + r * 0.41) * 0.035;
+        const drawable = sprite.drawable || sprite.image;
         ctx.save();
         ctx.translate(x + grid.tile / 2, y + grid.tile + 9);
         ctx.rotate(sway);
         ctx.drawImage(
-          sprite.image,
+          drawable,
           frameIndex * sprite.frameW,
           0,
           sprite.frameW,
@@ -2785,9 +2922,10 @@
         ctx.ellipse(center.x, center.y + grid.tile * 0.25, grid.tile * 0.42, grid.tile * 0.21, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
+          const drawable = sprite.drawable || sprite.image;
           const frameIndex = Math.floor(now / 145) % frameCount;
           ctx.drawImage(
-            sprite.image,
+            drawable,
             frameIndex * sprite.frameW,
             0,
             sprite.frameW,
@@ -2827,10 +2965,11 @@
         ctx.ellipse(0, 27, 42 * pulse, 12 * pulse, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
+          const drawable = sprite.drawable || sprite.image;
           ctx.save();
           ctx.scale((state.frog.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            sprite.image,
+            drawable,
             frameIndex * sprite.frameW,
             0,
             sprite.frameW,
@@ -2876,10 +3015,11 @@
         ctx.arc(0, -30, 46 + Math.sin(now / 180) * 4, 0, Math.PI * 2);
         ctx.stroke();
         if (scenerySprites.evilFrogWalk.ready) {
+          const drawable = scenerySprites.evilFrogWalk.drawable || scenerySprites.evilFrogWalk.image;
           ctx.save();
           ctx.scale((state.evilFrog.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            scenerySprites.evilFrogWalk.image,
+            drawable,
             frameIndex * scenerySprites.evilFrogWalk.frameW,
             0,
             scenerySprites.evilFrogWalk.frameW,
@@ -4306,10 +4446,11 @@
         ctx.ellipse(0, 31, 40, 11, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
+          const drawable = sprite.drawable || sprite.image;
           ctx.save();
           ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            sprite.image,
+            drawable,
             frameIndex * sprite.frameW,
             0,
             sprite.frameW,
@@ -4356,10 +4497,11 @@
         ctx.ellipse(0, 31, 38, 10, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
+          const drawable = sprite.drawable || sprite.image;
           ctx.save();
           ctx.scale((tree.facing || -1) < 0 ? 1 : -1, 1);
           ctx.drawImage(
-            sprite.image,
+            drawable,
             frameIndex * sprite.frameW,
             0,
             sprite.frameW,
@@ -4504,7 +4646,7 @@
         bg.addColorStop(1, '#06130f');
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, state.vw, state.vh);
-        if (!currentSpriteSetReady()) {
+        if (!gameplayReady()) {
           drawLoadingScreen();
           return;
         }
@@ -4548,7 +4690,7 @@
       function stepFrame(now) {
         const dt = Math.min(0.05, (now - state.last) / 1000);
         state.last = now;
-        update(dt, now);
+        if (gameplayReady()) update(dt, now);
         draw();
         lastDrawAt = performance.now();
       }
@@ -4562,6 +4704,7 @@
       let pinch = null;
 
       function handleCanvasInput(clientX, clientY, source) {
+        if (!gameplayReady()) return;
         if (levelTransitionActive()) return;
         lastCanvasInput = performance.now();
         state.lastInput = source + ':' + Math.round(clientX) + ',' + Math.round(clientY);
@@ -4629,6 +4772,7 @@
       }, { passive: false });
 
       window.addEventListener('keydown', (event) => {
+        if (!gameplayReady()) return;
         const current = cellOf(state.player.x, state.player.y);
         let next = null;
         if (event.key === '+' || event.key === '=') {
@@ -4660,6 +4804,7 @@
       });
 
       window.addEventListener('resize', resize);
+      startAudioPreload();
       resize();
       reset();
       draw();
@@ -5116,6 +5261,7 @@
         mazeRevision: state.mazeRevision,
         nextEvilTreeIn: state.nextEvilTreeAt ? Math.max(0, Math.ceil((state.nextEvilTreeAt - performance.now()) / 1000)) : null,
         assetVersion,
+        preloadMode,
         assetPhase: state.assetPhase,
         assetStats: { ...assetStats },
         currentSpritesReady: currentSpriteSetReady(),
