@@ -54,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-glowing-leaf-powerup-v1';
+      const assetVersion = '20260623-witch-morph-arches-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -350,7 +350,7 @@
       const evilFrogWalkFrameCount = 8;
       const morphFrameCount = 18;
       const morphWalkFrameCount = 8;
-      const witchCorruptionHeroRowLimit = 13;
+      const witchCorruptionStageCount = 8;
       const musicVariants = [
         'assets/music/mlp-theme-arcade-variant-1.mp3',
         'assets/music/mlp-theme-arcade-variant-2.mp3',
@@ -2110,9 +2110,7 @@
       }
 
       function corruptionStartRow(now = performance.now()) {
-        const heroRow = currentHeroMorphRow(now);
-        const normalized = heroRow / Math.max(1, morphFrameCount - 1);
-        return clamp(Math.round(normalized * witchCorruptionHeroRowLimit), 0, witchCorruptionHeroRowLimit);
+        return currentHeroMorphRow(now);
       }
 
       function cellsMatch(a, b) {
@@ -4303,8 +4301,8 @@
         const travelProgress = progress * progress * (3 - 2 * progress);
         const startRow = Number.isFinite(state.witchCorruption.startRow) ? state.witchCorruption.startRow : 0;
         const heroRow = Number.isFinite(state.witchCorruption.heroRow) ? state.witchCorruption.heroRow : startRow;
-        const row = clamp(Math.round(startRow + (morphFrameCount - 1 - startRow) * progress), 0, morphFrameCount - 1);
-        const walkFrameIndex = Math.floor(now / 115) % morphWalkFrameCount;
+        const sourceRow = clamp(Math.round(heroRow), 0, morphFrameCount - 1);
+        const stageIndex = clamp(Math.floor(progress * witchCorruptionStageCount), 0, witchCorruptionStageCount - 1);
         const facing = state.witchCorruption.facing || -1;
         const liveStart = worldToScreen(state.player.x, state.player.y);
         const start = state.witchCorruption.startScreen || liveStart;
@@ -4348,14 +4346,12 @@
           const r = 48 + progress * 50 + Math.sin(now / 120 + i) * 7;
           drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 3.5 + pulse * 3, i % 3 === 0 ? '#73ff62' : i % 3 === 1 ? '#25123f' : '#ffe767');
         }
-        if (!drawSpriteGridFrame(characterSprites.witchCorruption, walkFrameIndex, row, facing)) {
-          drawSpriteGridFrame(characterSprites.morphWalk, walkFrameIndex, heroRow, facing);
-        }
-        const seedAlpha = clamp(1 - progress / 0.24, 0, 1);
-        if (seedAlpha > 0 && characterSprites.morphWalk.ready) {
-          ctx.globalAlpha = seedAlpha;
-          drawSpriteGridFrame(characterSprites.morphWalk, walkFrameIndex, heroRow, facing);
-          ctx.globalAlpha = 1;
+        if (!drawSpriteGridFrame(characterSprites.witchCorruption, stageIndex, sourceRow, facing)) {
+          if (stageIndex < 3) {
+            drawSpriteGridFrame(characterSprites.morphWalk, 0, sourceRow, facing);
+          } else {
+            drawSpriteFrame(characterSprites.greenWitch, 0, facing);
+          }
         }
         ctx.restore();
         return true;
