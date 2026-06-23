@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-morph-8s-v1';
+      const assetVersion = '20260623-princess-walk-v1';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -273,7 +273,7 @@
       let deferredSpriteLoadStarted = false;
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { required: true, priority: 'high' }),
-        princess: loadSprite('assets/princess-run.png', 190, 230, 0.43, 30, { lazy: true }),
+        princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30, { lazy: true }),
         morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30, { lazy: true }),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { required: true, priority: 'high' }),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35, { lazy: true })

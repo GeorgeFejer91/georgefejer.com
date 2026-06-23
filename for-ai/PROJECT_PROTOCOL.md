@@ -16,8 +16,9 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Smartphone play is the primary target. Text overlays must fit narrow portrait screens.
 - Keep the minimap at the bottom-left corner.
 - Do not bring back obstructive counters or large HUD panels.
-- Preserve the original sprite assets for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
+- Preserve the established committed sprite identities for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
+- The in-game princess walking sprite must visually match the princess endpoint of `unicorn-princess-morph.png`. Its current `princess-run.png` sheet is derived from the pure-princess morph frames and uses 220x230 frames.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
 - Sprite loading is WebP-first with PNG fallback. The boot-critical sprites are only the player unicorn and first witch; princess, morph, second witch, frog, waving trees, evil trees, and good trees must load lazily after the first playable frame.
