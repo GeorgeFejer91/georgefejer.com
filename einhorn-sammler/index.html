@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-full-preload-v1';
+      const assetVersion = '20260623-full-preload-v2';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const levelTransitionMorphDuration = 8000;
@@ -302,6 +302,7 @@
         musicTimedOut: 0
       };
       let preloadReadyApplied = false;
+      let audioPreloadStarted = false;
       const characterSprites = {
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { priority: 'high' }),
         princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30),
@@ -419,6 +420,12 @@
           updateHud();
           draw();
         }
+      }
+
+      function maybeStartAudioPreload() {
+        if (audioPreloadStarted || !allSpritesReady()) return;
+        audioPreloadStarted = true;
+        startAudioPreload();
       }
 
       function waitForAudioElement(audio, timeoutMs) {
@@ -681,6 +688,7 @@
         sprite.drawable = drawable || sprite.image;
         assetStats.decoded += 1;
         if (sprite.usingWebp) assetStats.webp += 1;
+        maybeStartAudioPreload();
         refreshAssetPhase();
       }
 
@@ -4804,7 +4812,7 @@
       });
 
       window.addEventListener('resize', resize);
-      startAudioPreload();
+      maybeStartAudioPreload();
       resize();
       reset();
       draw();
