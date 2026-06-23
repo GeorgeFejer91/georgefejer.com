@@ -30,6 +30,8 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame. Large sprite sheets may use the GitHub raw URL as a timed final fallback when the custom domain stalls.
 - Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Music variants may use the GitHub raw URL as a timed fallback when the custom domain stalls. Keep unused old melody exports out of the deployed asset folder.
 - Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetRawFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, `musicRawFallback`, and `audioReady`.
+- Browser safety checks must include HTTPS certificate validation for `https://www.georgefejer.com/`. If it fails with a certificate name/principal error, fix GitHub Pages custom-domain HTTPS settings before treating the site as fully browser-safe.
+- Avoid unnecessary public-page dependencies on `raw.githubusercontent.com`. Raw GitHub URLs are allowed only as timed fallback asset sources for stalled game media, and those loads must use CORS-clean requests.
 
 ## Gameplay Rules To Preserve
 
@@ -91,3 +93,4 @@ Current production URL:
 `http://www.georgefejer.com/einhorn-sammler/`
 
 If a change is pushed, verify the live page reports the new `assetVersion` through the canvas dataset or debug hook.
+Also verify that `https://www.georgefejer.com/einhorn-sammler/` passes normal browser/curl certificate validation; if it does not, the repository code may be deployed correctly but browsers can still display safety warnings.

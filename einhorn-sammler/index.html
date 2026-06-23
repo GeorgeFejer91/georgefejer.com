@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Unicorn Labyrinth Chase | GeorgeFejer.com</title>
   <style>
     :root {
@@ -53,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-full-preload-v4';
+      const assetVersion = '20260623-safety-v5';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -502,6 +503,7 @@
       function preloadMusicVariant(src, index, useRawFallback = false) {
         const candidateSrc = useRawFallback ? rawSpriteSrc(src) : src;
         const audio = new Audio(versionedAsset(candidateSrc));
+        if (isAbsoluteAsset(candidateSrc)) audio.crossOrigin = 'anonymous';
         audio.preload = 'auto';
         audio.volume = 0;
         musicPreloadElements.push(audio);
@@ -563,7 +565,10 @@
 
       function setBackgroundMusicVariant(index) {
         currentMusicIndex = clamp(index, 0, musicVariants.length - 1);
-        backgroundMusic.src = versionedAsset(musicVariantSrc(currentMusicIndex));
+        const src = musicVariantSrc(currentMusicIndex);
+        if (isAbsoluteAsset(src)) backgroundMusic.crossOrigin = 'anonymous';
+        else backgroundMusic.removeAttribute('crossorigin');
+        backgroundMusic.src = versionedAsset(src);
         try {
           backgroundMusic.currentTime = 0;
         } catch (_) {
@@ -748,6 +753,7 @@
         assetStats.requested += 1;
         const image = new Image();
         const src = sprite.sources[sourceIndex];
+        if (isAbsoluteAsset(src)) image.crossOrigin = 'anonymous';
         if (/\.png$/i.test(src) && !sprite.countedPngFallback) {
           sprite.countedPngFallback = true;
           assetStats.pngFallback += 1;
