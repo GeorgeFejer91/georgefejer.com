@@ -28,8 +28,8 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
 - Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame. Large sprite sheets may use the GitHub raw URL as a timed final fallback when the custom domain stalls.
-- Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Keep unused old melody exports out of the deployed asset folder.
-- Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetRawFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, and `audioReady`.
+- Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Music variants may use the GitHub raw URL as a timed fallback when the custom domain stalls. Keep unused old melody exports out of the deployed asset folder.
+- Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetRawFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, `musicRawFallback`, and `audioReady`.
 
 ## Gameplay Rules To Preserve
 

@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-full-preload-v3';
+      const assetVersion = '20260623-full-preload-v4';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -302,7 +302,8 @@
         musicTotal: 0,
         musicReady: 0,
         musicFailed: 0,
-        musicTimedOut: 0
+        musicTimedOut: 0,
+        musicRawFallback: 0
       };
       let preloadReadyApplied = false;
       let audioPreloadStarted = false;
@@ -340,6 +341,7 @@
       backgroundMusic.preload = 'auto';
       backgroundMusic.volume = 0.34;
       let currentMusicIndex = -1;
+      const musicRawFallbacks = new Set();
       const musicPreloadElements = [];
       const sfxDefinitions = {
         crumb: { src: 'crumb.wav', volume: 0.34, gap: 70 },
@@ -492,6 +494,39 @@
         refreshAssetPhase();
       }
 
+      function musicVariantSrc(index) {
+        const src = musicVariants[clamp(index, 0, musicVariants.length - 1)];
+        return musicRawFallbacks.has(index) ? rawSpriteSrc(src) : src;
+      }
+
+      function preloadMusicVariant(src, index, useRawFallback = false) {
+        const candidateSrc = useRawFallback ? rawSpriteSrc(src) : src;
+        const audio = new Audio(versionedAsset(candidateSrc));
+        audio.preload = 'auto';
+        audio.volume = 0;
+        musicPreloadElements.push(audio);
+        Promise.all([
+          preloadBytes(candidateSrc, audioPreloadTimeoutMs),
+          waitForAudioElement(audio, Math.min(6500, audioPreloadTimeoutMs))
+        ]).then((statuses) => {
+          if (statuses.includes('ready')) {
+            if (useRawFallback && !musicRawFallbacks.has(index)) {
+              musicRawFallbacks.add(index);
+              assetStats.musicRawFallback += 1;
+            }
+            recordAudioStatus('music', 'ready');
+          } else if (!useRawFallback) {
+            preloadMusicVariant(src, index, true);
+          } else if (statuses.includes('timeout')) {
+            musicRawFallbacks.add(index);
+            assetStats.musicRawFallback += 1;
+            recordAudioStatus('music', 'timeout');
+          } else {
+            recordAudioStatus('music', 'failed');
+          }
+        });
+      }
+
       function startAudioPreload() {
         Object.keys(sfxDefinitions).forEach((name) => {
           const pool = createSfxPool(name) || [];
@@ -501,19 +536,8 @@
             });
         });
 
-        musicVariants.forEach((src) => {
-          const audio = new Audio(versionedAsset(src));
-          audio.preload = 'auto';
-          audio.volume = 0;
-          musicPreloadElements.push(audio);
-          Promise.all([
-            preloadBytes(src, audioPreloadTimeoutMs),
-            waitForAudioElement(audio, Math.min(6500, audioPreloadTimeoutMs))
-          ]).then((statuses) => {
-            if (statuses.includes('ready')) recordAudioStatus('music', 'ready');
-            else if (statuses.includes('timeout')) recordAudioStatus('music', 'timeout');
-            else recordAudioStatus('music', 'failed');
-          });
+        musicVariants.forEach((src, index) => {
+          preloadMusicVariant(src, index);
         });
       }
 
@@ -539,7 +563,7 @@
 
       function setBackgroundMusicVariant(index) {
         currentMusicIndex = clamp(index, 0, musicVariants.length - 1);
-        backgroundMusic.src = musicVariants[currentMusicIndex] + '?v=' + assetVersion;
+        backgroundMusic.src = versionedAsset(musicVariantSrc(currentMusicIndex));
         try {
           backgroundMusic.currentTime = 0;
         } catch (_) {
@@ -1323,6 +1347,7 @@
         canvas.dataset.musicReady = String(assetStats.musicReady);
         canvas.dataset.musicTotal = String(assetStats.musicTotal);
         canvas.dataset.musicTimedOut = String(assetStats.musicTimedOut);
+        canvas.dataset.musicRawFallback = String(assetStats.musicRawFallback);
         canvas.dataset.audioReady = String(audioPreloadReady());
         canvas.dataset.currentSprites = currentSpriteSetReady() ? 'ready' : failedSprites().length ? 'failed' : 'loading';
         canvas.dataset.sprites = characterSprites.unicorn.ready && characterSprites.princess.ready && characterSprites.morph.ready && characterSprites.witch.ready && characterSprites.witch2.ready ? 'ready' : 'loading';
