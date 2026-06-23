@@ -7,7 +7,7 @@ After changing gameplay goals, mechanics, validation rules, assets, or deploymen
 
 Build a smartphone-playable 2D fantasy maze chase game at `/einhorn-sammler/` on GeorgeFejer.com.
 The player starts as a unicorn, reaches point B on early levels, then from level 3 onward chases a roaming frog as the objective.
-From level 4 onward a hostile evil frog also hunts the player; if it catches the player, the player corrupts into a green witch and the current round restarts as a witch chasing a roaming princess.
+From level 4 onward two hostile evil frogs also hunt the player; if either catches the player, the player corrupts into a green witch and the current round restarts as a witch chasing a roaming princess.
 The player alternates form between unicorn and princess across level transitions through a visible morph animation.
 The game is about escaping witches through a dynamic forest labyrinth.
 
@@ -20,7 +20,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Do not bring back obstructive counters or large HUD panels.
 - Preserve the established committed sprite identities for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
 - The frog endpoint keeps `frog-wave.png` for normal waiting/waving and uses `frog-walk.png` as an eight-frame walking sprite for victory, transition, and frog-test rendering. Keep both derived from the same frog identity.
-- The hostile frog uses `evil-frog-walk.png` as an eight-frame walking sprite from level 4 onward. It must read as a separate bad-frog actor, not as a recolored good frog dot.
+- The hostile frogs use `evil-frog-walk.png` as an eight-frame walking sprite from level 4 onward. They must read as separate bad-frog actors, not as recolored good frog dots.
 - The player witch form uses `green-witch-run.png`, and evil-frog capture uses `hero-witch-corruption-walk.png` as a staged corruption sprite sheet. These sheets must preload before gameplay so corruption and reversed-role rounds do not stutter on phones.
 - Evil-frog capture of the princess must play as a dramatic, centered transformation scene of at least 8 seconds before the reversed-role witch round starts. The character should be pulled toward the middle of the screen and visibly transform from princess toward witch using the staged corruption sprite.
 - Evil-frog corruption must branch from the actual visible unicorn/princess morph row, not merely from `playerForm`. A player caught while partially transformed should begin the witch transition from that same continuum state. `hero-witch-corruption-walk.png` is an 18 x 12 transformation atlas: rows 0-17 are the current unicorn/princess morph source states, and columns 0-11 are the staged transformation into a green witch. Do not use a crossfade or double-exposure overlay for this; each cell should read as one coherent intermediate body with magic transformation arches, and column 11 must resolve to the actual `green-witch-run.png` identity at a size/anchor that matches the late transition frames.
@@ -43,11 +43,11 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - The unicorn/princess moves through maze corridors toward tapped destinations.
 - Levels 1-2 use the old point-B objective. From level 3 onward the frog is no longer stationary at B; it walks around the maze, and catching the frog is the objective.
 - While the roaming frog objective is active, the player should visibly use the graded morph walking sprite as a proximity indicator: far from the frog reads as unicorn, close to the frog reads as princess.
-- From level 4 onward, normal rounds include the good frog target, an evil frog chasing the player, and the two witches. The evil frog catch is not an ordinary life-loss; it triggers the green witch corruption animation and starts a reversed-role round.
-- In a reversed-role round, the player form is `witch`, witches are disabled as enemies, the evil frog and good frog are inactive, and the objective becomes catching a roaming princess target. Completing that target advances the level or wins the game.
+- From level 4 onward, normal rounds include the good frog target, two evil frogs chasing the player, and the two witches. An evil frog catch is not an ordinary life-loss; it triggers the green witch corruption animation and starts a reversed-role round.
+- In a reversed-role round, the player form is `witch`, witches are disabled as enemies, the evil frogs and good frog are inactive, and the objective becomes catching a roaming princess target. Completing that target advances the level or wins the game.
 - Reversed-role witch rounds should place broomstick power-ups. While active, broom flight lets the witch player cross all interior maze obstacles, including walls and moving tree blockers, for a limited duration.
 - In reversed-role rounds, the princess target must be faster than the witch on foot. Broom flight must be the tactical catch-up tool: it should be faster than both the walking witch and the princess target and should be placed along useful chase routes.
-- Evil-frog and reversed-role logic must remain included in validation; level 4+ validation targets the good frog unless the evil frog catches the player, in which case validation must switch to the princess objective.
+- Evil-frog and reversed-role logic must remain included in validation; level 4+ validation targets the good frog unless either evil frog catches the player, in which case validation must switch to the princess objective.
 - Reaching B or catching the frog should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
 - Level forms alternate: unicorn, princess, unicorn, princess, unicorn.
 - Every level-to-level transition must use the morph sprite as a foreground travel animation from the lower-right screen quadrant toward the upper-left screen quadrant. The forms alternate every time: unicorn to princess, princess to unicorn, and so on.
