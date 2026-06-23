@@ -54,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-original-broom-v1';
+      const assetVersion = '20260623-broom-riding-tactics-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -161,7 +161,9 @@
           goodTreeSpeed: 96,
           frogSpeed: 108,
           evilFrogSpeed: 124,
-          princessTargetSpeed: 118,
+          princessTargetSpeed: 360,
+          reversalWitchSpeed: 275,
+          broomFlightSpeed: 475,
           treeWaitScale: 1.15,
           gatePlan: [['evil', 0.12], ['good', 0.28], ['evil', 0.45], ['good', 0.62], ['evil', 0.78]]
         },
@@ -185,7 +187,9 @@
           goodTreeSpeed: 98,
           frogSpeed: 72,
           evilFrogSpeed: 105,
-          princessTargetSpeed: 124,
+          princessTargetSpeed: 380,
+          reversalWitchSpeed: 285,
+          broomFlightSpeed: 505,
           treeWaitScale: 1.18,
           gatePlan: [['evil', 0.12], ['good', 0.28], ['evil', 0.46], ['good', 0.64], ['evil', 0.82]]
         }
@@ -324,7 +328,7 @@
         morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30),
         witchCorruption: loadSprite('assets/hero-witch-corruption-walk.png', 220, 230, 0.46, 30),
         greenWitch: loadSprite('assets/green-witch-run.png', 214, 190, 0.43, 35),
-        witchBroom: loadSprite('assets/witch-broom-flight.png', 260, 190, 0.50, 34),
+        witchBroom: loadSprite('assets/witch-broom-flight.png', 340, 210, 0.46, 38),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { priority: 'high' }),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
@@ -1074,6 +1078,20 @@
         return state.reversal.active && state.playerForm === 'witch' && state.activeTreat === 'broom' && now < state.activeUntil;
       }
 
+      function reversalWitchFootSpeed(config) {
+        return Math.round(Number(config.reversalWitchSpeed || Math.max(250, Number(config.playerSpeed || 300) * 0.88)));
+      }
+
+      function broomFlightSpeed() {
+        const config = configForLevel(state.level);
+        const targetSpeed = state.princessTarget.active ? state.princessTarget.speed : Number(config.princessTargetSpeed || 0);
+        return Math.round(Math.max(Number(config.broomFlightSpeed || 0), state.player.speed + 145, targetSpeed + 85, 440));
+      }
+
+      function broomFlightDurationMs() {
+        return Math.max(6500, Number(configForLevel(state.level).broomDuration || 9000));
+      }
+
       function isInsidePlayableMap(cell) {
         return cell
           && cell.c > 0
@@ -1267,7 +1285,7 @@
           return key !== cellKey(startCell) && key !== cellKey(exitCell) && key !== cellKey(witchStartCell) && key !== cellKey(secondWitchStartCell);
         });
         const treatTypes = state.reversal.active
-          ? ['broom', 'spark', 'broom', 'speed']
+          ? ['broom', 'spark', 'broom', 'broom', 'speed']
           : ['speed', 'shield', 'freeze', 'spark', 'stink', 'leaf'];
         for (let i = 0; i < config.treats; i += 1) {
           const cell = chooseFarCell(cells, startCell, 8);
@@ -1275,7 +1293,7 @@
           state.treats.push({ ...p, cell, type: treatTypes[i % treatTypes.length], taken: false, pulse: random() * 6.28 });
         }
         if (state.reversal.active) {
-          const extraBrooms = Math.max(10, Math.round(config.treats * 0.9));
+          const extraBrooms = Math.max(16, Math.round(config.treats * 1.15));
           for (let i = 0; i < extraBrooms; i += 1) {
             const cell = chooseFarCell(cells, startCell, 5);
             const p = centerOf(cell);
@@ -1293,6 +1311,36 @@
           const cell = cells[Math.floor(random() * cells.length)];
           const p = centerOf(cell);
           state.crumbs.push({ x: p.x, y: p.y, taken: false });
+        }
+      }
+
+      function addTreatAtCell(cell, type) {
+        if (!cell) return false;
+        if (!isOpen(cell)) return false;
+        if (cellsMatch(cell, startCell) || cellsMatch(cell, exitCell)) return false;
+        const key = cellKey(cell);
+        if (state.treats.some((item) => !item.taken && cellKey(item.cell) === key && item.type === type)) return false;
+        const p = centerOf(cell);
+        state.treats.push({ ...p, cell, type, taken: false, pulse: random() * 6.28 });
+        return true;
+      }
+
+      function ensureReversalBroomTactics() {
+        if (!state.reversal.active || !state.princessTarget.active) return;
+        const from = cellOf(state.player.x, state.player.y);
+        const to = cellOf(state.princessTarget.x, state.princessTarget.y);
+        const path = findPath(from, to, isOpen);
+        if (!path.length) return;
+        const routePositions = [0.16, 0.32, 0.49, 0.66, 0.82];
+        const maxIndex = path.length - 2;
+        if (maxIndex < 2) return;
+        for (const position of routePositions) {
+          const index = clamp(Math.round(path.length * position), 2, maxIndex);
+          addTreatAtCell(path[index], 'broom');
+        }
+        for (const dir of dirs) {
+          const near = { c: from.c + dir.dc * 2, r: from.r + dir.dr * 2 };
+          addTreatAtCell(near, 'broom');
         }
       }
 
@@ -1434,6 +1482,10 @@
         canvas.dataset.reversal = String(state.reversal.active);
         canvas.dataset.princessTargetActive = String(princessObjectiveActive());
         canvas.dataset.princessTargetCell = princessObjectiveActive() ? cellKey(cellOf(state.princessTarget.x, state.princessTarget.y)) : 'inactive';
+        canvas.dataset.playerSpeed = String(Math.round(state.player.speed));
+        canvas.dataset.currentPlayerSpeed = String(currentPlayerSpeed(now));
+        canvas.dataset.princessTargetSpeed = String(Math.round(state.princessTarget.speed));
+        canvas.dataset.broomFlightSpeed = String(broomFlightSpeed());
         canvas.dataset.witchCorruption = String(state.witchCorruption.active);
         canvas.dataset.witchCorruptionDuration = String(state.witchCorruption.until && state.witchCorruption.startedAt ? state.witchCorruption.until - state.witchCorruption.startedAt : 0);
         canvas.dataset.score = String(state.score);
@@ -1587,9 +1639,11 @@
         state.princessTarget.y = p.y;
         state.princessTarget.path = [];
         state.princessTarget.step = 0;
-        state.princessTarget.wait = active ? 380 + random() * 520 : 0;
+        state.princessTarget.wait = active ? 120 + random() * 260 : 0;
         state.princessTarget.facing = -1;
-        state.princessTarget.speed = Number(config.princessTargetSpeed || 118);
+        state.princessTarget.speed = active
+          ? Math.round(Number(config.princessTargetSpeed || reversalWitchFootSpeed(config) + 65))
+          : Number(config.princessTargetSpeed || 118);
         state.princessTarget.active = active;
         state.princessTarget.targetCell = active ? cell : null;
       }
@@ -1664,9 +1718,9 @@
         const passable = (cell) => cellsMatch(cell, current) || isFrogPassable(cell);
         const cells = shuffle(openCells().filter((cell) => {
           const distance = cellDistance(current, cell);
-          return distance >= 2
-            && distance <= 8
-            && cellDistance(playerCell, cell) >= 3
+          return distance >= 3
+            && distance <= 10
+            && cellDistance(playerCell, cell) >= 4
             && !cellsMatch(cell, current)
             && !movingTreeBlocksFrog(cell);
         }));
@@ -1694,7 +1748,7 @@
               state.princessTarget.path = path;
               state.princessTarget.targetCell = cellOf(path[path.length - 1].x, path[path.length - 1].y);
             }
-            state.princessTarget.wait = 520 + random() * 720;
+            state.princessTarget.wait = 180 + random() * 360;
           }
           return;
         }
@@ -1708,7 +1762,7 @@
         const w = centerOf(witchStartCell);
         const w2 = centerOf(secondWitchStartCell);
         resetPlayerToStart(false);
-        state.player.speed = config.playerSpeed;
+        state.player.speed = state.reversal.active ? reversalWitchFootSpeed(config) : config.playerSpeed;
         state.witch.x = w.x;
         state.witch.y = w.y;
         state.witch.path = [];
@@ -1730,6 +1784,7 @@
         setupFrogObjective();
         setupEvilFrog();
         setupPrincessTarget();
+        ensureReversalBroomTactics();
         if (evilFrogTestMode && state.evilFrog.active) {
           const near = centerOf({ c: Math.min(grid.cols - 2, startCell.c + 2), r: startCell.r });
           state.evilFrog.x = near.x;
@@ -1836,7 +1891,7 @@
       }
 
       function currentPlayerSpeed(now) {
-        if (broomFlightActive(now)) return Math.max(390, state.player.speed);
+        if (broomFlightActive(now)) return broomFlightSpeed();
         return state.activeTreat === 'speed' && now < state.activeUntil ? 405 : state.player.speed;
       }
 
@@ -2824,7 +2879,7 @@
       function applyTreat(type) {
         const now = performance.now();
         state.activeTreat = type;
-        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'stink' || type === 'leaf' || type === 'broom' ? 9000 : 7000);
+        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'broom' ? broomFlightDurationMs() : type === 'stink' || type === 'leaf' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
         if (type === 'freeze') {
           for (const witch of activeWitches()) witch.frozenUntil = now + 3500;
@@ -2842,7 +2897,7 @@
           spark: 'Star treat: bonus magic.',
           stink: 'Rotten strawberry: stinky bubbles trail behind.',
           leaf: 'Green leaf: waving trees become paths.',
-          broom: 'Broomstick flight: witch crosses every obstacle.'
+          broom: 'Broomstick flight: fly over obstacles and outrun the princess.'
         }[type];
         showMessage(label, 1700);
       }
@@ -5516,6 +5571,10 @@
         princessTargetActive: princessObjectiveActive(),
         princessTargetCell: princessObjectiveActive() ? cellOf(state.princessTarget.x, state.princessTarget.y) : null,
         princessTargetPath: state.princessTarget.path.length,
+        playerSpeed: Math.round(state.player.speed),
+        currentPlayerSpeed: Math.round(currentPlayerSpeed(performance.now())),
+        princessTargetSpeed: Math.round(state.princessTarget.speed),
+        broomFlightSpeed: broomFlightSpeed(),
         witchCorruptionActive: state.witchCorruption.active,
         witchCorruptionRow: state.witchCorruption.startRow,
         witchCorruptionDuration: state.witchCorruption.until && state.witchCorruption.startedAt ? state.witchCorruption.until - state.witchCorruption.startedAt : 0,
