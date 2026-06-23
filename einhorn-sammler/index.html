@@ -54,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-mobile-perf-gates-v1';
+      const assetVersion = '20260623-original-broom-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -233,7 +233,7 @@
         evilFrog: { x: 0, y: 0, path: [], speed: 128, step: 0, repath: 0, facing: -1, active: false },
         princessTarget: { x: 0, y: 0, path: [], speed: 118, step: 0, wait: 0, facing: -1, active: false, targetCell: null },
         reversal: { active: false },
-        witchCorruption: { active: false, startedAt: 0, until: 0, startRow: 0 },
+        witchCorruption: { active: false, startedAt: 0, until: 0, startRow: 0, startScreen: null, facing: -1 },
         level: defaultStartLevel,
         maxLevel: levelConfigs.length,
         score: 0,
@@ -324,6 +324,7 @@
         morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30),
         witchCorruption: loadSprite('assets/hero-witch-corruption-walk.png', 220, 230, 0.46, 30),
         greenWitch: loadSprite('assets/green-witch-run.png', 214, 190, 0.43, 35),
+        witchBroom: loadSprite('assets/witch-broom-flight.png', 260, 190, 0.50, 34),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { priority: 'high' }),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35)
       };
@@ -1434,6 +1435,7 @@
         canvas.dataset.princessTargetActive = String(princessObjectiveActive());
         canvas.dataset.princessTargetCell = princessObjectiveActive() ? cellKey(cellOf(state.princessTarget.x, state.princessTarget.y)) : 'inactive';
         canvas.dataset.witchCorruption = String(state.witchCorruption.active);
+        canvas.dataset.witchCorruptionDuration = String(state.witchCorruption.until && state.witchCorruption.startedAt ? state.witchCorruption.until - state.witchCorruption.startedAt : 0);
         canvas.dataset.score = String(state.score);
         canvas.dataset.lives = String(state.lives);
         canvas.dataset.treat = active;
@@ -1475,6 +1477,7 @@
         canvas.dataset.morphWalkSprite = characterSprites.morphWalk.ready ? 'ready' : characterSprites.morphWalk.failed ? 'failed' : 'loading';
         canvas.dataset.witchCorruptionSprite = characterSprites.witchCorruption.ready ? 'ready' : characterSprites.witchCorruption.failed ? 'failed' : 'loading';
         canvas.dataset.greenWitchSprite = characterSprites.greenWitch.ready ? 'ready' : characterSprites.greenWitch.failed ? 'failed' : 'loading';
+        canvas.dataset.witchBroomSprite = characterSprites.witchBroom.ready ? 'ready' : characterSprites.witchBroom.failed ? 'failed' : 'loading';
         canvas.dataset.levelTransition = String(levelTransitionActive(now));
         canvas.dataset.morphTravel = String(Boolean(state.morphTravel));
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
@@ -1774,7 +1777,11 @@
         state.transformUntil = 0;
         state.levelTransitionUntil = 0;
         state.witchCorruption.active = false;
+        state.witchCorruption.startedAt = 0;
         state.witchCorruption.until = 0;
+        state.witchCorruption.startRow = 0;
+        state.witchCorruption.startScreen = null;
+        state.witchCorruption.facing = -1;
         clearHeroMorph();
         state.lastGateWait = 'none';
         state.treePushes = 0;
@@ -2922,15 +2929,18 @@
 
       function startWitchCorruption(now) {
         if (state.witchCorruption.active || state.reversal.active || state.over || state.won) return;
+        const startScreen = worldToScreen(state.player.x, state.player.y);
         state.player.path = [];
         state.frog.path = [];
         state.evilFrog.path = [];
         state.witchCorruption.active = true;
         state.witchCorruption.startedAt = now;
-        state.witchCorruption.until = now + 4200;
-        state.witchCorruption.startRow = corruptionStartRow();
-        state.messageUntil = now + 3800;
-        state.messageText = 'Boeser Frosch! Hexenfluch!';
+        state.witchCorruption.until = now + 9000;
+        state.witchCorruption.startRow = state.playerForm === 'princess' ? 0 : corruptionStartRow();
+        state.witchCorruption.startScreen = startScreen;
+        state.witchCorruption.facing = state.player.facing || -1;
+        state.messageUntil = now + 8200;
+        state.messageText = 'Boeser Frosch! Prinzessinnen-Hexenfluch!';
         playSfx('witchCatch');
       }
 
@@ -4088,7 +4098,8 @@
 
       function drawGreenWitchHero(now) {
         const s = worldToScreen(state.player.x, state.player.y);
-        const moving = state.player.path.length > 0;
+        const flying = broomFlightActive(now);
+        const moving = state.player.path.length > 0 || flying;
         const frameIndex = moving ? Math.floor(state.player.step * 1.35) % 4 : 1;
         const bob = moving ? Math.sin(state.player.step * 1.05) * 2.8 : Math.sin(now / 520) * 1.1;
         ctx.save();
@@ -4098,7 +4109,7 @@
         ctx.beginPath();
         ctx.ellipse(0, 25, 40, 10, 0, 0, Math.PI * 2);
         ctx.fill();
-        if (broomFlightActive(now)) {
+        if (flying) {
           ctx.strokeStyle = 'rgb(255 214 116 / 78%)';
           ctx.lineWidth = 4;
           ctx.beginPath();
@@ -4112,6 +4123,11 @@
           ctx.stroke();
           drawStarMark(35, -58 + Math.sin(now / 180) * 5, 5, '#ffe767');
           drawStarMark(-38, -47 + Math.cos(now / 210) * 5, 4, '#73ff62');
+          const broomFrame = Math.floor(now / 95) % 8;
+          if (drawSpriteFrame(characterSprites.witchBroom, broomFrame, state.player.facing || 1)) {
+            ctx.restore();
+            return;
+          }
         }
         if (drawSpriteFrame(characterSprites.greenWitch, frameIndex, state.player.facing || 1)) {
           ctx.restore();
@@ -4191,35 +4207,54 @@
         if (!state.witchCorruption.active) return false;
         const duration = Math.max(1, state.witchCorruption.until - state.witchCorruption.startedAt);
         const progress = clamp((now - state.witchCorruption.startedAt) / duration, 0, 1);
+        const travelProgress = progress * progress * (3 - 2 * progress);
         const startRow = Number.isFinite(state.witchCorruption.startRow) ? state.witchCorruption.startRow : 0;
         const row = clamp(Math.round(startRow + (morphFrameCount - 1 - startRow) * progress), 0, morphFrameCount - 1);
         const walkFrameIndex = Math.floor(now / 115) % morphWalkFrameCount;
-        const s = worldToScreen(state.player.x, state.player.y);
+        const liveStart = worldToScreen(state.player.x, state.player.y);
+        const start = state.witchCorruption.startScreen || liveStart;
+        const target = { x: state.vw / 2, y: state.vh * 0.53 };
+        const s = {
+          x: start.x + (target.x - start.x) * travelProgress,
+          y: start.y + (target.y - start.y) * travelProgress
+        };
+        const renderScale = clamp(state.vw / 280, 1.15, 1.75);
         const pulse = Math.sin(progress * Math.PI);
+        const storm = 0.18 + pulse * 0.18;
         ctx.save();
-        ctx.translate(s.x, s.y + Math.sin(now / 120) * 3 * state.zoom);
-        ctx.scale(state.zoom, state.zoom);
+        ctx.fillStyle = 'rgb(6 3 10 / ' + storm.toFixed(3) + ')';
+        ctx.fillRect(0, 0, state.vw, state.vh);
+        ctx.restore();
+        ctx.save();
+        ctx.strokeStyle = 'rgb(96 255 117 / 28%)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.quadraticCurveTo(state.vw / 2, state.vh * 0.2, s.x, s.y);
+        ctx.stroke();
+        ctx.translate(s.x, s.y + Math.sin(now / 120) * 5 * renderScale);
+        ctx.scale(renderScale, renderScale);
         ctx.fillStyle = 'rgb(0 0 0 / 30%)';
         ctx.beginPath();
         ctx.ellipse(0, 25, 45 + pulse * 10, 12 + pulse * 3, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = 'rgb(96 255 117 / 78%)';
-        ctx.lineWidth = 4 + pulse * 4;
+        ctx.lineWidth = 5 + pulse * 6;
         ctx.beginPath();
-        ctx.arc(0, -34, 52 + pulse * 24 + Math.sin(now / 100) * 4, 0, Math.PI * 2);
+        ctx.arc(0, -34, 58 + pulse * 34 + Math.sin(now / 100) * 5, 0, Math.PI * 2);
         ctx.stroke();
         ctx.strokeStyle = 'rgb(18 65 22 / 62%)';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(0, -34, 34 + progress * 36 + Math.cos(now / 130) * 6, 0, Math.PI * 2);
+        ctx.arc(0, -34, 38 + progress * 48 + Math.cos(now / 130) * 7, 0, Math.PI * 2);
         ctx.stroke();
-        for (let i = 0; i < 10; i += 1) {
-          const a = now / 170 + i * Math.PI * 2 / 10;
-          const r = 44 + progress * 30 + Math.sin(now / 120 + i) * 5;
-          drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 3 + pulse * 2, i % 2 ? '#73ff62' : '#25123f');
+        for (let i = 0; i < 18; i += 1) {
+          const a = now / (150 - (i % 3) * 18) + i * Math.PI * 2 / 18;
+          const r = 48 + progress * 50 + Math.sin(now / 120 + i) * 7;
+          drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 3.5 + pulse * 3, i % 3 === 0 ? '#73ff62' : i % 3 === 1 ? '#25123f' : '#ffe767');
         }
-        if (!drawSpriteGridFrame(characterSprites.witchCorruption, walkFrameIndex, row, state.player.facing || 1)) {
-          drawSpriteGridFrame(characterSprites.morphWalk, walkFrameIndex, startRow, state.player.facing || 1);
+        if (!drawSpriteGridFrame(characterSprites.witchCorruption, walkFrameIndex, row, state.witchCorruption.facing || -1)) {
+          drawSpriteGridFrame(characterSprites.morphWalk, walkFrameIndex, startRow, state.witchCorruption.facing || -1);
         }
         ctx.restore();
         return true;
@@ -4949,7 +4984,7 @@
         drawStench(performance.now());
         const now = performance.now();
         const actors = [
-          { y: state.player.y, draw: () => drawHero(now) }
+          { y: state.witchCorruption.active ? Number.POSITIVE_INFINITY : state.player.y, draw: () => drawHero(now) }
         ];
         for (const witch of activeWitches()) {
           actors.push({ y: witch.y, draw: () => drawWitch(now, witch, witch === state.witch2 ? characterSprites.witch2 : characterSprites.witch) });
@@ -5483,6 +5518,7 @@
         princessTargetPath: state.princessTarget.path.length,
         witchCorruptionActive: state.witchCorruption.active,
         witchCorruptionRow: state.witchCorruption.startRow,
+        witchCorruptionDuration: state.witchCorruption.until && state.witchCorruption.startedAt ? state.witchCorruption.until - state.witchCorruption.startedAt : 0,
         playerForm: state.playerForm,
         morphActive: Boolean(state.morphUntil && performance.now() < state.morphUntil),
         morphFrom: state.morphFrom || null,
@@ -5577,6 +5613,7 @@
         morphWalkSpriteReady: characterSprites.morphWalk.ready,
         witchCorruptionSpriteReady: characterSprites.witchCorruption.ready,
         greenWitchSpriteReady: characterSprites.greenWitch.ready,
+        witchBroomSpriteReady: characterSprites.witchBroom.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         goodTreeSpriteReady: scenerySprites.goodTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,
