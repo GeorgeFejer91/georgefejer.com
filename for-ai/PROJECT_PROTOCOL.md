@@ -28,8 +28,10 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
 - Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame. Large sprite sheets may use the GitHub raw URL as a timed final fallback when the custom domain stalls.
+- Smartphone runtime performance is a hard gameplay constraint. Keep the mobile render DPR capped, keep static maze/path/ordinary-tree rendering cached, keep sprite frames pre-scaled after decode, and keep high-volume canvas dataset/debug updates throttled during normal play.
 - Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Music variants may use the GitHub raw URL as a timed fallback when the custom domain stalls. Keep unused old melody exports out of the deployed asset folder.
 - Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetRawFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, `musicRawFallback`, and `audioReady`.
+- Performance validation should also inspect `dpr`, `averageFrameMs`, `mazeCache`, `treeGateWindowFailures`, and `treeOverlaps` in the canvas dataset.
 - Browser safety checks must include HTTPS certificate validation for `https://www.georgefejer.com/`. If it fails with a certificate name/principal error, fix GitHub Pages custom-domain HTTPS settings before treating the site as fully browser-safe.
 - Avoid unnecessary public-page dependencies on `raw.githubusercontent.com`. Raw GitHub URLs are allowed only as timed fallback asset sources for stalled game media, and those loads must use CORS-clean requests.
 
@@ -56,6 +58,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Moving good and evil trees must not pass through each other.
 - Moving trees should patrol strategic gate paths, not randomly spawn as unfair walls.
 - Every moving-tree gate must have at least one temporal state where the path is passable.
+- If a strategic moving-tree patrol lacks a natural timing pocket, open a small vertical waiting/crossing pocket in the maze near the patrol center instead of allowing a permanently impossible gate.
 - Every level must remain actually solvable in the real game loop. Witches must not reach the player before the player has a realistic first timing window through early tree gates.
 - Use level-specific witch start delays as pacing tools when a level has early dynamic gates; do not remove them unless the full validation protocol still passes.
 
