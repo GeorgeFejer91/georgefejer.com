@@ -21,15 +21,15 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Preserve the established committed sprite identities for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
 - The frog endpoint keeps `frog-wave.png` for normal waiting/waving and uses `frog-walk.png` as an eight-frame walking sprite for victory, transition, and frog-test rendering. Keep both derived from the same frog identity.
 - The hostile frog uses `evil-frog-walk.png` as an eight-frame walking sprite from level 4 onward. It must read as a separate bad-frog actor, not as a recolored good frog dot.
-- The player witch form uses `green-witch-run.png`, and evil-frog capture uses `hero-witch-corruption-walk.png` as a staged corruption sprite sheet. Keep these assets lazy-loaded; they are not boot-critical.
+- The player witch form uses `green-witch-run.png`, and evil-frog capture uses `hero-witch-corruption-walk.png` as a staged corruption sprite sheet. These sheets must preload before gameplay so corruption and reversed-role rounds do not stutter on phones.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
 - The in-game princess walking sprite must visually match the princess endpoint of `unicorn-princess-morph.png`. Its current `princess-run.png` sheet is derived from the pure-princess morph frames and uses 220x230 frames.
 - Morph transitions must use `unicorn-princess-morph-walk.png`, an 18 x 8 grid sprite: 18 transformation rows by 8 walking phases. The static `unicorn-princess-morph.png` remains the identity source and fallback, but visible level transitions should animate the current morph form as walking.
 - The background melody rotates randomly forever between three browser-playable MP3 arcade variants derived from the provided MLP melody source files.
 - SFX should remain small 8-bit arcade style WAV files.
-- Sprite loading is WebP-first with PNG fallback. The boot-critical sprites are only the player unicorn and first witch; princess, morph, second witch, frog, waving trees, evil trees, and good trees must load lazily after the first playable frame.
-- Background music must use `preload="none"` and start only after player interaction. Keep unused old melody exports out of the deployed asset folder.
-- Debug and validation should inspect the canvas dataset fields `assetVersion`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetDecoded`, `assetTotal`, and `currentSprites`.
+- Sprite loading is WebP-first with PNG fallback. All gameplay sprites must be requested and decoded during the startup loading screen before the player can move; do not reintroduce gameplay-sprite lazy decoding after the first playable frame.
+- Background music and SFX should preload before gameplay where browser policy allows. Music playback must still start only after player interaction. Keep unused old melody exports out of the deployed asset folder.
+- Debug and validation should inspect the canvas dataset fields `assetVersion`, `preloadMode`, `assetPhase`, `assetWebp`, `assetPngFallback`, `assetDecoded`, `assetTotal`, `currentSprites`, `sfxReady`, `musicReady`, and `audioReady`.
 
 ## Gameplay Rules To Preserve
 
