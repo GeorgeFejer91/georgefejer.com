@@ -73,6 +73,8 @@ The game now has five levels. Difficulty should increase through:
 The German level banner appears at the top of the screen for 10 seconds at the beginning of each level.
 Level banner copy should be short, exclamatory, gameshow-host style German wordplay about princesses, fairy tales, crowns, magic, and unicorns. It should not describe level mechanics like witches, moving trees, gates, food, or speed.
 
+Current default start level for live playtesting is level 4 when no `?level=` query parameter is provided. Keep the `?level=` override working for targeted testing.
+
 ## Validation Requirement
 
 Gameplay changes must be checked with the browser-callable protocol:
