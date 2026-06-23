@@ -1,6 +1,7 @@
 # Sprite Walking And Transformation Consistency Checklist
 
 Future agents must use this checklist before changing any sprite atlas in `einhorn-sammler/assets/`.
+For transformation-specific production workflow, also read `SPRITE_TRANSFORMATION_PROCEDURES.md`.
 Update this file or the latest sprite audit report when adding new sprite classes, changing frame dimensions, or replacing generated art.
 
 ## Frame Grid Integrity
