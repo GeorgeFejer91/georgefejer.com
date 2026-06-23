@@ -1,5 +1,12 @@
 const TAU = Math.PI * 2;
 const AXES = 3;
+const SCRIPT_ASSET_BASE = (() => {
+  try {
+    return new URL(".", document.currentScript?.src || document.baseURI).href;
+  } catch {
+    return "./";
+  }
+})();
 const MOVEMENT_COUPLING_RATE = 16;
 const JERK_COUPLING_RATE = 18;
 const CROSS_AXIS_RATE = 8;
@@ -19,8 +26,8 @@ const NATURAL_FREQUENCY_NOISE_FREQUENCY = 18;
 const MOVEMENT_FREQUENCY_NOISE_SEEDS = Object.freeze([0x4f3a9b21, 0xb7c15d83, 0x29e46f5d]);
 const JERK_FREQUENCY_NOISE_SEEDS = Object.freeze([0x8d4c2f17, 0x31b6a9e5, 0xc5e72b49]);
 const BINARY_MANIFEST_URLS = Object.freeze({
-  left: "./data/recorded-meta-quest-hand-browser-preview-manifest.json",
-  right: "./data/recorded-meta-quest-right-hand-browser-preview-manifest.json",
+  left: new URL("data/recorded-meta-quest-hand-browser-preview-manifest.json", SCRIPT_ASSET_BASE).href,
+  right: new URL("data/recorded-meta-quest-right-hand-browser-preview-manifest.json", SCRIPT_ASSET_BASE).href,
 });
 const SUPPORTED_SAMPLE_COUNTS = Object.freeze([64, 128, 192, 256, 384, 512, 768, 1024]);
 const JERK_SCOPE_LABELS = Object.freeze({
@@ -2678,7 +2685,9 @@ async function exportAnimation() {
       setFrameIndex(0);
     }
     refreshCurrentOutput();
-    const { exportCanvasAnimation } = await import("./animation-export/browser-animation-export.js");
+    const { exportCanvasAnimation } = await import(
+      new URL("animation-export/browser-animation-export.js", SCRIPT_ASSET_BASE).href
+    );
     const result = await exportCanvasAnimation({
       format: settings.format,
       frameCount: settings.frameCount,
