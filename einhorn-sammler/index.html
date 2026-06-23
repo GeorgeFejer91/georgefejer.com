@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-princess-walk-v1';
+      const assetVersion = '20260623-morph-walk-v1';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -275,6 +275,7 @@
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { required: true, priority: 'high' }),
         princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30, { lazy: true }),
         morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30, { lazy: true }),
+        morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30, { lazy: true }),
         witch: loadSprite('assets/witch-run.png', 214, 190, 0.43, 35, { required: true, priority: 'high' }),
         witch2: loadSprite('assets/witch-moon-run.png', 214, 190, 0.43, 35, { lazy: true })
       };
@@ -287,6 +288,7 @@
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
       const morphFrameCount = 18;
+      const morphWalkFrameCount = 8;
       const musicVariants = [
         'assets/music/mlp-theme-arcade-variant-1.mp3',
         'assets/music/mlp-theme-arcade-variant-2.mp3',
@@ -607,6 +609,29 @@
           sprite.frameW,
           sprite.frameH,
           dx,
+          dy,
+          sprite.frameW * sprite.scale,
+          sprite.frameH * sprite.scale
+        );
+        ctx.restore();
+        return true;
+      }
+
+      function drawSpriteGridFrame(sprite, colIndex, rowIndex, facing) {
+        if (!sprite.ready) return false;
+        const sourceFacesLeft = true;
+        const flip = sourceFacesLeft && facing > 0 ? -1 : 1;
+        const dx = -sprite.frameW * sprite.scale / 2;
+        const dy = -sprite.frameH * sprite.scale + sprite.ground;
+        ctx.save();
+        ctx.scale(flip, 1);
+        ctx.drawImage(
+          sprite.image,
+          colIndex * sprite.frameW,
+          rowIndex * sprite.frameH,
+          sprite.frameW,
+          sprite.frameH,
+          flip < 0 ? -dx - sprite.frameW * sprite.scale : dx,
           dy,
           sprite.frameW * sprite.scale,
           sprite.frameH * sprite.scale
@@ -1034,6 +1059,7 @@
         canvas.dataset.morphFrom = state.morphFrom || 'none';
         canvas.dataset.morphTo = state.morphTo || 'none';
         canvas.dataset.morphDuration = String(state.morphDuration);
+        canvas.dataset.morphWalkSprite = characterSprites.morphWalk.ready ? 'ready' : characterSprites.morphWalk.failed ? 'failed' : 'loading';
         canvas.dataset.levelTransition = String(levelTransitionActive(now));
         canvas.dataset.morphTravel = String(Boolean(state.morphTravel));
         canvas.dataset.princessSprite = characterSprites.princess.ready ? 'ready' : characterSprites.princess.failed ? 'failed' : 'loading';
@@ -3067,12 +3093,14 @@
 
       function drawHeroMorph(now) {
         const sprite = characterSprites.morph;
+        const walkSprite = characterSprites.morphWalk;
         if (!sprite.ready || !state.morphFrom || !state.morphTo) return false;
         const duration = Math.max(1, state.morphDuration || 3200);
         const progress = clamp((now - state.morphStartedAt) / duration, 0, 1);
         const princessToUnicorn = state.morphFrom === 'princess' && state.morphTo === 'unicorn';
         const frameProgress = princessToUnicorn ? progress : 1 - progress;
         const frameIndex = clamp(Math.floor(frameProgress * morphFrameCount), 0, morphFrameCount - 1);
+        const walkFrameIndex = Math.floor(now / 115) % morphWalkFrameCount;
         const travel = state.morphTravel;
         const travelProgress = progress * progress * (3 - 2 * progress);
         const s = travel
@@ -3116,7 +3144,9 @@
           const color = i % 3 === 0 ? '#ffe767' : i % 3 === 1 ? '#ff78c8' : '#86e8ff';
           drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 3.8 + pulse * 2, color);
         }
-        drawSpriteFrame(sprite, frameIndex, facing);
+        if (!drawSpriteGridFrame(walkSprite, walkFrameIndex, frameIndex, facing)) {
+          drawSpriteFrame(sprite, frameIndex, facing);
+        }
         ctx.restore();
         return true;
       }
@@ -4356,6 +4386,7 @@
         failedSprites: failedSprites(),
         princessSpriteReady: characterSprites.princess.ready,
         morphSpriteReady: characterSprites.morph.ready,
+        morphWalkSpriteReady: characterSprites.morphWalk.ready,
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         goodTreeSpriteReady: scenerySprites.goodTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,
