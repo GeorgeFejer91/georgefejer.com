@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-frog-walk-v1';
+      const assetVersion = '20260623-roaming-frog-v1';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -130,6 +130,7 @@
           maxSpan: 10,
           evilTreeSpeed: 108,
           goodTreeSpeed: 98,
+          frogSpeed: 106,
           treeWaitScale: 1.02,
           gatePlan: [['evil', 0.12], ['good', 0.24], ['evil', 0.4], ['good', 0.56], ['evil', 0.72], ['good', 0.88]]
         },
@@ -141,18 +142,19 @@
           playerForm: 'princess',
           playerSpeed: 302,
           witchCount: 2,
-          witchSpeed: 178,
-          witch2Speed: 188,
-          witchStartDelay: 5.2,
-          mazeOpenings: 92,
+          witchSpeed: 172,
+          witch2Speed: 182,
+          witchStartDelay: 6.2,
+          mazeOpenings: 100,
           treats: 22,
           crumbs: 122,
-          minSpan: 6,
-          maxSpan: 11,
-          evilTreeSpeed: 112,
-          goodTreeSpeed: 102,
-          treeWaitScale: 0.98,
-          gatePlan: [['evil', 0.1], ['good', 0.2], ['evil', 0.32], ['good', 0.46], ['evil', 0.6], ['good', 0.74], ['evil', 0.88]]
+          minSpan: 5,
+          maxSpan: 10,
+          evilTreeSpeed: 104,
+          goodTreeSpeed: 96,
+          frogSpeed: 108,
+          treeWaitScale: 1.15,
+          gatePlan: [['evil', 0.12], ['good', 0.28], ['evil', 0.45], ['good', 0.62], ['evil', 0.78]]
         },
         {
           level: 5,
@@ -160,20 +162,21 @@
           subtitle: 'Horn drauf, Maerchen ab!',
           difficulty: 'Finale Fantasie!',
           playerForm: 'unicorn',
-          playerSpeed: 306,
+          playerSpeed: 312,
           witchCount: 2,
-          witchSpeed: 198,
-          witch2Speed: 210,
-          witchStartDelay: 3.4,
-          mazeOpenings: 88,
+          witchSpeed: 176,
+          witch2Speed: 188,
+          witchStartDelay: 8,
+          mazeOpenings: 104,
           treats: 22,
           crumbs: 116,
-          minSpan: 6,
-          maxSpan: 11,
-          evilTreeSpeed: 120,
-          goodTreeSpeed: 110,
-          treeWaitScale: 0.84,
-          gatePlan: [['evil', 0.08], ['good', 0.2], ['evil', 0.32], ['good', 0.46], ['evil', 0.6], ['good', 0.74], ['evil', 0.88]]
+          minSpan: 5,
+          maxSpan: 10,
+          evilTreeSpeed: 106,
+          goodTreeSpeed: 98,
+          frogSpeed: 102,
+          treeWaitScale: 1.18,
+          gatePlan: [['evil', 0.12], ['good', 0.28], ['evil', 0.46], ['good', 0.64], ['evil', 0.82]]
         }
       ];
       function boundedLevel(value) {
@@ -187,6 +190,8 @@
       const requestedStartLevel = urlParams.get('level');
       const defaultStartLevel = requestedStartLevel
         ? boundedLevel(requestedStartLevel)
+        : frogTestMode
+          ? 3
         : princessTestMode
           ? 2
           : 1;
@@ -209,6 +214,7 @@
         playerForm: 'unicorn',
         witch: { x: 0, y: 0, path: [], speed: 190, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: -1 },
         witch2: { x: 0, y: 0, path: [], speed: 210, step: 0, repath: 0, frozenUntil: 0, stenchUntil: 0, facing: 1, active: false },
+        frog: { x: 0, y: 0, path: [], speed: 116, step: 0, wait: 0, facing: -1, active: false, targetCell: null },
         level: defaultStartLevel,
         maxLevel: levelConfigs.length,
         score: 0,
@@ -755,6 +761,14 @@
         return isOpen(cell) && !goodTreeBlocksWitch(cell);
       }
 
+      function movingTreeBlocksFrog(cell) {
+        return allMovingTrees().some((tree) => treeBlocksActorCell(tree, cell));
+      }
+
+      function isFrogPassable(cell) {
+        return isOpen(cell) && !movingTreeBlocksFrog(cell);
+      }
+
       function clampCamera() {
         const halfW = state.vw / (2 * state.zoom);
         const halfH = state.vh / (2 * state.zoom);
@@ -1039,6 +1053,15 @@
         canvas.dataset.levelIntroVisible = String(Boolean(state.levelIntroUntil && now < state.levelIntroUntil));
         canvas.dataset.witchCell = cellKey(cellOf(state.witch.x, state.witch.y));
         canvas.dataset.witch2Cell = state.witch2.active ? cellKey(cellOf(state.witch2.x, state.witch2.y)) : 'inactive';
+        canvas.dataset.objective = movingFrogObjectiveActive() ? 'frog' : 'exit';
+        canvas.dataset.objectiveCell = cellKey(currentObjectiveCell());
+        canvas.dataset.frogActive = String(movingFrogObjectiveActive());
+        canvas.dataset.frogCell = movingFrogObjectiveActive() ? cellKey(cellOf(state.frog.x, state.frog.y)) : 'inactive';
+        canvas.dataset.frogPath = String(state.frog.path.length);
+        canvas.dataset.frogProximity = frogProximityProgress().toFixed(3);
+        canvas.dataset.frogDistance = movingFrogObjectiveActive()
+          ? String(Math.round(Math.hypot(state.player.x - state.frog.x, state.player.y - state.frog.y)))
+          : '0';
         canvas.dataset.score = String(state.score);
         canvas.dataset.lives = String(state.lives);
         canvas.dataset.treat = active;
@@ -1113,6 +1136,76 @@
         canvas.dataset.lastSfx = state.lastSfx;
       }
 
+      function chooseFrogStartCell() {
+        const route = findPath(startCell, exitCell);
+        if (route.length) {
+          return route[Math.max(0, Math.min(route.length - 1, Math.floor(route.length * 0.82)))];
+        }
+        return exitCell;
+      }
+
+      function setupFrogObjective() {
+        const config = configForLevel(state.level);
+        const active = state.level >= 3;
+        const cell = active ? chooseFrogStartCell() : exitCell;
+        const p = centerOf(cell);
+        state.frog.x = p.x;
+        state.frog.y = p.y;
+        state.frog.path = [];
+        state.frog.step = 0;
+        state.frog.wait = active ? 900 + random() * 900 : 0;
+        state.frog.facing = -1;
+        state.frog.speed = Number(config.frogSpeed || 112);
+        state.frog.active = active;
+        state.frog.targetCell = active ? cell : null;
+      }
+
+      function chooseFrogRoamPath(now) {
+        const current = cellOf(state.frog.x, state.frog.y);
+        const passable = (cell) => cellsMatch(cell, current) || isFrogPassable(cell);
+        const maxSteps = 5 + Math.min(5, state.level);
+        const minSteps = 2;
+        const cells = shuffle(openCells().filter((cell) => {
+          const distance = cellDistance(current, cell);
+          return distance >= minSteps
+            && distance <= maxSteps
+            && cellDistance(startCell, cell) > 5
+            && !cellsMatch(cell, current)
+            && !cellsMatch(cell, witchStartCell)
+            && !cellsMatch(cell, secondWitchStartCell)
+            && !movingTreeBlocksFrog(cell);
+        }));
+        for (const cell of cells.slice(0, 24)) {
+          const path = findPath(current, cell, passable);
+          if (path.length > 1 && path.length <= maxSteps + 4) return path.slice(1).map(centerOf);
+        }
+        return [];
+      }
+
+      function updateFrog(dt, now) {
+        if (!movingFrogObjectiveActive() || state.over || state.won || levelTransitionActive(now)) return;
+        const current = cellOf(state.frog.x, state.frog.y);
+        const passable = (cell) => cellsMatch(cell, current) || isFrogPassable(cell);
+        if (state.frog.path.length && !pathPointsAreOpen(state.frog.path, passable)) {
+          state.frog.path = [];
+          state.frog.wait = 420;
+        }
+        if (!state.frog.path.length) {
+          state.frog.wait = Math.max(0, state.frog.wait - dt * 1000);
+          state.frog.step += dt * 1.25;
+          if (state.frog.wait <= 0) {
+            const path = chooseFrogRoamPath(now);
+            if (path.length) {
+              state.frog.path = path;
+              state.frog.targetCell = cellOf(path[path.length - 1].x, path[path.length - 1].y);
+            }
+            state.frog.wait = 850 + random() * 900;
+          }
+          return;
+        }
+        moveAlongPath(state.frog, state.frog.speed, dt);
+      }
+
       function resetPositions() {
         const config = configForLevel(state.level);
         const now = performance.now();
@@ -1139,6 +1232,7 @@
         state.witch2.stenchUntil = 0;
         state.witch2.facing = 1;
         state.witch2.active = config.witchCount > 1;
+        setupFrogObjective();
         state.camera.x = state.player.x;
         state.camera.y = state.player.y;
         clampCamera();
@@ -1205,9 +1299,9 @@
           showMessage('Green leaf test: waving trees are paths.', 2200);
         }
         if (frogTestMode) {
-          const b = centerOf(exitCell);
-          state.camera.x = b.x;
-          state.camera.y = b.y;
+          const focus = movingFrogObjectiveActive() ? { x: state.frog.x, y: state.frog.y } : centerOf(exitCell);
+          state.camera.x = focus.x;
+          state.camera.y = focus.y;
           clampCamera();
           showMessage('Frog walk sprite test.', 1800);
         }
@@ -1375,6 +1469,32 @@
         return state.witch2.active ? [state.witch, state.witch2] : [state.witch];
       }
 
+      function movingFrogObjectiveActive() {
+        return state.level >= 3 && state.frog.active;
+      }
+
+      function currentObjectivePoint() {
+        return movingFrogObjectiveActive()
+          ? { x: state.frog.x, y: state.frog.y }
+          : centerOf(exitCell);
+      }
+
+      function currentObjectiveCell() {
+        return movingFrogObjectiveActive() ? cellOf(state.frog.x, state.frog.y) : exitCell;
+      }
+
+      function frogCatchDistance() {
+        return movingFrogObjectiveActive() ? grid.tile * 0.62 : 38;
+      }
+
+      function frogProximityProgress() {
+        if (!movingFrogObjectiveActive()) return 0;
+        const distance = Math.hypot(state.player.x - state.frog.x, state.player.y - state.frog.y);
+        const far = grid.tile * 11.5;
+        const near = frogCatchDistance();
+        return clamp(1 - (distance - near) / Math.max(1, far - near), 0, 1);
+      }
+
       function cellsMatch(a, b) {
         return a && b && a.c === b.c && a.r === b.r;
       }
@@ -1401,9 +1521,10 @@
           witchStartCell,
           secondWitchStartCell,
           cellOf(state.player.x, state.player.y),
+          movingFrogObjectiveActive() ? cellOf(state.frog.x, state.frog.y) : null,
           ...activeWitches().map((witch) => cellOf(witch.x, witch.y)),
           ...allMovingTrees().flatMap((tree) => treeReservedCells(tree))
-        ];
+        ].filter(Boolean);
       }
 
       function isProtectedMazeCell(cell, radius = 0) {
@@ -1420,7 +1541,7 @@
 
       function hasPlayableRoutes() {
         const playerCell = cellOf(state.player.x, state.player.y);
-        if (!isOpen(playerCell) || !findPath(playerCell, exitCell).length) return false;
+        if (!isOpen(playerCell) || !findPath(playerCell, currentObjectiveCell()).length) return false;
         return activeWitches().every((witch) => {
           const witchCell = cellOf(witch.x, witch.y);
           return isOpen(witchCell) && findPath(witchCell, playerCell).length > 0;
@@ -1445,6 +1566,10 @@
         for (const witch of activeWitches()) {
           witch.path = [];
           witch.repath = 0;
+        }
+        if (state.frog.active) {
+          state.frog.path = [];
+          state.frog.wait = 380;
         }
       }
 
@@ -1712,6 +1837,7 @@
         ].filter((witchRoute) => witchRoute.length);
         const strategicRoutes = [route, ...witchRoutes];
         const reserved = new Set([cellKey(startCell), cellKey(exitCell), cellKey(witchStartCell), cellKey(secondWitchStartCell)]);
+        if (movingFrogObjectiveActive()) reserved.add(cellKey(cellOf(state.frog.x, state.frog.y)));
         const minSpan = config.minSpan;
         const maxSpan = config.maxSpan;
         const addedByKind = { evil: 0, good: 0 };
@@ -2198,26 +2324,36 @@
       }
 
       function updateWinLose(now) {
-        const exit = centerOf(exitCell);
-        if (!state.won && Math.hypot(state.player.x - exit.x, state.player.y - exit.y) < 38) {
+        const objective = currentObjectivePoint();
+        const chasingFrog = movingFrogObjectiveActive();
+        if (!state.won && Math.hypot(state.player.x - objective.x, state.player.y - objective.y) < frogCatchDistance()) {
           state.score += 150;
           state.best = Math.max(state.best, state.score);
           localStorage.setItem(storageKey, String(state.best));
+          if (chasingFrog) {
+            state.frog.path = [];
+            state.frog.wait = 0;
+          }
           if (state.level < state.maxLevel) {
             const previousLevel = state.level;
             const previousForm = state.playerForm;
+            if (chasingFrog) state.frog.active = false;
             startLevel(state.level + 1, previousForm);
             playSfx('levelUp');
-            showMessage(previousLevel === 1
-              ? 'Magie bei B: Das Einhorn wird zur Prinzessin.'
-              : 'Magie bei B: Die Gestalt wechselt.', 3400);
+            showMessage(chasingFrog
+              ? 'Frosch gefangen: Maerchen-Magie!'
+              : previousLevel === 1
+                ? 'Magie bei B: Das Einhorn wird zur Prinzessin.'
+                : 'Magie bei B: Die Gestalt wechselt.', 3400);
           } else {
             const finalForm = oppositeHeroForm(state.playerForm);
             startHeroMorph(state.playerForm, finalForm, levelTransitionMorphDuration);
             state.playerForm = finalForm;
             state.won = true;
             playSfx('win');
-            showMessage('Du hast Stufe 5 geschafft. Die Verwandlung ist vollendet!', 5000);
+            showMessage(chasingFrog
+              ? 'Frosch gefangen. Die Maerchen-Verwandlung ist vollendet!'
+              : 'Du hast Stufe 5 geschafft. Die Verwandlung ist vollendet!', 5000);
           }
         }
         if (state.over || state.won) return;
@@ -2263,6 +2399,7 @@
           updateStench(dt, now);
           updateCrushBursts(now);
           updateTreePatrols(dt, now);
+          updateFrog(dt, now);
           for (const witch of activeWitches()) updateWitch(witch, dt, now);
           updatePickups(now);
           updateWinLose(now);
@@ -2415,6 +2552,53 @@
         ctx.restore();
       }
 
+      function drawRoamingFrog(now) {
+        if (!movingFrogObjectiveActive()) return;
+        const s = worldToScreen(state.frog.x, state.frog.y);
+        const sprite = scenerySprites.frogWalk.ready ? scenerySprites.frogWalk : scenerySprites.frog;
+        const frameCount = scenerySprites.frogWalk.ready ? frogWalkFrameCount : frogFrameCount;
+        const moving = state.frog.path.length > 0;
+        const frameIndex = moving ? Math.floor(state.frog.step * 1.25) % frameCount : 1;
+        const bob = moving ? Math.sin(state.frog.step * 1.05) * 2.2 : Math.sin(now / 430) * 1.4;
+        const drawW = grid.tile * 1.38;
+        const drawH = grid.tile * 1.38;
+        ctx.save();
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
+        const pulse = 0.6 + frogProximityProgress() * 0.4;
+        ctx.fillStyle = 'rgb(255 216 102 / 25%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 27, 42 * pulse, 12 * pulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (sprite.ready) {
+          ctx.save();
+          ctx.scale((state.frog.facing || -1) < 0 ? 1 : -1, 1);
+          ctx.drawImage(
+            sprite.image,
+            frameIndex * sprite.frameW,
+            0,
+            sprite.frameW,
+            sprite.frameH,
+            -drawW / 2,
+            -drawH + 24,
+            drawW,
+            drawH
+          );
+          ctx.restore();
+        } else {
+          ctx.fillStyle = '#82c934';
+          ctx.strokeStyle = '#102a08';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(0, -16, 30, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#ff8fc6';
+          drawHeartMark(0, -4, 0.5, '#ff8fc6');
+        }
+        ctx.restore();
+      }
+
       function drawStartExit(now) {
         const a = centerOf(startCell);
         const b = centerOf(exitCell);
@@ -2428,7 +2612,7 @@
         ctx.fill();
         ctx.fillStyle = '#0b291b';
         ctx.fillText('A', a.x, a.y + 1);
-        drawExitFrog(b, now);
+        if (!movingFrogObjectiveActive()) drawExitFrog(b, now);
         ctx.restore();
       }
 
@@ -3164,9 +3348,53 @@
         return true;
       }
 
+      function drawHeroProximityMorph(now) {
+        if (!movingFrogObjectiveActive() || !characterSprites.morph.ready) return false;
+        const progress = frogProximityProgress();
+        const frameIndex = clamp(Math.round((1 - progress) * (morphFrameCount - 1)), 0, morphFrameCount - 1);
+        const walkFrameIndex = Math.floor(state.player.step * 1.25 + now / 210) % morphWalkFrameCount;
+        const moving = state.player.path.length > 0;
+        const s = worldToScreen(state.player.x, state.player.y);
+        const bob = moving ? Math.sin(state.player.step * 1.12) * 3 : Math.sin(now / 520) * 1.25;
+        const facing = state.player.facing || 1;
+        const shield = now < state.shieldUntil;
+        ctx.save();
+        ctx.translate(s.x, s.y + bob * state.zoom);
+        ctx.scale(state.zoom, state.zoom);
+        if (shield) {
+          ctx.strokeStyle = progress > 0.58 ? 'rgb(255 196 232 / 78%)' : 'rgb(145 234 255 / 78%)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(0, -18, 48, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = 'rgb(0 0 0 / 25%)';
+        ctx.beginPath();
+        ctx.ellipse(0, 25, 38 + progress * 7, 10 + progress * 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (progress > 0.08) {
+          ctx.strokeStyle = 'rgb(255 231 103 / ' + (0.22 + progress * 0.48).toFixed(3) + ')';
+          ctx.lineWidth = 2.5 + progress * 2.5;
+          ctx.beginPath();
+          ctx.arc(0, -34, 46 + progress * 18 + Math.sin(now / 150) * 3, 0, Math.PI * 2);
+          ctx.stroke();
+          for (let i = 0; i < 5; i += 1) {
+            const a = now / 260 + i * Math.PI * 2 / 5;
+            const r = 35 + progress * 22;
+            drawStarMark(Math.cos(a) * r, -34 + Math.sin(a) * r, 2.5 + progress * 2.3, i % 2 ? '#ff78c8' : '#ffe767');
+          }
+        }
+        if (!drawSpriteGridFrame(characterSprites.morphWalk, walkFrameIndex, frameIndex, facing)) {
+          drawSpriteFrame(characterSprites.morph, frameIndex, facing);
+        }
+        ctx.restore();
+        return true;
+      }
+
       function drawHero(now) {
         if (levelTransitionActive(now)) return;
         if (state.morphUntil && now < state.morphUntil && drawHeroMorph(now)) return;
+        if (drawHeroProximityMorph(now)) return;
         if (state.playerForm === 'princess') drawPrincess(now);
         else drawUnicorn(now);
       }
@@ -3737,8 +3965,10 @@
         }
         ctx.fillStyle = '#9df7d0';
         ctx.fillRect(x + startCell.c * grid.tile * sx - 1.5, y + startCell.r * grid.tile * sy - 1.5, 3, 3);
-        ctx.fillStyle = '#ffd866';
-        ctx.fillRect(x + exitCell.c * grid.tile * sx - 1.5, y + exitCell.r * grid.tile * sy - 1.5, 3, 3);
+        if (!movingFrogObjectiveActive()) {
+          ctx.fillStyle = '#ffd866';
+          ctx.fillRect(x + exitCell.c * grid.tile * sx - 1.5, y + exitCell.r * grid.tile * sy - 1.5, 3, 3);
+        }
         ctx.fillStyle = '#ff78c8';
         ctx.beginPath();
         ctx.arc(x + state.player.x * sx, y + state.player.y * sy, 3, 0, Math.PI * 2);
@@ -3763,6 +3993,12 @@
         for (const tree of state.goodTrees) {
           ctx.beginPath();
           ctx.arc(x + tree.x * sx, y + tree.y * sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (movingFrogObjectiveActive()) {
+          ctx.fillStyle = '#82ff58';
+          ctx.beginPath();
+          ctx.arc(x + state.frog.x * sx, y + state.frog.y * sy, 3.5, 0, Math.PI * 2);
           ctx.fill();
         }
         ctx.restore();
@@ -3831,6 +4067,9 @@
         }
         for (const tree of state.goodTrees) {
           actors.push({ y: tree.y, draw: () => drawGoodTree(now, tree) });
+        }
+        if (movingFrogObjectiveActive()) {
+          actors.push({ y: state.frog.y, draw: () => drawRoamingFrog(now) });
         }
         actors.sort((a, b) => a.y - b.y);
         for (const actor of actors) actor.draw();
@@ -3967,8 +4206,9 @@
       }, 80);
       function aiRouteToExit(now) {
         const current = cellOf(state.player.x, state.player.y);
+        const target = currentObjectiveCell();
         const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
-        if (!passable(current) || !passable(exitCell)) return [];
+        if (!passable(current) || !passable(target)) return [];
         const hazardCost = (cell) => {
           let cost = 1;
           for (const witch of activeWitches()) {
@@ -3995,7 +4235,7 @@
           const cur = currentEntry.cell;
           const curKey = cellKey(cur);
           if (currentEntry.cost !== costs.get(curKey)) continue;
-          if (cellsMatch(cur, exitCell)) {
+          if (cellsMatch(cur, target)) {
             const path = [cur];
             let key = curKey;
             while (previous.has(key)) {
@@ -4028,6 +4268,7 @@
 
       function aiPlanSurvivalMove(now, stats) {
         const current = cellOf(state.player.x, state.player.y);
+        const target = currentObjectiveCell();
         const passable = (cell) => cellsMatch(cell, current) || isPlayerPassable(cell, now);
         const queue = [current];
         const seen = new Set([cellKey(current)]);
@@ -4037,7 +4278,7 @@
         while (queue.length) {
           const cur = queue.shift();
           const pressure = aiWitchPressure(cur);
-          const score = pressure * 9 - cellDistance(cur, exitCell) * 0.35 - cellDistance(cur, current) * 0.08;
+          const score = pressure * 9 - cellDistance(cur, target) * 0.35 - cellDistance(cur, current) * 0.08;
           if (score > bestScore) {
             bestScore = score;
             best = cur;
@@ -4084,7 +4325,7 @@
             .map((dir) => ({ c: current.c + dir.dc, r: current.r + dir.dr }))
             .filter((cell) => passable(cell) && !cellsMatch(cell, next))
             .map((cell) => {
-              const path = findPath(cell, exitCell, passable);
+              const path = findPath(cell, currentObjectiveCell(), passable);
               return {
                 cell,
                 routeLength: path.length || 999,
@@ -4312,6 +4553,13 @@
         levelDifficulty: configForLevel(state.level).difficulty,
         levelIntroVisible: Boolean(state.levelIntroUntil && performance.now() < state.levelIntroUntil),
         maxLevel: state.maxLevel,
+        objective: movingFrogObjectiveActive() ? 'frog' : 'exit',
+        objectiveCell: currentObjectiveCell(),
+        frogActive: movingFrogObjectiveActive(),
+        frogCell: movingFrogObjectiveActive() ? cellOf(state.frog.x, state.frog.y) : null,
+        frogPath: state.frog.path.length,
+        frogDistance: movingFrogObjectiveActive() ? Math.round(Math.hypot(state.player.x - state.frog.x, state.player.y - state.frog.y)) : 0,
+        frogProximity: frogProximityProgress(),
         playerForm: state.playerForm,
         morphActive: Boolean(state.morphUntil && performance.now() < state.morphUntil),
         morphFrom: state.morphFrom || null,
@@ -4343,6 +4591,7 @@
           return total;
         })(),
         normalPathToExitLength: findPath(cellOf(state.player.x, state.player.y), exitCell).length,
+        pathToObjectiveLength: findPath(cellOf(state.player.x, state.player.y), currentObjectiveCell()).length,
         leafPathToExitLength: findPath(cellOf(state.player.x, state.player.y), exitCell, (cell) => isOpen(cell) || isWavingTreePathCell(cell)).length,
         reachableLeafTreeCell: (() => {
           const player = cellOf(state.player.x, state.player.y);

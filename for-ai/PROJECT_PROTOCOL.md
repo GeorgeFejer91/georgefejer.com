@@ -6,7 +6,8 @@ After changing gameplay goals, mechanics, validation rules, assets, or deploymen
 ## Current Project Goal
 
 Build a smartphone-playable 2D fantasy maze chase game at `/einhorn-sammler/` on GeorgeFejer.com.
-The player starts as a unicorn, reaches point B, and alternates form between unicorn and princess across levels through a visible morph animation.
+The player starts as a unicorn, reaches point B on early levels, then from level 3 onward chases a roaming frog as the objective.
+The player alternates form between unicorn and princess across level transitions through a visible morph animation.
 The game is about escaping witches through a dynamic forest labyrinth.
 
 ## Hard Constraints
@@ -30,7 +31,9 @@ The game is about escaping witches through a dynamic forest labyrinth.
 ## Gameplay Rules To Preserve
 
 - The unicorn/princess moves through maze corridors toward tapped destinations.
-- Reaching B should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
+- Levels 1-2 use the old point-B objective. From level 3 onward the frog is no longer stationary at B; it walks around the maze, and catching the frog is the objective.
+- While the roaming frog objective is active, the player should visibly use the graded morph walking sprite as a proximity indicator: far from the frog reads as unicorn, close to the frog reads as princess.
+- Reaching B or catching the frog should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
 - Level forms alternate: unicorn, princess, unicorn, princess, unicorn.
 - Every level-to-level transition must use the morph sprite as a foreground travel animation from the lower-right screen quadrant toward the upper-left screen quadrant. The forms alternate every time: unicorn to princess, princess to unicorn, and so on.
 - Level-to-level form transitions and the final win transformation must stay at least 8 seconds long so the unicorn/princess morph is clearly visible on phones.
