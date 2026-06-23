@@ -54,12 +54,13 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-witch-branch-corruption-v1';
+      const assetVersion = '20260623-glowing-leaf-powerup-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
       const rawAssetBase = 'https://raw.githubusercontent.com/GeorgeFejer91/georgefejer.com/main/einhorn-sammler/';
       const levelTransitionMorphDuration = 8000;
+      const leafPowerDurationMs = 16000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
       const startCell = { c: 1, r: 1 };
@@ -339,6 +340,9 @@
         frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0),
         frogWalk: loadSprite('assets/frog-walk.png', 180, 180, 0.52, 0),
         evilFrogWalk: loadSprite('assets/evil-frog-walk.png', 180, 180, 0.52, 0)
+      };
+      const powerupSprites = {
+        leaf: loadSprite('assets/glowing-leaf-powerup.svg', 120, 120, 0.48, 29)
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
@@ -670,7 +674,7 @@
       });
 
       function allSprites() {
-        return [...Object.values(characterSprites), ...Object.values(scenerySprites)];
+        return [...Object.values(characterSprites), ...Object.values(scenerySprites), ...Object.values(powerupSprites)];
       }
 
       function requiredSprites() {
@@ -1543,6 +1547,7 @@
         canvas.dataset.frogSprites = scenerySprites.frog.ready ? 'ready' : scenerySprites.frog.failed ? 'failed' : 'loading';
         canvas.dataset.frogWalkSprite = scenerySprites.frogWalk.ready ? 'ready' : scenerySprites.frogWalk.failed ? 'failed' : 'loading';
         canvas.dataset.evilFrogWalkSprite = scenerySprites.evilFrogWalk.ready ? 'ready' : scenerySprites.evilFrogWalk.failed ? 'failed' : 'loading';
+        canvas.dataset.leafPowerupSprite = powerupSprites.leaf.ready ? 'ready' : powerupSprites.leaf.failed ? 'failed' : 'loading';
         canvas.dataset.evilTrees = String(state.evilTrees.length);
         canvas.dataset.goodTrees = String(state.goodTrees.length);
         canvas.dataset.treeOverlaps = String(movingTreeOverlapCount());
@@ -2901,7 +2906,7 @@
       function applyTreat(type) {
         const now = performance.now();
         state.activeTreat = type;
-        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'broom' ? broomFlightDurationMs() : type === 'stink' || type === 'leaf' ? 9000 : 7000);
+        state.activeUntil = now + (type === 'spark' ? 2500 : type === 'broom' ? broomFlightDurationMs() : type === 'leaf' ? leafPowerDurationMs : type === 'stink' ? 9000 : 7000);
         if (type === 'shield') state.shieldUntil = now + 7000;
         if (type === 'freeze') {
           for (const witch of activeWitches()) witch.frozenUntil = now + 3500;
@@ -2918,7 +2923,7 @@
           freeze: 'Sleep mushroom: witch slowed.',
           spark: 'Star treat: bonus magic.',
           stink: 'Rotten strawberry: stinky bubbles trail behind.',
-          leaf: 'Green leaf: waving trees become paths.',
+          leaf: 'Glowing leaf: waving trees become paths.',
           broom: 'Broomstick flight: fly over obstacles and outrun the princess.'
         }[type];
         showMessage(label, 1700);
@@ -3468,6 +3473,16 @@
         const colors = { speed: '#ffb84f', shield: '#91eaff', freeze: '#c499ff', spark: '#ffe767', stink: '#88d95b', leaf: '#9dff65', broom: '#d7a257' };
         ctx.fillStyle = colors[treat.type];
         ctx.shadowColor = colors[treat.type];
+        if (treat.type === 'leaf') {
+          ctx.save();
+          ctx.scale(pulse, pulse);
+          const drewLeaf = drawSpriteFrame(powerupSprites.leaf, 0, -1);
+          ctx.restore();
+          if (drewLeaf) {
+            ctx.restore();
+            return;
+          }
+        }
         if (treat.type === 'speed') {
           ctx.beginPath();
           ctx.moveTo(18 * pulse, 0);
@@ -5711,6 +5726,7 @@
         frogSpriteReady: scenerySprites.frog.ready,
         frogWalkSpriteReady: scenerySprites.frogWalk.ready,
         evilFrogWalkSpriteReady: scenerySprites.evilFrogWalk.ready,
+        leafPowerupSpriteReady: powerupSprites.leaf.ready,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
         witch2Path: state.witch2.path.length,

@@ -56,7 +56,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Mushrooms/freeze treats make witches passable for the player while active.
 - Rotten strawberries create green stench bubbles/fog that slow witches.
 - Rotten strawberries should be abundant on every level; they are a core tool for keeping witches under control.
-- Green leaves let the player pass through stationary waving green trees while active.
+- Green leaf power-ups use the original vector asset `glowing-leaf-powerup.svg`, should read as a luminous leaf rather than a generic green icon, and let the player pass through stationary waving green trees while active. Keep this duration meaningfully longer than ordinary short treats so players can plan routes through tree corridors.
 - Evil moving trees block the player, push the player if they move into the player, and crush/respawn the player if pushed into an obstacle.
 - Good moving trees block witches but let the player pass.
 - Moving good and evil trees must not pass through each other.
