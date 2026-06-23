@@ -38,6 +38,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - While the roaming frog objective is active, the player should visibly use the graded morph walking sprite as a proximity indicator: far from the frog reads as unicorn, close to the frog reads as princess.
 - From level 4 onward, normal rounds include the good frog target, an evil frog chasing the player, and the two witches. The evil frog catch is not an ordinary life-loss; it triggers the green witch corruption animation and starts a reversed-role round.
 - In a reversed-role round, the player form is `witch`, witches are disabled as enemies, the evil frog and good frog are inactive, and the objective becomes catching a roaming princess target. Completing that target advances the level or wins the game.
+- Reversed-role witch rounds should place broomstick power-ups. While active, broom flight lets the witch player cross all interior maze obstacles, including walls and moving tree blockers, for a limited duration.
 - Evil-frog and reversed-role logic must remain included in validation; level 4+ validation targets the good frog unless the evil frog catches the player, in which case validation must switch to the princess objective.
 - Reaching B or catching the frog should visibly transform the main character into the next form with the staged morph sprite, not a fadeover.
 - Level forms alternate: unicorn, princess, unicorn, princess, unicorn.
