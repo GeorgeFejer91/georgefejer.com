@@ -2,6 +2,7 @@
 
 Future agents must read this file before changing `einhorn-sammler/index.html`.
 After changing gameplay goals, mechanics, validation rules, assets, or deployment state, update this folder in the same commit.
+Before changing sprite sheets, also read `SPRITE_CONSISTENCY_CHECKLIST.md` and update the latest sprite audit log.
 
 ## Current Project Goal
 

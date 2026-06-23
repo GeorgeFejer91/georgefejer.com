@@ -54,7 +54,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d', { alpha: false });
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-witch-corruption-18-stage-v1';
+      const assetVersion = '20260623-sprite-consistency-v1';
       const preloadMode = 'full';
       const audioPreloadTimeoutMs = 12000;
       const spriteRequestTimeoutMs = 18000;
@@ -329,7 +329,7 @@
         unicorn: loadSprite('assets/unicorn-run.png', 220, 160, 0.42, 32, { priority: 'high' }),
         princess: loadSprite('assets/princess-run.png', 220, 230, 0.43, 30),
         morph: loadSprite('assets/unicorn-princess-morph.png', 220, 230, 0.46, 30),
-        morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30),
+        morphWalk: loadSprite('assets/unicorn-princess-morph-walk.png', 220, 230, 0.46, 30, { preferPng: true }),
         witchCorruption: loadSprite('assets/hero-witch-corruption-walk.png', 220, 230, 0.46, 30),
         greenWitch: loadSprite('assets/green-witch-run.png', 214, 190, 0.43, 35),
         witchBroom: loadSprite('assets/witch-broom-flight.png', 340, 210, 0.46, 38),
