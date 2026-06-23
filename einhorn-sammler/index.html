@@ -53,7 +53,7 @@
       const canvas = document.getElementById('world');
       const ctx = canvas.getContext('2d');
       const storageKey = 'unicornLabyrinthBest';
-      const assetVersion = '20260623-morph-walk-v1';
+      const assetVersion = '20260623-frog-walk-v1';
       const levelTransitionMorphDuration = 8000;
       const grid = { cols: 41, rows: 31, tile: 74 };
       const world = { w: grid.cols * grid.tile, h: grid.rows * grid.tile };
@@ -67,6 +67,7 @@
       const leafTreeTestMode = urlParams.has('leaftest');
       const treePushTestMode = urlParams.get('treepushtest');
       const morphTestMode = urlParams.get('morphtest');
+      const frogTestMode = urlParams.has('frogtest');
       const aiValidationMode = urlParams.has('aitest');
       const levelConfigs = [
         {
@@ -283,10 +284,12 @@
         wavingTree: loadSprite('assets/waving-tree-v2.png', 180, 180, 0.54, 0, { lazy: true }),
         evilTree: loadSprite('assets/evil-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
         goodTree: loadSprite('assets/good-tree-walk.png', 190, 190, 0.56, 0, { lazy: true }),
-        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0, { lazy: true })
+        frog: loadSprite('assets/frog-wave.png', 180, 180, 0.52, 0, { lazy: true }),
+        frogWalk: loadSprite('assets/frog-walk.png', 180, 180, 0.52, 0, { lazy: true })
       };
       const evilTreeFrameCount = 8;
       const frogFrameCount = 6;
+      const frogWalkFrameCount = 8;
       const morphFrameCount = 18;
       const morphWalkFrameCount = 8;
       const musicVariants = [
@@ -1067,6 +1070,7 @@
         canvas.dataset.evilTreeSprites = scenerySprites.evilTree.ready ? 'ready' : scenerySprites.evilTree.failed ? 'failed' : 'loading';
         canvas.dataset.goodTreeSprites = scenerySprites.goodTree.ready ? 'ready' : scenerySprites.goodTree.failed ? 'failed' : 'loading';
         canvas.dataset.frogSprites = scenerySprites.frog.ready ? 'ready' : scenerySprites.frog.failed ? 'failed' : 'loading';
+        canvas.dataset.frogWalkSprite = scenerySprites.frogWalk.ready ? 'ready' : scenerySprites.frogWalk.failed ? 'failed' : 'loading';
         canvas.dataset.evilTrees = String(state.evilTrees.length);
         canvas.dataset.goodTrees = String(state.goodTrees.length);
         canvas.dataset.treeOverlaps = String(movingTreeOverlapCount());
@@ -1199,6 +1203,13 @@
           state.activeTreat = 'leaf';
           state.activeUntil = performance.now() + 60000;
           showMessage('Green leaf test: waving trees are paths.', 2200);
+        }
+        if (frogTestMode) {
+          const b = centerOf(exitCell);
+          state.camera.x = b.x;
+          state.camera.y = b.y;
+          clampCamera();
+          showMessage('Frog walk sprite test.', 1800);
         }
         updateHud();
       }
@@ -2370,7 +2381,9 @@
       }
 
       function drawExitFrog(center, now) {
-        const sprite = scenerySprites.frog;
+        const walking = frogTestMode || state.won || levelTransitionActive(now);
+        const sprite = walking && scenerySprites.frogWalk.ready ? scenerySprites.frogWalk : scenerySprites.frog;
+        const frameCount = walking && scenerySprites.frogWalk.ready ? frogWalkFrameCount : frogFrameCount;
         const drawW = grid.tile * 1.46;
         const drawH = grid.tile * 1.46;
         ctx.save();
@@ -2379,7 +2392,7 @@
         ctx.ellipse(center.x, center.y + grid.tile * 0.25, grid.tile * 0.42, grid.tile * 0.21, 0, 0, Math.PI * 2);
         ctx.fill();
         if (sprite.ready) {
-          const frameIndex = Math.floor(now / 170) % frogFrameCount;
+          const frameIndex = Math.floor(now / 145) % frameCount;
           ctx.drawImage(
             sprite.image,
             frameIndex * sprite.frameW,
@@ -4390,6 +4403,7 @@
         evilTreeSpriteReady: scenerySprites.evilTree.ready,
         goodTreeSpriteReady: scenerySprites.goodTree.ready,
         frogSpriteReady: scenerySprites.frog.ready,
+        frogWalkSpriteReady: scenerySprites.frogWalk.ready,
         playerPath: state.player.path.length,
         witchPath: state.witch.path.length,
         witch2Path: state.witch2.path.length,

@@ -17,6 +17,7 @@ The game is about escaping witches through a dynamic forest labyrinth.
 - Keep the minimap at the bottom-left corner.
 - Do not bring back obstructive counters or large HUD panels.
 - Preserve the established committed sprite identities for unicorn, witch, princess, frog, evil tree, good tree, and waving tree.
+- The frog endpoint keeps `frog-wave.png` for normal waiting/waving and uses `frog-walk.png` as an eight-frame walking sprite for victory, transition, and frog-test rendering. Keep both derived from the same frog identity.
 - Preserve the generated morph sprite sheet. It must read as a fluid design continuum, not a crossfade: princess hair becomes mane, crown exaggerates into horn, dress collapses into unicorn body, arms/legs become hooves, tail and wings emerge, and the endpoint resolves into the in-game unicorn.
 - The in-game princess walking sprite must visually match the princess endpoint of `unicorn-princess-morph.png`. Its current `princess-run.png` sheet is derived from the pure-princess morph frames and uses 220x230 frames.
 - Morph transitions must use `unicorn-princess-morph-walk.png`, an 18 x 8 grid sprite: 18 transformation rows by 8 walking phases. The static `unicorn-princess-morph.png` remains the identity source and fallback, but visible level transitions should animate the current morph form as walking.
