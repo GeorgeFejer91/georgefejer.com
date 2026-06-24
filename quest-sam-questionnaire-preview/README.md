@@ -13,6 +13,17 @@ powershell -ExecutionPolicy Bypass -File .\tools\emotion-sam-browser-preview\Sta
 
 The preview is constrained to the workflow panel frame, `1080dp x 720dp`.
 
+The page includes two views:
+
+- the interactive preview at the top for state/export inspection;
+- the full visual storyboard below it, rendering every participant-facing panel
+  at the same `1080dp x 720dp` size with representative selected/active states.
+
+The storyboard shows onboarding, emotion induction technique placeholders 1-4,
+and each post-condition SAM, valence/arousal VAS, and Ekman VAS panel. It uses
+the bundled SAM SVG assets directly so the page contains the visual assets
+needed to recreate the native 2D panel UI.
+
 ## Native Transfer Contract
 
 The browser preview is not the product runtime. The native Android/Compose
@@ -42,6 +53,15 @@ Counterbalancing is represented as request/caller-owned state:
 - `counterbalance.order_id`
 - `counterbalance.condition_ids`
 - `condition.active_index`
+
+The intended allocation is equal across the four counterbalance orders, so the
+native study runner or caller assigns participants evenly to `order_01` through
+`order_04`.
+
+Each induction technique placeholder also includes a runtime-randomized audio
+instruction assignment. The browser preview shows representative instruction
+sets so the visual panel state is explicit; the native caller owns the actual
+random assignment and playback timing.
 
 Each condition block is represented as:
 

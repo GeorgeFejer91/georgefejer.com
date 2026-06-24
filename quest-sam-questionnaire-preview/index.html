@@ -81,10 +81,15 @@
       <section id="inductionPage" class="assessment-page induction-section" aria-labelledby="inductionHeading" hidden>
         <div class="induction-shell">
           <p class="induction-kicker" id="inductionKicker">Condition 1 of 4</p>
-          <h2 id="inductionHeading">Emotion induction condition 1</h2>
+          <h2 id="inductionHeading">Emotion induction technique 1</h2>
           <div class="induction-placeholder">
             <span id="inductionConditionLabel">Induction A</span>
             <strong>Emotion induction placeholder</strong>
+            <div class="induction-audio">
+              <small>Randomized audio instructions</small>
+              <b id="inductionAudioLabel">Audio instruction set 1</b>
+              <em id="inductionAudioSummary">Assigned at runtime for this condition.</em>
+            </div>
           </div>
           <p id="inductionSummary" class="induction-summary">The assessment block follows this condition.</p>
         </div>
@@ -147,6 +152,14 @@
       <pre id="jsonOutput" class="json-output" aria-live="polite"></pre>
     </aside>
   </main>
+
+  <section class="storyboard" aria-labelledby="storyboardHeading">
+    <div class="storyboard-heading">
+      <p class="eyebrow">Full participant-facing sequence</p>
+      <h2 id="storyboardHeading">Every panel shown in the workflow</h2>
+    </div>
+    <div id="storyboardPanels" class="storyboard-panels"></div>
+  </section>
 
   <script src="panel-preview.js"></script>
 </body>

@@ -388,6 +388,34 @@ h2 {
   font-size: 22px;
 }
 
+.induction-audio {
+  min-width: 360px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 10px 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.induction-audio small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.induction-audio b {
+  color: var(--blue-dark);
+  font-size: 15px;
+}
+
+.induction-audio em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 12px;
+}
+
 .induction-summary {
   font-size: 15px;
 }
@@ -664,6 +692,88 @@ input[type="range"] {
   font: 12px/1.35 Consolas, "Liberation Mono", monospace;
 }
 
+.storyboard {
+  padding: 0 24px 56px;
+}
+
+.storyboard-heading {
+  width: 1080px;
+  margin: 0 auto 16px;
+}
+
+.storyboard-heading h2 {
+  font-size: 24px;
+}
+
+.storyboard-panels {
+  display: grid;
+  gap: 30px;
+  justify-items: center;
+}
+
+.storyboard-item {
+  width: 1080px;
+}
+
+.storyboard-card-label {
+  display: grid;
+  grid-template-columns: 116px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.storyboard-card-label span {
+  font: 12px/1.2 Consolas, "Liberation Mono", monospace;
+  text-transform: uppercase;
+}
+
+.storyboard-card-label strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.storyboard-card-label em {
+  font-style: normal;
+  font-size: 13px;
+}
+
+.storyboard-panel-frame {
+  margin: 0;
+}
+
+.storyboard-panel-frame button,
+.storyboard-panel-frame input,
+.storyboard-panel-frame canvas {
+  pointer-events: none;
+}
+
+.storyboard-panel-frame button {
+  cursor: default;
+}
+
+.storyboard-panel-frame input[readonly] {
+  color: var(--text);
+}
+
+.story-polar-title {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.story-polar-detail {
+  margin-top: 2px;
+  color: var(--muted);
+  font: 12px/1.3 Consolas, "Liberation Mono", monospace;
+}
+
+.story-polar-diagnostic {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 @media (max-width: 1500px) {
   .workspace {
     grid-template-columns: 1080px;
@@ -671,5 +781,20 @@ input[type="range"] {
 
   .inspector {
     min-height: 0;
+  }
+}
+
+@media (max-width: 1140px) {
+  .storyboard {
+    overflow-x: auto;
+  }
+
+  .storyboard-heading {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .storyboard-panels {
+    justify-items: start;
   }
 }
