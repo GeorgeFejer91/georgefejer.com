@@ -1,0 +1,201 @@
+{
+  "panel_id": "emotion_induction_sam_preview",
+  "schema_version": 3,
+  "quest_panel_frame": {
+    "width_dp": 1080,
+    "height_dp": 720
+  },
+  "native_contract_authority": {
+    "protocol_version": "quest.questionnaire.v1",
+    "schema_id": "emotion-induction-sam-v3",
+    "open_stage": "onboarding",
+    "screen_sequence": [
+      "onboarding",
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "onboarding_required_once": true,
+    "condition_block_sequence": [
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "condition_assessment_sequence": [
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "repeated_after_each_condition": true,
+    "result_owner": "caller-owned content URI"
+  },
+  "onboarding": {
+    "polar_validation": {
+      "source": "browser_visual_preview",
+      "state": "ready",
+      "ready": true,
+      "detected": true,
+      "connected": true,
+      "streaming": true,
+      "pmd_ready": true,
+      "ecg_streaming": true,
+      "heart_rate_bpm": 72,
+      "rr_interval_count": 8,
+      "ecg_sample_count": 180,
+      "pmd_frame_count": 12,
+      "requested_mtu": 23,
+      "negotiated_mtu": 23,
+      "ecg_sample_rate_hz": 130,
+      "ecg_resolution_bits": 14,
+      "pmd_control_point_indications_enabled": true,
+      "pmd_data_notifications_enabled": true,
+      "pmd_settings_received": true,
+      "pmd_start_response_received": true,
+      "diagnostic": "PMD ready | ECG streaming | MTU 23/23",
+      "native_ready_rule": "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
+    },
+    "language_code": "en",
+    "participant_name": "",
+    "age_years": null,
+    "handedness": "",
+    "gender": "",
+    "consent_text": "I consent to participate in this study.",
+    "signature": {
+      "has_signature": false,
+      "stroke_count": 0,
+      "strokes": []
+    },
+    "complete": false
+  },
+  "counterbalance": {
+    "order_id": "order_01",
+    "condition_ids": [
+      "induction_a",
+      "induction_b",
+      "induction_d",
+      "induction_c"
+    ],
+    "editable_in_preview": true,
+    "editable_in_native_panel": false
+  },
+  "active_panel_page_id": "onboarding",
+  "active_condition_position": 1,
+  "active_condition_id": "induction_a",
+  "active_assessment_page_id": "sam_pictographic",
+  "responses_by_condition": [
+    {
+      "condition_position": 1,
+      "condition_id": "induction_a",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 5,
+          "arousal_raw_1_9": 5
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 50,
+          "arousal_raw_0_100": 50
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 0,
+          "fear_raw_0_100": 0,
+          "happiness_raw_0_100": 0,
+          "sadness_raw_0_100": 0,
+          "surprise_raw_0_100": 0
+        },
+        "page_complete": {
+          "sam_pictographic": false,
+          "affect_vas": false,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    },
+    {
+      "condition_position": 2,
+      "condition_id": "induction_b",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 5,
+          "arousal_raw_1_9": 5
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 50,
+          "arousal_raw_0_100": 50
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 0,
+          "fear_raw_0_100": 0,
+          "happiness_raw_0_100": 0,
+          "sadness_raw_0_100": 0,
+          "surprise_raw_0_100": 0
+        },
+        "page_complete": {
+          "sam_pictographic": false,
+          "affect_vas": false,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    },
+    {
+      "condition_position": 3,
+      "condition_id": "induction_d",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 5,
+          "arousal_raw_1_9": 5
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 50,
+          "arousal_raw_0_100": 50
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 0,
+          "fear_raw_0_100": 0,
+          "happiness_raw_0_100": 0,
+          "sadness_raw_0_100": 0,
+          "surprise_raw_0_100": 0
+        },
+        "page_complete": {
+          "sam_pictographic": false,
+          "affect_vas": false,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    },
+    {
+      "condition_position": 4,
+      "condition_id": "induction_c",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 5,
+          "arousal_raw_1_9": 5
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 50,
+          "arousal_raw_0_100": 50
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 0,
+          "fear_raw_0_100": 0,
+          "happiness_raw_0_100": 0,
+          "sadness_raw_0_100": 0,
+          "surprise_raw_0_100": 0
+        },
+        "page_complete": {
+          "sam_pictographic": false,
+          "affect_vas": false,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    }
+  ]
+}

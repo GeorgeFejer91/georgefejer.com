@@ -1,0 +1,238 @@
+{
+  "panel_id": "emotion_induction_sam_preview",
+  "schema_version": 3,
+  "quest_panel_frame": {
+    "width_dp": 1080,
+    "height_dp": 720
+  },
+  "native_contract_authority": {
+    "protocol_version": "quest.questionnaire.v1",
+    "schema_id": "emotion-induction-sam-v3",
+    "open_stage": "onboarding",
+    "screen_sequence": [
+      "onboarding",
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "onboarding_required_once": true,
+    "condition_block_sequence": [
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "condition_assessment_sequence": [
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "repeated_after_each_condition": true,
+    "result_owner": "caller-owned content URI"
+  },
+  "onboarding": {
+    "polar_validation": {
+      "source": "browser_visual_preview",
+      "state": "ecg_streaming",
+      "ready": false,
+      "detected": true,
+      "connected": true,
+      "streaming": true,
+      "pmd_ready": true,
+      "ecg_streaming": true,
+      "heart_rate_bpm": 72,
+      "rr_interval_count": 8,
+      "ecg_sample_count": 0,
+      "pmd_frame_count": 12,
+      "requested_mtu": 23,
+      "negotiated_mtu": 23,
+      "ecg_sample_rate_hz": 130,
+      "ecg_resolution_bits": 14,
+      "pmd_control_point_indications_enabled": true,
+      "pmd_data_notifications_enabled": true,
+      "pmd_settings_received": true,
+      "pmd_start_response_received": true,
+      "diagnostic": "ECG stream waiting for samples",
+      "native_ready_rule": "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
+    },
+    "language_code": "de",
+    "participant_name": "Preview Participant",
+    "age_years": 29,
+    "handedness": "left",
+    "gender": "prefer_not_to_say",
+    "consent_text": "I consent to participate in this study.",
+    "signature": {
+      "has_signature": true,
+      "stroke_count": 2,
+      "strokes": [
+        [
+          {
+            "x": 0.12,
+            "y": 0.62
+          },
+          {
+            "x": 0.24,
+            "y": 0.45
+          },
+          {
+            "x": 0.36,
+            "y": 0.58
+          },
+          {
+            "x": 0.48,
+            "y": 0.38
+          }
+        ],
+        [
+          {
+            "x": 0.54,
+            "y": 0.62
+          },
+          {
+            "x": 0.65,
+            "y": 0.48
+          },
+          {
+            "x": 0.78,
+            "y": 0.54
+          },
+          {
+            "x": 0.88,
+            "y": 0.42
+          }
+        ]
+      ]
+    },
+    "complete": false
+  },
+  "counterbalance": {
+    "order_id": "order_04",
+    "condition_ids": [
+      "induction_d",
+      "induction_a",
+      "induction_c",
+      "induction_b"
+    ],
+    "editable_in_preview": true,
+    "editable_in_native_panel": false
+  },
+  "active_panel_page_id": "onboarding",
+  "active_condition_position": 4,
+  "active_condition_id": "induction_b",
+  "active_assessment_page_id": "ekman_intensity",
+  "responses_by_condition": [
+    {
+      "condition_position": 1,
+      "condition_id": "induction_d",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    },
+    {
+      "condition_position": 2,
+      "condition_id": "induction_a",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    },
+    {
+      "condition_position": 3,
+      "condition_id": "induction_c",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    },
+    {
+      "condition_position": 4,
+      "condition_id": "induction_b",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 1,
+          "arousal_raw_1_9": 9
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 0,
+          "arousal_raw_0_100": 100
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 20,
+          "fear_raw_0_100": 40,
+          "happiness_raw_0_100": 60,
+          "sadness_raw_0_100": 80,
+          "surprise_raw_0_100": 100
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emotion SAM Panel Preview</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="workspace">
+    <section class="panel-frame" aria-label="Quest questionnaire panel preview">
+      <header class="panel-header">
+        <div>
+          <p class="eyebrow" id="conditionStatus">Condition 1 of 4</p>
+          <h1 id="pageTitle">Self-assessment manikin</h1>
+        </div>
+        <div class="header-chips">
+          <div class="stage-chip" id="conditionLabel">Induction A</div>
+          <div class="page-chip" id="pageLabel">SAM</div>
+        </div>
+      </header>
+
+      <section id="onboardingPage" class="assessment-page onboarding-section" aria-labelledby="onboardingHeading">
+        <div id="polarStatusCard" class="polar-status ready">
+          <div class="polar-status-main">
+            <span class="status-lamp" aria-hidden="true"></span>
+            <div>
+              <p id="polarStatusTitle">Polar H10 ECG ready</p>
+              <p id="polarSignalDetail">HR 72 bpm | RR 8 | ECG 180 samples @ 130 Hz</p>
+              <p id="polarDiagnostic">PMD ready | ECG streaming | MTU 23/23</p>
+            </div>
+          </div>
+          <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="ECG waveform preview"></canvas>
+        </div>
+
+        <div class="section-title onboarding-title">
+          <h2 id="onboardingHeading">Participant onboarding</h2>
+          <span>Required before condition 1</span>
+        </div>
+
+        <div class="onboarding-grid">
+          <div class="onboarding-column">
+            <div class="field-group">
+              <label>Language</label>
+              <div id="languageOptions" class="option-group two-options"></div>
+            </div>
+
+            <div class="field-row">
+              <label for="participantName">Name</label>
+              <input id="participantName" type="text" autocomplete="off" inputmode="text">
+            </div>
+
+            <div class="field-row compact">
+              <label for="participantAge">Age</label>
+              <input id="participantAge" type="number" min="0" max="120" step="1" inputmode="numeric">
+            </div>
+
+            <div class="field-group">
+              <label>Handedness</label>
+              <div id="handednessOptions" class="option-group four-options"></div>
+            </div>
+
+            <div class="field-group">
+              <label>Gender</label>
+              <div id="genderOptions" class="option-group four-options"></div>
+            </div>
+          </div>
+
+          <div class="onboarding-column consent-column">
+            <div class="consent-text" id="consentText">I consent to participate in this study.</div>
+            <div class="signature-header">
+              <label for="signaturePad">Signature</label>
+              <button id="clearSignature" class="secondary-button small-button" type="button">Clear</button>
+            </div>
+            <canvas id="signaturePad" class="signature-pad" width="440" height="160" aria-label="Consent signature pad"></canvas>
+            <p id="signatureSummary" class="signature-summary">No signature captured</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="inductionPage" class="assessment-page induction-section" aria-labelledby="inductionHeading" hidden>
+        <div class="induction-shell">
+          <p class="induction-kicker" id="inductionKicker">Condition 1 of 4</p>
+          <h2 id="inductionHeading">Emotion induction condition 1</h2>
+          <div class="induction-placeholder">
+            <span id="inductionConditionLabel">Induction A</span>
+            <strong>Emotion induction placeholder</strong>
+          </div>
+          <p id="inductionSummary" class="induction-summary">The assessment block follows this condition.</p>
+        </div>
+      </section>
+
+      <section id="samPage" class="assessment-page sam-section" aria-labelledby="samHeading" hidden>
+        <div class="section-title">
+          <h2 id="samHeading">Self-assessment manikin</h2>
+          <span id="samCompletion">9-point pictographic</span>
+        </div>
+        <div id="samRows" class="sam-rows"></div>
+      </section>
+
+      <section id="vasPage" class="assessment-page slider-section" aria-labelledby="sliderHeading" hidden>
+        <div class="section-title">
+          <h2 id="sliderHeading">Valence and arousal</h2>
+          <span>0-100 visual analog scale</span>
+        </div>
+        <div id="sliderRows" class="vas-slider-rows"></div>
+      </section>
+
+      <section id="ekmanPage" class="assessment-page ekman-section" aria-labelledby="ekmanHeading" hidden>
+        <div class="section-title">
+          <h2 id="ekmanHeading">Ekman emotion intensity</h2>
+          <span>0-100 visual analog scale</span>
+        </div>
+        <p class="page-instruction">Rate the degree to which each emotion was felt during the previous experience.</p>
+        <div id="ekmanSliderRows" class="ekman-slider-grid"></div>
+      </section>
+
+      <footer class="panel-footer">
+        <div>
+          <p class="footer-label" id="pageCounter">Page 1 of 3</p>
+          <p id="validationSummary" class="footer-status">Complete</p>
+        </div>
+        <div class="footer-actions">
+          <button id="previousPage" class="secondary-button" type="button">Back</button>
+          <button id="nextPage" class="primary-button" type="button">Continue</button>
+        </div>
+      </footer>
+    </section>
+
+    <aside class="inspector" aria-label="Preview state controls">
+      <h2>Preview controls</h2>
+      <label for="orderSelect">Counterbalance order</label>
+      <select id="orderSelect"></select>
+
+      <label>Active condition</label>
+      <div id="conditionButtons" class="condition-buttons"></div>
+
+      <label>Workflow page</label>
+      <div id="pageButtons" class="page-buttons"></div>
+
+      <div class="inspector-grid">
+        <button id="loadDefault" type="button">Default</button>
+        <button id="loadEdge" type="button">Edge case</button>
+      </div>
+
+      <button id="exportState" class="secondary-button" type="button">Export JSON</button>
+      <pre id="jsonOutput" class="json-output" aria-live="polite"></pre>
+    </aside>
+  </main>
+
+  <script src="panel-preview.js"></script>
+</body>
+</html>
