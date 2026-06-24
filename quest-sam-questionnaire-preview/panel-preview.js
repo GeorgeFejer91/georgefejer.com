@@ -1303,6 +1303,8 @@ function renderSamRows() {
       button.type = "button";
       button.className = "sam-choice";
       button.id = `sam.${row.id}.${score}`;
+      button.dataset.samField = row.field;
+      button.dataset.samScore = String(score);
       button.setAttribute("aria-label", `${row.label} ${score}`);
       button.setAttribute("aria-pressed", String(assessment.sam[row.field] === score));
 
@@ -1316,11 +1318,6 @@ function renderSamRows() {
 
       button.appendChild(img);
       button.appendChild(number);
-      button.addEventListener("click", () => {
-        assessment.sam[row.field] = score;
-        markPageDirty("sam_pictographic");
-        render();
-      });
       options.appendChild(button);
     }
     container.appendChild(options);
@@ -1883,6 +1880,22 @@ elements.participantAge.addEventListener("input", () => {
   state.onboarding.complete = false;
   renderValidation();
   renderExport();
+});
+
+elements.samRows.addEventListener("click", (event) => {
+  const button = event.target.closest(".sam-choice");
+  if (!button || !elements.samRows.contains(button)) {
+    return;
+  }
+  const field = button.dataset.samField;
+  const score = Number.parseInt(button.dataset.samScore || "", 10);
+  if (!field || !isIntegerInRange(score, 1, 9)) {
+    return;
+  }
+  const assessment = activeAssessment();
+  assessment.sam[field] = score;
+  markPageDirty("sam_pictographic");
+  render();
 });
 
 elements.signaturePad.addEventListener("pointerdown", (event) => {
