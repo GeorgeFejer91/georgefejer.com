@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spatial Frame of Reference Questionnaire</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111111;
+      --muted: #5d6570;
+      --line: #d9dde3;
+      --paper: #ffffff;
+      --backdrop: #f3f5f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--backdrop);
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--ink);
+      border-radius: 4px;
+      background: var(--ink);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .button.secondary {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .viewer {
+      width: 100%;
+      min-height: calc(100vh - 136px);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 136px);
+      min-height: 620px;
+      border: 0;
+      background: var(--paper);
+    }
+
+    @media (max-width: 760px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      iframe {
+        height: calc(100vh - 204px);
+        min-height: 520px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Spatial Frame of Reference Questionnaire</h1>
+        <p>Two-page A4 landscape PDF for Block 1 and Block 2.</p>
+      </div>
+      <nav class="actions" aria-label="PDF actions">
+        <a class="button" href="spatial_frame_of_reference_questionnaire_blocks.pdf">Open PDF</a>
+        <a class="button secondary" href="spatial_frame_of_reference_questionnaire_blocks.pdf" download>Download</a>
+      </nav>
+    </header>
+    <section class="viewer" aria-label="PDF preview">
+      <iframe title="Spatial Frame of Reference Questionnaire PDF" src="spatial_frame_of_reference_questionnaire_blocks.pdf"></iframe>
+    </section>
+  </main>
+</body>
+</html>
