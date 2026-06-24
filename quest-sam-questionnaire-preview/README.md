@@ -74,11 +74,12 @@ The induction placeholder is not a participant response page. It marks where
 the native Quest app or caller-owned experiment runtime presents condition 1-4
 induction content before the assessment block.
 
-The participant assessment sequence repeats after every condition:
+The participant assessment sequence repeats after every condition as one
+three-page assessment block:
 
-1. `sam_pictographic`: 9-picture SAM valence and arousal ratings.
-2. `affect_vas`: valence and arousal visual analog scale sliders.
-3. `ekman_intensity`: Ekman emotion intensity visual analog scale sliders.
+1. `sam_pictographic`: SAM valence and arousal on the 9-picture manikin.
+2. `affect_vas`: valence and arousal on independent 0-100 VAS sliders.
+3. `ekman_intensity`: each Ekman emotion on an independent 0-100 VAS slider.
 
 The participant assessment block records:
 

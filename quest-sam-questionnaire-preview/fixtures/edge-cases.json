@@ -379,7 +379,7 @@
     },
     {
       "id": "sam_pictographic",
-      "title": "Self-assessment manikin",
+      "title": "SAM: valence and arousal",
       "groups": [
         {
           "id": "sam",
@@ -392,7 +392,7 @@
     },
     {
       "id": "affect_vas",
-      "title": "Valence and arousal visual analog scales",
+      "title": "Valence and arousal VAS",
       "groups": [
         {
           "id": "affect_vas",
@@ -405,7 +405,7 @@
     },
     {
       "id": "ekman_intensity",
-      "title": "Ekman emotion intensity visual analog scales",
+      "title": "Ekman emotion VAS",
       "groups": [
         {
           "id": "ekman_intensity",
@@ -517,6 +517,8 @@
         "condition_position": null,
         "condition_id": null,
         "audio_instruction_id": null,
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
         "title": "Onboarding"
       },
       {
@@ -525,6 +527,8 @@
         "condition_position": 1,
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
         "title": "Technique 1: induction"
       },
       {
@@ -533,6 +537,8 @@
         "condition_position": 1,
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
         "title": "Condition 1: SAM"
       },
       {
@@ -541,6 +547,8 @@
         "condition_position": 1,
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
         "title": "Condition 1: VAS"
       },
       {
@@ -549,6 +557,8 @@
         "condition_position": 1,
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
         "title": "Condition 1: Ekman"
       },
       {
@@ -557,6 +567,8 @@
         "condition_position": 2,
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
         "title": "Technique 2: induction"
       },
       {
@@ -565,6 +577,8 @@
         "condition_position": 2,
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
         "title": "Condition 2: SAM"
       },
       {
@@ -573,6 +587,8 @@
         "condition_position": 2,
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
         "title": "Condition 2: VAS"
       },
       {
@@ -581,6 +597,8 @@
         "condition_position": 2,
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
         "title": "Condition 2: Ekman"
       },
       {
@@ -589,6 +607,8 @@
         "condition_position": 3,
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
         "title": "Technique 3: induction"
       },
       {
@@ -597,6 +617,8 @@
         "condition_position": 3,
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
         "title": "Condition 3: SAM"
       },
       {
@@ -605,6 +627,8 @@
         "condition_position": 3,
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
         "title": "Condition 3: VAS"
       },
       {
@@ -613,6 +637,8 @@
         "condition_position": 3,
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
         "title": "Condition 3: Ekman"
       },
       {
@@ -621,6 +647,8 @@
         "condition_position": 4,
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
         "title": "Technique 4: induction"
       },
       {
@@ -629,6 +657,8 @@
         "condition_position": 4,
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
         "title": "Condition 4: SAM"
       },
       {
@@ -637,6 +667,8 @@
         "condition_position": 4,
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
         "title": "Condition 4: VAS"
       },
       {
@@ -645,6 +677,8 @@
         "condition_position": 4,
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
         "title": "Condition 4: Ekman"
       }
     ]
@@ -675,103 +709,171 @@
   "expanded_preview_sequence": [
     {
       "stage": "onboarding",
-      "page_id": "onboarding"
+      "page_id": "onboarding",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "condition_position": 1,
       "condition_id": "induction_d",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "emotion_induction_placeholder"
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "condition_position": 1,
       "condition_id": "induction_d",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "sam_pictographic"
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "condition_1_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "SAM valence and arousal pictographic rating"
     },
     {
       "condition_position": 1,
       "condition_id": "induction_d",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "affect_vas"
+      "page_id": "affect_vas",
+      "assessment_block_id": "condition_1_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Valence and arousal visual analog scales 0-100"
     },
     {
       "condition_position": 1,
       "condition_id": "induction_d",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "ekman_intensity"
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "condition_1_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Ekman emotion intensity visual analog scales 0-100"
     },
     {
       "condition_position": 2,
       "condition_id": "induction_a",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "emotion_induction_placeholder"
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "condition_position": 2,
       "condition_id": "induction_a",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "sam_pictographic"
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "condition_2_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "SAM valence and arousal pictographic rating"
     },
     {
       "condition_position": 2,
       "condition_id": "induction_a",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "affect_vas"
+      "page_id": "affect_vas",
+      "assessment_block_id": "condition_2_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Valence and arousal visual analog scales 0-100"
     },
     {
       "condition_position": 2,
       "condition_id": "induction_a",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "ekman_intensity"
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "condition_2_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Ekman emotion intensity visual analog scales 0-100"
     },
     {
       "condition_position": 3,
       "condition_id": "induction_c",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "emotion_induction_placeholder"
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "condition_position": 3,
       "condition_id": "induction_c",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "sam_pictographic"
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "condition_3_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "SAM valence and arousal pictographic rating"
     },
     {
       "condition_position": 3,
       "condition_id": "induction_c",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "affect_vas"
+      "page_id": "affect_vas",
+      "assessment_block_id": "condition_3_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Valence and arousal visual analog scales 0-100"
     },
     {
       "condition_position": 3,
       "condition_id": "induction_c",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "ekman_intensity"
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "condition_3_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Ekman emotion intensity visual analog scales 0-100"
     },
     {
       "condition_position": 4,
       "condition_id": "induction_b",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "emotion_induction_placeholder"
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "condition_position": 4,
       "condition_id": "induction_b",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "sam_pictographic"
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "condition_4_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "SAM valence and arousal pictographic rating"
     },
     {
       "condition_position": 4,
       "condition_id": "induction_b",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "affect_vas"
+      "page_id": "affect_vas",
+      "assessment_block_id": "condition_4_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Valence and arousal visual analog scales 0-100"
     },
     {
       "condition_position": 4,
       "condition_id": "induction_b",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "ekman_intensity"
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "condition_4_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Ekman emotion intensity visual analog scales 0-100"
     }
   ],
   "counterbalance": {

@@ -31,20 +31,23 @@ const ASSESSMENT_PAGES = [
   {
     id: "sam_pictographic",
     label: "SAM",
-    title: "Self-assessment manikin",
-    summary: "Page 1 of 3"
+    title: "SAM: valence and arousal",
+    summary: "Assessment block page 1 of 3",
+    block_group: "SAM valence and arousal pictographic rating"
   },
   {
     id: "affect_vas",
     label: "VAS",
-    title: "Valence and arousal",
-    summary: "Page 2 of 3"
+    title: "Valence and arousal VAS",
+    summary: "Assessment block page 2 of 3",
+    block_group: "Valence and arousal visual analog scales 0-100"
   },
   {
     id: "ekman_intensity",
     label: "Ekman",
-    title: "Ekman emotion intensity",
-    summary: "Page 3 of 3"
+    title: "Ekman emotion VAS",
+    summary: "Assessment block page 3 of 3",
+    block_group: "Ekman emotion intensity visual analog scales 0-100"
   }
 ];
 
@@ -579,6 +582,11 @@ function activePageIndex() {
 
 function activePage() {
   return ASSESSMENT_PAGES[activePageIndex()];
+}
+
+function assessmentPageNumber(pageId) {
+  const index = ASSESSMENT_PAGES.findIndex((page) => page.id === pageId);
+  return index >= 0 ? index + 1 : null;
 }
 
 function conditionLabelFor(id) {
@@ -1168,7 +1176,7 @@ function samStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page sam-section">
       <div class="section-title">
-        <h2>Self-assessment manikin</h2>
+        <h2>SAM: valence and arousal</h2>
         <span>9-point pictographic</span>
       </div>
       <div class="sam-rows">
@@ -1201,7 +1209,7 @@ function vasStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page slider-section">
       <div class="section-title">
-        <h2>Valence and arousal</h2>
+        <h2>Valence and arousal VAS</h2>
         <span>0-100 visual analog scale</span>
       </div>
       <div class="vas-slider-rows">
@@ -1224,7 +1232,7 @@ function ekmanStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page ekman-section">
       <div class="section-title">
-        <h2>Ekman emotion intensity</h2>
+        <h2>Ekman emotion VAS</h2>
         <span>0-100 visual analog scale</span>
       </div>
       <p class="page-instruction">Rate the degree to which each emotion was felt during the previous experience.</p>
@@ -1650,21 +1658,21 @@ function pageGroups() {
     },
     {
       id: "sam_pictographic",
-      title: "Self-assessment manikin",
+      title: "SAM: valence and arousal",
       groups: [
         { id: "sam", fields: ["sam.valence_raw_1_9", "sam.arousal_raw_1_9"] }
       ]
     },
     {
       id: "affect_vas",
-      title: "Valence and arousal visual analog scales",
+      title: "Valence and arousal VAS",
       groups: [
         { id: "affect_vas", fields: ["vas.valence_raw_0_100", "vas.arousal_raw_0_100"] }
       ]
     },
     {
       id: "ekman_intensity",
-      title: "Ekman emotion intensity visual analog scales",
+      title: "Ekman emotion VAS",
       groups: [
         { id: "ekman_intensity", fields: EKMAN_EMOTIONS.map((emotion) => `ekman_intensity.${ekmanFieldId(emotion.id)}`) }
       ]
@@ -1678,15 +1686,30 @@ function conditionBlockSequence() {
 
 function expandedPreviewSequence(order = activeOrder()) {
   return [
-    { stage: "onboarding", page_id: "onboarding" },
+    {
+      stage: "onboarding",
+      page_id: "onboarding",
+      assessment_block_id: null,
+      assessment_block_page: null,
+      assessment_block_page_count: null,
+      assessment_block_group: null
+    },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
-      return conditionBlockSequence().map((pageId) => ({
-        condition_position: conditionPosition,
-        condition_id: conditionId,
-        audio_instruction_id: audioInstructionFor(conditionPosition).id,
-        page_id: pageId
-      }));
+      return conditionBlockSequence().map((pageId) => {
+        const pageNumber = assessmentPageNumber(pageId);
+        const page = ASSESSMENT_PAGES.find((candidate) => candidate.id === pageId);
+        return {
+          condition_position: conditionPosition,
+          condition_id: conditionId,
+          audio_instruction_id: audioInstructionFor(conditionPosition).id,
+          page_id: pageId,
+          assessment_block_id: pageNumber ? `condition_${conditionPosition}_assessment_block` : null,
+          assessment_block_page: pageNumber,
+          assessment_block_page_count: pageNumber ? ASSESSMENT_PAGES.length : null,
+          assessment_block_group: page ? page.block_group : null
+        };
+      });
     })
   ];
 }
@@ -1716,6 +1739,8 @@ function visualStoryboardExport(order = activeOrder()) {
       condition_position: item.condition_position || null,
       condition_id: item.condition_id || null,
       audio_instruction_id: item.condition_position ? audioInstructionFor(item.condition_position).id : null,
+      assessment_block_page: assessmentPageNumber(item.page_id),
+      assessment_block_page_count: assessmentPageNumber(item.page_id) ? ASSESSMENT_PAGES.length : null,
       title: item.storyboard_title
     }))
   };
