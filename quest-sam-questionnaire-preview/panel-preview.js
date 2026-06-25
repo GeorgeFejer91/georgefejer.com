@@ -7,10 +7,10 @@ const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
 
 const CONDITIONS = [
-  { id: "induction_a", label: "Induction A" },
-  { id: "induction_b", label: "Induction B" },
-  { id: "induction_c", label: "Induction C" },
-  { id: "induction_d", label: "Induction D" }
+  { id: "induction_a", label: "Condition A" },
+  { id: "induction_b", label: "Condition B" },
+  { id: "induction_c", label: "Condition C" },
+  { id: "induction_d", label: "Condition D" }
 ];
 
 const COUNTERBALANCE_ORDERS = [
@@ -30,22 +30,22 @@ const AUDIO_INSTRUCTION_SETS = [
 const ASSESSMENT_PAGES = [
   {
     id: "sam_pictographic",
-    label: "SAM",
-    title: "SAM: valence and arousal",
+    label: "1/3",
+    title: "How did you feel?",
     summary: "Assessment block page 1 of 3",
     block_group: "SAM valence and arousal pictographic rating"
   },
   {
     id: "affect_vas",
-    label: "VAS",
-    title: "Valence and arousal VAS",
+    label: "2/3",
+    title: "Rate how you felt",
     summary: "Assessment block page 2 of 3",
     block_group: "Valence and arousal visual analog scales 0-100"
   },
   {
     id: "ekman_intensity",
-    label: "Ekman",
-    title: "Ekman emotion VAS",
+    label: "3/3",
+    title: "Rate each feeling",
     summary: "Assessment block page 3 of 3",
     block_group: "Ekman emotion intensity visual analog scales 0-100"
   }
@@ -53,9 +53,9 @@ const ASSESSMENT_PAGES = [
 
 const INDUCTION_PAGE = {
   id: "emotion_induction_placeholder",
-  label: "Induct",
-  title: "Emotion induction",
-  summary: "Induction placeholder"
+  label: "Instructions",
+  title: "Block instructions",
+  summary: "Instructions"
 };
 
 const WORKFLOW_PAGES = [
@@ -544,6 +544,7 @@ const elements = {
   loadEdge: document.getElementById("loadEdge"),
   exportState: document.getElementById("exportState"),
   jsonOutput: document.getElementById("jsonOutput"),
+  inspector: document.querySelector(".inspector"),
   storyboardPanels: document.getElementById("storyboardPanels")
 };
 
@@ -704,21 +705,19 @@ function renderPageButtons() {
 
 function renderHeader() {
   if (isOnboardingActive()) {
-    elements.conditionStatus.textContent = "Before condition 1 - onboarding";
-    elements.conditionLabel.textContent = "Study setup";
+    elements.conditionStatus.textContent = "Before block 1";
+    elements.conditionLabel.textContent = "Setup";
     elements.pageLabel.textContent = "Setup";
-    elements.pageTitle.textContent = "Participant onboarding";
+    elements.pageTitle.textContent = "Before we begin";
     elements.pageCounter.textContent = "Onboarding";
     return;
   }
   if (isInductionActive()) {
-    const conditionId = activeConditionId();
-    const label = conditionLabelFor(conditionId);
-    elements.conditionStatus.textContent = `Condition ${state.active_condition_position} of 4 - induction`;
-    elements.conditionLabel.textContent = label;
-    elements.pageLabel.textContent = "Induct";
-    elements.pageTitle.textContent = `Emotion induction technique ${state.active_condition_position}`;
-    elements.pageCounter.textContent = `Condition ${state.active_condition_position} induction`;
+    elements.conditionStatus.textContent = `Block ${state.active_condition_position} of 4`;
+    elements.conditionLabel.textContent = `Block ${state.active_condition_position}`;
+    elements.pageLabel.textContent = "Instructions";
+    elements.pageTitle.textContent = `Block ${state.active_condition_position} instructions`;
+    elements.pageCounter.textContent = `Block ${state.active_condition_position}`;
     return;
   }
   const conditionId = activeConditionId();
@@ -726,8 +725,8 @@ function renderHeader() {
   const page = activePage();
   response.assigned_position = state.active_condition_position;
   response.preview_condition_label = conditionLabelFor(conditionId);
-  elements.conditionStatus.textContent = `Condition ${state.active_condition_position} of 4 - ${page.summary}`;
-  elements.conditionLabel.textContent = conditionLabelFor(conditionId);
+  elements.conditionStatus.textContent = `Block ${state.active_condition_position} of 4 - ${page.summary}`;
+  elements.conditionLabel.textContent = `Block ${state.active_condition_position}`;
   elements.pageLabel.textContent = page.label;
   elements.pageTitle.textContent = page.title;
   elements.pageCounter.textContent = page.summary;
@@ -819,15 +818,12 @@ function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect
 }
 
 function renderInductionPlaceholder() {
-  const conditionId = activeConditionId();
-  const label = conditionLabelFor(conditionId);
-  const audio = audioInstructionFor(state.active_condition_position);
-  elements.inductionKicker.textContent = `Condition ${state.active_condition_position} of 4`;
-  elements.inductionHeading.textContent = `Emotion induction technique ${state.active_condition_position}`;
-  elements.inductionConditionLabel.textContent = label;
-  elements.inductionAudioLabel.textContent = audio.label;
-  elements.inductionAudioSummary.textContent = "Assigned at runtime for this condition.";
-  elements.inductionSummary.textContent = "The SAM, valence/arousal VAS, and Ekman intensity block follows this condition.";
+  elements.inductionKicker.textContent = `Block ${state.active_condition_position} of 4`;
+  elements.inductionHeading.textContent = `Block ${state.active_condition_position} instructions`;
+  elements.inductionConditionLabel.textContent = `Block ${state.active_condition_position}`;
+  elements.inductionAudioLabel.textContent = "Audio ready";
+  elements.inductionAudioSummary.textContent = "Please follow the instructions.";
+  elements.inductionSummary.textContent = "A short response section follows.";
 }
 
 function storyboardItems(order = activeOrder()) {
@@ -835,7 +831,7 @@ function storyboardItems(order = activeOrder()) {
     {
       page_id: "onboarding",
       storyboard_title: "Onboarding",
-      storyboard_subtitle: "Study setup before condition 1"
+      storyboard_subtitle: "Before block 1"
     },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
@@ -844,15 +840,15 @@ function storyboardItems(order = activeOrder()) {
           page_id: INDUCTION_PAGE.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: `Technique ${conditionPosition}: induction`,
-          storyboard_subtitle: `${conditionLabelFor(conditionId)} - randomized audio instruction`
+          storyboard_title: `Block ${conditionPosition}: instructions`,
+          storyboard_subtitle: "Audio instructions assigned in background"
         },
         ...ASSESSMENT_PAGES.map((page, pageIndex) => ({
           page_id: page.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: `Condition ${conditionPosition}: ${page.label}`,
-          storyboard_subtitle: `${conditionLabelFor(conditionId)} - assessment block page ${pageIndex + 1} of 3`
+          storyboard_title: `Block ${conditionPosition}: page ${pageIndex + 1} of 3`,
+          storyboard_subtitle: `Response section page ${pageIndex + 1} of 3`
         }))
       ];
     })
@@ -1014,10 +1010,10 @@ function storyboardPanelMeta(item) {
     const onboarding = storyboardOnboardingState();
     const errors = onboardingValidationErrors(onboarding);
     return {
-      conditionStatus: "Before condition 1 - onboarding",
-      conditionLabel: "Study setup",
+      conditionStatus: "Before block 1",
+      conditionLabel: "Setup",
       pageLabel: "Setup",
-      pageTitle: "Participant onboarding",
+      pageTitle: "Before we begin",
       pageCounter: "Onboarding",
       footerStatus: errors.length > 0 ? errors[0] : "Ready to begin",
       footerError: errors.length > 0,
@@ -1027,19 +1023,18 @@ function storyboardPanelMeta(item) {
     };
   }
 
-  const conditionLabel = conditionLabelFor(item.condition_id);
   if (item.page_id === INDUCTION_PAGE.id) {
     return {
-      conditionStatus: `Condition ${item.condition_position} of 4 - induction`,
-      conditionLabel,
-      pageLabel: "Induct",
-      pageTitle: `Emotion induction technique ${item.condition_position}`,
-      pageCounter: `Condition ${item.condition_position} induction`,
-      footerStatus: "Ready to begin assessment block",
+      conditionStatus: `Block ${item.condition_position} of 4`,
+      conditionLabel: `Block ${item.condition_position}`,
+      pageLabel: "Instructions",
+      pageTitle: `Block ${item.condition_position} instructions`,
+      pageCounter: `Block ${item.condition_position}`,
+      footerStatus: "Ready to continue",
       footerError: false,
       backDisabled: false,
       nextDisabled: false,
-      nextText: "Begin assessment block"
+      nextText: "Continue"
     };
   }
 
@@ -1049,8 +1044,8 @@ function storyboardPanelMeta(item) {
   const pageIsComplete = assessment.page_complete[page.id];
   const isFinalAssessmentPage = page.id === "ekman_intensity";
   return {
-    conditionStatus: `Condition ${item.condition_position} of 4 - ${page.summary}`,
-    conditionLabel,
+    conditionStatus: `Block ${item.condition_position} of 4 - ${page.summary}`,
+    conditionLabel: `Block ${item.condition_position}`,
     pageLabel: page.label,
     pageTitle: page.title,
     pageCounter: page.summary,
@@ -1107,8 +1102,8 @@ function onboardingStoryboardMarkup() {
       </div>
 
       <div class="section-title onboarding-title">
-        <h2>Participant onboarding</h2>
-        <span>Required before condition 1</span>
+        <h2>Before we begin</h2>
+        <span>Required before block 1</span>
       </div>
 
       <div class="onboarding-grid">
@@ -1150,22 +1145,21 @@ function onboardingStoryboardMarkup() {
 }
 
 function inductionStoryboardMarkup(item) {
-  const audio = audioInstructionFor(item.condition_position);
   return `
     <section class="assessment-page induction-section">
       <div class="induction-shell">
-        <p class="induction-kicker">Condition ${item.condition_position} of 4</p>
-        <h2>Emotion induction technique ${item.condition_position}</h2>
+        <p class="induction-kicker">Block ${item.condition_position} of 4</p>
+        <h2>Block ${item.condition_position} instructions</h2>
         <div class="induction-placeholder">
-          <span>${escapeHtml(conditionLabelFor(item.condition_id))}</span>
-          <strong>Emotion induction placeholder</strong>
+          <span>Block ${item.condition_position}</span>
+          <strong>Instruction placeholder</strong>
           <div class="induction-audio">
-            <small>Randomized audio instructions</small>
-            <b>${escapeHtml(audio.label)}</b>
-            <em>Assigned at runtime for this condition.</em>
+            <small>Instructions</small>
+            <b>Audio ready</b>
+            <em>Please follow the instructions.</em>
           </div>
         </div>
-        <p class="induction-summary">The SAM, valence/arousal VAS, and Ekman intensity block follows this condition.</p>
+        <p class="induction-summary">A short response section follows.</p>
       </div>
     </section>
   `;
@@ -1173,14 +1167,14 @@ function inductionStoryboardMarkup(item) {
 
 function samStoryboardMarkup(assessment) {
   const rows = [
-    { id: "valence", label: "Valence", low: "Unpleasant", high: "Pleasant", field: "valence_raw_1_9" },
-    { id: "arousal", label: "Arousal", low: "Calm", high: "Excited", field: "arousal_raw_1_9" }
+    { id: "valence", label: "Unpleasant - pleasant", low: "Very unpleasant", high: "Very pleasant", field: "valence_raw_1_9" },
+    { id: "arousal", label: "Calm - excited", low: "Very calm", high: "Very excited", field: "arousal_raw_1_9" }
   ];
   return `
     <section class="assessment-page sam-section">
       <div class="section-title">
-        <h2>SAM: valence and arousal</h2>
-        <span>9-point pictographic</span>
+        <h2>Choose the pictures that fit best</h2>
+        <span>Select one in each row</span>
       </div>
       <div class="sam-rows">
         ${rows.map((row) => `
@@ -1206,14 +1200,14 @@ function samStoryboardMarkup(assessment) {
 
 function vasStoryboardMarkup(assessment) {
   const sliders = [
-    { id: "vas.valence_raw_0_100", label: "Valence", low: "Very unpleasant", high: "Very pleasant", field: "valence_raw_0_100" },
-    { id: "vas.arousal_raw_0_100", label: "Arousal", low: "Very calm", high: "Very excited", field: "arousal_raw_0_100" }
+    { id: "vas.valence_raw_0_100", label: "Unpleasant - pleasant", low: "Very unpleasant", high: "Very pleasant", field: "valence_raw_0_100" },
+    { id: "vas.arousal_raw_0_100", label: "Calm - excited", low: "Very calm", high: "Very excited", field: "arousal_raw_0_100" }
   ];
   return `
     <section class="assessment-page slider-section">
       <div class="section-title">
-        <h2>Valence and arousal VAS</h2>
-        <span>0-100 visual analog scale</span>
+        <h2>Move each slider to match your experience</h2>
+        <span>Use the full line if needed</span>
       </div>
       <div class="vas-slider-rows">
         ${sliders.map((slider) => `
@@ -1235,8 +1229,8 @@ function ekmanStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page ekman-section">
       <div class="section-title">
-        <h2>Ekman emotion VAS</h2>
-        <span>0-100 visual analog scale</span>
+        <h2>Rate each feeling</h2>
+        <span>Use the full line if needed</span>
       </div>
       <p class="page-instruction">Rate the degree to which each emotion was felt during the previous experience.</p>
       <div class="ekman-slider-grid">
@@ -1284,16 +1278,16 @@ function renderSamRows() {
   const rows = [
     {
       id: "valence",
-      label: "Valence",
-      low: "Unpleasant",
-      high: "Pleasant",
+      label: "Unpleasant - pleasant",
+      low: "Very unpleasant",
+      high: "Very pleasant",
       field: "valence_raw_1_9"
     },
     {
       id: "arousal",
-      label: "Arousal",
-      low: "Calm",
-      high: "Excited",
+      label: "Calm - excited",
+      low: "Very calm",
+      high: "Very excited",
       field: "arousal_raw_1_9"
     }
   ];
@@ -1341,14 +1335,14 @@ function renderVasSliders() {
   const sliders = [
     {
       id: "vas.valence_raw_0_100",
-      label: "Valence",
+      label: "Unpleasant - pleasant",
       low: "Very unpleasant",
       high: "Very pleasant",
       field: "valence_raw_0_100"
     },
     {
       id: "vas.arousal_raw_0_100",
-      label: "Arousal",
+      label: "Calm - excited",
       low: "Very calm",
       high: "Very excited",
       field: "arousal_raw_0_100"
@@ -1703,11 +1697,13 @@ function expandedPreviewSequence(order = activeOrder()) {
         const pageNumber = assessmentPageNumber(pageId);
         const page = ASSESSMENT_PAGES.find((candidate) => candidate.id === pageId);
         return {
+          block_position: conditionPosition,
           condition_position: conditionPosition,
+          counterbalanced_condition_id: conditionId,
           condition_id: conditionId,
           audio_instruction_id: audioInstructionFor(conditionPosition).id,
           page_id: pageId,
-          assessment_block_id: pageNumber ? `condition_${conditionPosition}_assessment_block` : null,
+          assessment_block_id: pageNumber ? `block_${conditionPosition}_assessment_block` : null,
           assessment_block_page: pageNumber,
           assessment_block_page_count: pageNumber ? ASSESSMENT_PAGES.length : null,
           assessment_block_group: page ? page.block_group : null
@@ -1739,7 +1735,9 @@ function visualStoryboardExport(order = activeOrder()) {
     panels: items.map((item, index) => ({
       panel_index: index + 1,
       page_id: item.page_id,
+      block_position: item.condition_position || null,
       condition_position: item.condition_position || null,
+      counterbalanced_condition_id: item.condition_id || null,
       condition_id: item.condition_id || null,
       audio_instruction_id: item.condition_position ? audioInstructionFor(item.condition_position).id : null,
       assessment_block_page: assessmentPageNumber(item.page_id),
@@ -1754,7 +1752,9 @@ function previewAudioAssignments(order = activeOrder()) {
     const conditionPosition = index + 1;
     const audio = audioInstructionFor(conditionPosition);
     return {
+      block_position: conditionPosition,
       condition_position: conditionPosition,
+      counterbalanced_condition_id: conditionId,
       condition_id: conditionId,
       preview_audio_instruction_id: audio.id,
       preview_audio_instruction_label: audio.label,
@@ -1777,12 +1777,27 @@ function updateResponsivePreviewScale() {
   rootStyle.setProperty("--scaled-panel-height", `${Math.round(QUEST_PANEL_FRAME.height_dp * scale)}px`);
 }
 
+function applyPreviewControlsVisibility() {
+  if (!elements.inspector) {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const showControls = params.get("previewControls") === "1";
+  elements.inspector.hidden = !showControls;
+  elements.inspector.setAttribute("aria-hidden", String(!showControls));
+}
+
 function exportObject() {
   const order = activeOrder();
   return {
     panel_id: PANEL_ID,
     schema_version: SCHEMA_VERSION,
     quest_panel_frame: QUEST_PANEL_FRAME,
+    terminology: {
+      block_position: "presentation order position shown to the participant",
+      condition_id: "counterbalanced condition assigned to a block",
+      counterbalance_order_id: "mapping from block positions to counterbalanced conditions"
+    },
     native_contract_authority: {
       protocol_version: "quest.questionnaire.v1",
       schema_id: "emotion-induction-sam-v3",
@@ -1807,7 +1822,11 @@ function exportObject() {
     counterbalance: {
       order_id: order.id,
       condition_ids: order.condition_ids,
-      assignment_policy: "assign participants evenly across the four counterbalance orders",
+      block_condition_map: order.condition_ids.map((conditionId, index) => ({
+        block_position: index + 1,
+        condition_id: conditionId
+      })),
+      assignment_policy: "assign participants evenly across counterbalance orders; each order maps counterbalanced conditions onto block positions",
       equal_participant_allocation: true,
       editable_in_preview: true,
       editable_in_native_panel: false
@@ -1818,12 +1837,14 @@ function exportObject() {
       preview_assignments: previewAudioAssignments(order)
     },
     active_panel_page_id: activePanelPageId(),
+    active_block_position: state.active_condition_position,
     active_condition_position: state.active_condition_position,
     active_condition_id: activeConditionId(),
     active_assessment_page_id: activePage().id,
     responses_by_condition: order.condition_ids.map((conditionId, index) => {
       const response = responseFor(conditionId);
       return {
+        block_position: index + 1,
         condition_position: index + 1,
         condition_id: conditionId,
         assessment: response.assessment
@@ -1994,4 +2015,5 @@ window.addEventListener("resize", updateResponsivePreviewScale);
 window.addEventListener("orientationchange", updateResponsivePreviewScale);
 
 updateResponsivePreviewScale();
+applyPreviewControlsVisibility();
 render();

@@ -48,7 +48,7 @@ canvas {
 
 .workspace {
   display: grid;
-  grid-template-columns: var(--panel-width) 360px;
+  grid-template-columns: var(--panel-width);
   gap: 20px;
   align-items: start;
   justify-content: center;
@@ -793,7 +793,7 @@ input[type="range"] {
 
 @media (max-width: 1500px) {
   .workspace {
-    grid-template-columns: 1080px;
+    grid-template-columns: var(--panel-width);
   }
 
   .inspector {

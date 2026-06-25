@@ -17,7 +17,7 @@ the native panel contract remains `1080dp x 720dp`.
 
 The page includes two views:
 
-- the interactive preview at the top for state/export inspection;
+- the participant-facing preview at the top, with preview controls hidden;
 - the full visual storyboard below it, rendering every participant-facing panel
   at the same `1080dp x 720dp` size with representative selected/active states.
 
@@ -49,6 +49,13 @@ green readiness must be driven by the headset-side Polar state, not by browser
 logic. The readiness rule mirrors the Big Red Button native Quest pattern: HR/RR
 streaming, PMD ready, ECG streaming, ECG samples present, and 130 Hz ECG sample
 rate.
+
+Terminology is separated deliberately:
+
+- `block_position` means the presentation order shown to the participant.
+- `condition_id` means the counterbalanced condition assigned to that block.
+- `counterbalance.order_id` defines the mapping from block positions to
+  counterbalanced conditions.
 
 Counterbalancing is represented as request/caller-owned state:
 

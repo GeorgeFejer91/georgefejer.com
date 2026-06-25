@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Emotion SAM Panel Preview</title>
-  <link rel="stylesheet" href="styles.css?v=20260625-mobile-preview">
+  <link rel="stylesheet" href="styles.css?v=20260625-participant-facing">
 </head>
 <body>
   <main class="workspace">
@@ -12,12 +12,12 @@
       <section class="panel-frame" aria-label="Quest questionnaire panel preview">
         <header class="panel-header">
           <div>
-            <p class="eyebrow" id="conditionStatus">Condition 1 of 4</p>
-            <h1 id="pageTitle">Self-assessment manikin</h1>
+            <p class="eyebrow" id="conditionStatus">Before block 1</p>
+            <h1 id="pageTitle">Before we begin</h1>
           </div>
           <div class="header-chips">
-            <div class="stage-chip" id="conditionLabel">Induction A</div>
-            <div class="page-chip" id="pageLabel">SAM</div>
+            <div class="stage-chip" id="conditionLabel">Setup</div>
+            <div class="page-chip" id="pageLabel">Setup</div>
           </div>
         </header>
 
@@ -35,8 +35,8 @@
         </div>
 
         <div class="section-title onboarding-title">
-          <h2 id="onboardingHeading">Participant onboarding</h2>
-          <span>Required before condition 1</span>
+          <h2 id="onboardingHeading">Before we begin</h2>
+          <span>Required before block 1</span>
         </div>
 
         <div class="onboarding-grid">
@@ -81,41 +81,41 @@
 
       <section id="inductionPage" class="assessment-page induction-section" aria-labelledby="inductionHeading" hidden>
         <div class="induction-shell">
-          <p class="induction-kicker" id="inductionKicker">Condition 1 of 4</p>
-          <h2 id="inductionHeading">Emotion induction technique 1</h2>
+          <p class="induction-kicker" id="inductionKicker">Block 1 of 4</p>
+          <h2 id="inductionHeading">Block 1 instructions</h2>
           <div class="induction-placeholder">
-            <span id="inductionConditionLabel">Induction A</span>
-            <strong>Emotion induction placeholder</strong>
+            <span id="inductionConditionLabel">Block 1</span>
+            <strong>Instruction placeholder</strong>
             <div class="induction-audio">
-              <small>Randomized audio instructions</small>
-              <b id="inductionAudioLabel">Audio instruction set 1</b>
-              <em id="inductionAudioSummary">Assigned at runtime for this condition.</em>
+              <small>Instructions</small>
+              <b id="inductionAudioLabel">Audio ready</b>
+              <em id="inductionAudioSummary">Please follow the instructions.</em>
             </div>
           </div>
-          <p id="inductionSummary" class="induction-summary">The assessment block follows this condition.</p>
+          <p id="inductionSummary" class="induction-summary">A short response section follows.</p>
         </div>
       </section>
 
       <section id="samPage" class="assessment-page sam-section" aria-labelledby="samHeading" hidden>
         <div class="section-title">
-          <h2 id="samHeading">SAM: valence and arousal</h2>
-          <span id="samCompletion">9-point pictographic</span>
+          <h2 id="samHeading">Choose the pictures that fit best</h2>
+          <span id="samCompletion">Select one in each row</span>
         </div>
         <div id="samRows" class="sam-rows"></div>
       </section>
 
       <section id="vasPage" class="assessment-page slider-section" aria-labelledby="sliderHeading" hidden>
         <div class="section-title">
-          <h2 id="sliderHeading">Valence and arousal VAS</h2>
-          <span>0-100 visual analog scale</span>
+          <h2 id="sliderHeading">Move each slider to match your experience</h2>
+          <span>Use the full line if needed</span>
         </div>
         <div id="sliderRows" class="vas-slider-rows"></div>
       </section>
 
       <section id="ekmanPage" class="assessment-page ekman-section" aria-labelledby="ekmanHeading" hidden>
         <div class="section-title">
-          <h2 id="ekmanHeading">Ekman emotion VAS</h2>
-          <span>0-100 visual analog scale</span>
+          <h2 id="ekmanHeading">Rate each feeling</h2>
+          <span>Use the full line if needed</span>
         </div>
         <p class="page-instruction">Rate the degree to which each emotion was felt during the previous experience.</p>
         <div id="ekmanSliderRows" class="ekman-slider-grid"></div>
@@ -134,7 +134,7 @@
       </section>
     </div>
 
-    <aside class="inspector" aria-label="Preview state controls">
+    <aside class="inspector" aria-label="Preview state controls" hidden aria-hidden="true">
       <h2>Preview controls</h2>
       <label for="orderSelect">Counterbalance order</label>
       <select id="orderSelect"></select>
@@ -163,6 +163,6 @@
     <div id="storyboardPanels" class="storyboard-panels"></div>
   </section>
 
-  <script src="panel-preview.js?v=20260625-mobile-preview"></script>
+  <script src="panel-preview.js?v=20260625-participant-facing"></script>
 </body>
 </html>
