@@ -1003,7 +1003,10 @@ function createStoryboardPanel(item) {
       </div>
     </footer>
   `;
-  return panel;
+  const shell = document.createElement("div");
+  shell.className = "panel-scale-shell storyboard-scale-shell";
+  shell.appendChild(panel);
+  return shell;
 }
 
 function storyboardPanelMeta(item) {
@@ -1760,6 +1763,20 @@ function previewAudioAssignments(order = activeOrder()) {
   });
 }
 
+function updateResponsivePreviewScale() {
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || QUEST_PANEL_FRAME.width_dp;
+  const mobileViewport = viewportWidth <= 1140;
+  const horizontalInset = viewportWidth <= 520 ? 20 : 24;
+  const availableWidth = Math.max(280, viewportWidth - horizontalInset);
+  const scale = mobileViewport
+    ? Math.min(1, availableWidth / QUEST_PANEL_FRAME.width_dp)
+    : 1;
+  const rootStyle = document.documentElement.style;
+  rootStyle.setProperty("--preview-scale", scale.toFixed(4));
+  rootStyle.setProperty("--scaled-panel-width", `${Math.round(QUEST_PANEL_FRAME.width_dp * scale)}px`);
+  rootStyle.setProperty("--scaled-panel-height", `${Math.round(QUEST_PANEL_FRAME.height_dp * scale)}px`);
+}
+
 function exportObject() {
   const order = activeOrder();
   return {
@@ -1973,4 +1990,8 @@ elements.exportState.addEventListener("click", async () => {
   }
 });
 
+window.addEventListener("resize", updateResponsivePreviewScale);
+window.addEventListener("orientationchange", updateResponsivePreviewScale);
+
+updateResponsivePreviewScale();
 render();

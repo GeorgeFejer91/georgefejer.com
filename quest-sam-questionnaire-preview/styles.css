@@ -12,6 +12,11 @@
   --selected-line: #b77905;
   --danger: #b42318;
   --ok: #107044;
+  --panel-width: 1080px;
+  --panel-height: 720px;
+  --preview-scale: 1;
+  --scaled-panel-width: 1080px;
+  --scaled-panel-height: 720px;
 }
 
 * {
@@ -43,16 +48,28 @@ canvas {
 
 .workspace {
   display: grid;
-  grid-template-columns: 1080px 360px;
+  grid-template-columns: var(--panel-width) 360px;
   gap: 20px;
   align-items: start;
   justify-content: center;
   padding: 24px;
 }
 
+.panel-scale-shell {
+  width: var(--scaled-panel-width);
+  height: var(--scaled-panel-height);
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+.panel-scale-shell > .panel-frame {
+  transform: scale(var(--preview-scale));
+  transform-origin: top left;
+}
+
 .panel-frame {
-  width: 1080px;
-  height: 720px;
+  width: var(--panel-width);
+  height: var(--panel-height);
   overflow: hidden;
   background: var(--panel);
   border: 1px solid #b8c3cf;
@@ -697,7 +714,7 @@ input[type="range"] {
 }
 
 .storyboard-heading {
-  width: 1080px;
+  width: var(--panel-width);
   margin: 0 auto 16px;
 }
 
@@ -712,7 +729,7 @@ input[type="range"] {
 }
 
 .storyboard-item {
-  width: 1080px;
+  width: var(--panel-width);
 }
 
 .storyboard-card-label {
@@ -785,16 +802,78 @@ input[type="range"] {
 }
 
 @media (max-width: 1140px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .inspector {
+    width: var(--scaled-panel-width);
+    max-width: calc(100vw - 24px);
+    min-height: 0;
+  }
+
+  .page-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .storyboard {
-    overflow-x: auto;
+    overflow-x: hidden;
+    padding: 0 12px 36px;
   }
 
   .storyboard-heading {
+    width: var(--scaled-panel-width);
+    max-width: calc(100vw - 24px);
     margin-left: 0;
     margin-right: 0;
   }
 
   .storyboard-panels {
-    justify-items: start;
+    justify-items: center;
+    gap: 24px;
+  }
+
+  .storyboard-item {
+    width: var(--scaled-panel-width);
+    max-width: calc(100vw - 24px);
+  }
+
+  .storyboard-card-label {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .storyboard-card-label em {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .workspace {
+    padding: 10px;
+  }
+
+  .inspector {
+    max-width: calc(100vw - 20px);
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .page-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .json-output {
+    min-height: 180px;
+    max-height: 280px;
   }
 }

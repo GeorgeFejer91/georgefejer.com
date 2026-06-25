@@ -12,6 +12,8 @@ powershell -ExecutionPolicy Bypass -File .\tools\emotion-sam-browser-preview\Sta
 ```
 
 The preview is constrained to the workflow panel frame, `1080dp x 720dp`.
+On phone-sized screens the browser preview scales that frame down for viewing;
+the native panel contract remains `1080dp x 720dp`.
 
 The page includes two views:
 
