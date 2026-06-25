@@ -1,0 +1,49 @@
+﻿version,language,source_file,cluster_id,cluster_label,start_s,end_s,duration_s
+V01,DE,handaufgabe_version_1_de.txt,SETUP,Setup,0.000,20.000,20.000
+V01,DE,handaufgabe_version_1_de.txt,A,auseinander und zusammen,20.000,80.000,60.000
+V01,DE,handaufgabe_version_1_de.txt,B,Handflächen nach oben und unten,80.000,140.000,60.000
+V01,DE,handaufgabe_version_1_de.txt,D,öffnen und schließen,140.000,200.000,60.000
+V01,DE,handaufgabe_version_1_de.txt,C,eine Hand ausstrecken,200.000,260.000,60.000
+V01,DE,handaufgabe_version_1_de.txt,CIRCLE,Abschluss mit Kreis (fest),260.000,300.000,40.000
+V01,EN,hand_task_version_1.txt,SETUP,Setup,0.000,20.000,20.000
+V01,EN,hand_task_version_1.txt,A,apart and together,20.000,80.000,60.000
+V01,EN,hand_task_version_1.txt,B,palms up and down,80.000,140.000,60.000
+V01,EN,hand_task_version_1.txt,D,open and close,140.000,200.000,60.000
+V01,EN,hand_task_version_1.txt,C,single-hand reaches,200.000,260.000,60.000
+V01,EN,hand_task_version_1.txt,CIRCLE,Circle close (fixed),260.000,300.000,40.000
+V02,DE,handaufgabe_version_2_de.txt,SETUP,Setup,0.000,20.000,20.000
+V02,DE,handaufgabe_version_2_de.txt,B,Handflächen nach oben und unten,20.000,80.000,60.000
+V02,DE,handaufgabe_version_2_de.txt,C,eine Hand ausstrecken,80.000,140.000,60.000
+V02,DE,handaufgabe_version_2_de.txt,A,auseinander und zusammen,140.000,200.000,60.000
+V02,DE,handaufgabe_version_2_de.txt,D,öffnen und schließen,200.000,260.000,60.000
+V02,DE,handaufgabe_version_2_de.txt,CIRCLE,Abschluss mit Kreis (fest),260.000,300.000,40.000
+V02,EN,hand_task_version_2.txt,SETUP,Setup,0.000,20.000,20.000
+V02,EN,hand_task_version_2.txt,B,palms up and down,20.000,80.000,60.000
+V02,EN,hand_task_version_2.txt,C,single-hand reaches,80.000,140.000,60.000
+V02,EN,hand_task_version_2.txt,A,apart and together,140.000,200.000,60.000
+V02,EN,hand_task_version_2.txt,D,open and close,200.000,260.000,60.000
+V02,EN,hand_task_version_2.txt,CIRCLE,Circle close (fixed),260.000,300.000,40.000
+V03,DE,handaufgabe_version_3_de.txt,SETUP,Setup,0.000,20.000,20.000
+V03,DE,handaufgabe_version_3_de.txt,C,eine Hand ausstrecken,20.000,80.000,60.000
+V03,DE,handaufgabe_version_3_de.txt,D,öffnen und schließen,80.000,140.000,60.000
+V03,DE,handaufgabe_version_3_de.txt,B,Handflächen nach oben und unten,140.000,200.000,60.000
+V03,DE,handaufgabe_version_3_de.txt,A,auseinander und zusammen,200.000,260.000,60.000
+V03,DE,handaufgabe_version_3_de.txt,CIRCLE,Abschluss mit Kreis (fest),260.000,300.000,40.000
+V03,EN,hand_task_version_3.txt,SETUP,Setup,0.000,20.000,20.000
+V03,EN,hand_task_version_3.txt,C,single-hand reaches,20.000,80.000,60.000
+V03,EN,hand_task_version_3.txt,D,open and close,80.000,140.000,60.000
+V03,EN,hand_task_version_3.txt,B,palms up and down,140.000,200.000,60.000
+V03,EN,hand_task_version_3.txt,A,apart and together,200.000,260.000,60.000
+V03,EN,hand_task_version_3.txt,CIRCLE,Circle close (fixed),260.000,300.000,40.000
+V04,DE,handaufgabe_version_4_de.txt,SETUP,Setup,0.000,20.000,20.000
+V04,DE,handaufgabe_version_4_de.txt,D,öffnen und schließen,20.000,80.000,60.000
+V04,DE,handaufgabe_version_4_de.txt,A,auseinander und zusammen,80.000,140.000,60.000
+V04,DE,handaufgabe_version_4_de.txt,C,eine Hand ausstrecken,140.000,200.000,60.000
+V04,DE,handaufgabe_version_4_de.txt,B,Handflächen nach oben und unten,200.000,260.000,60.000
+V04,DE,handaufgabe_version_4_de.txt,CIRCLE,Abschluss mit Kreis (fest),260.000,300.000,40.000
+V04,EN,hand_task_version_4.txt,SETUP,Setup,0.000,20.000,20.000
+V04,EN,hand_task_version_4.txt,D,open and close,20.000,80.000,60.000
+V04,EN,hand_task_version_4.txt,A,apart and together,80.000,140.000,60.000
+V04,EN,hand_task_version_4.txt,C,single-hand reaches,140.000,200.000,60.000
+V04,EN,hand_task_version_4.txt,B,palms up and down,200.000,260.000,60.000
+V04,EN,hand_task_version_4.txt,CIRCLE,Circle close (fixed),260.000,300.000,40.000
