@@ -568,6 +568,24 @@ canvas:focus-visible {
   font-size: 12px;
 }
 
+.vas-axis {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.axis-midpoint::before {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 8px;
+  margin: -2px auto 0;
+  background: var(--text);
+}
+
+.vas-axis span:last-child {
+  text-align: right;
+}
+
 input[type="range"] {
   width: 100%;
   accent-color: var(--blue);

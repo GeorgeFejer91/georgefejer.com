@@ -90,6 +90,12 @@ three-page assessment block:
 2. `affect_vas`: valence and arousal on independent 0-100 VAS sliders.
 3. `ekman_intensity`: each Ekman emotion on an independent 0-100 VAS slider.
 
+The valence/arousal VAS sliders initialize at 50 and visibly mark the unlabeled
+center position. Valence anchors are `Very negative` at 0 and `Very positive`
+at 100. Arousal anchors are `Very calm` at 0 and `Very activated` at 100. The
+Ekman emotion intensity sliders remain endpoint-only (`Not at all` to
+`Extremely`) and do not show a center marker.
+
 The participant assessment block records:
 
 - `sam.valence_raw_1_9`

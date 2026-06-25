@@ -239,6 +239,17 @@
       "min": 0,
       "max": 100,
       "step": 1,
+      "center_marker": 50,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Very negative"
+        },
+        {
+          "value": 100,
+          "label": "Very positive"
+        }
+      ],
       "editable": "editable",
       "validation": "required integer 0..100",
       "result_json_field": "answers.emotion_assessment.affect_vas.valence_raw_0_100"
@@ -252,6 +263,17 @@
       "min": 0,
       "max": 100,
       "step": 1,
+      "center_marker": 50,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Very calm"
+        },
+        {
+          "value": 100,
+          "label": "Very activated"
+        }
+      ],
       "editable": "editable",
       "validation": "required integer 0..100",
       "result_json_field": "answers.emotion_assessment.affect_vas.arousal_raw_0_100"

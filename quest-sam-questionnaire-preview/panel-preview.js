@@ -88,6 +88,23 @@ const GENDER_OPTIONS = [
   { id: "prefer_not_to_say", label: "Prefer not to say" }
 ];
 
+const AFFECT_VAS_SLIDERS = [
+  {
+    id: "vas.valence_raw_0_100",
+    label: "Negative - positive",
+    low: "Very negative",
+    high: "Very positive",
+    field: "valence_raw_0_100"
+  },
+  {
+    id: "vas.arousal_raw_0_100",
+    label: "Calm - activated",
+    low: "Very calm",
+    high: "Very activated",
+    field: "arousal_raw_0_100"
+  }
+];
+
 const EKMAN_EMOTIONS = [
   { id: "anger", label: "Anger" },
   { id: "disgust", label: "Disgust" },
@@ -344,6 +361,11 @@ const CONTROL_MODEL = [
     min: 0,
     max: 100,
     step: 1,
+    center_marker: 50,
+    anchors: [
+      { value: 0, label: "Very negative" },
+      { value: 100, label: "Very positive" }
+    ],
     editable: "editable",
     validation: "required integer 0..100",
     result_json_field: "answers.emotion_assessment.affect_vas.valence_raw_0_100"
@@ -357,6 +379,11 @@ const CONTROL_MODEL = [
     min: 0,
     max: 100,
     step: 1,
+    center_marker: 50,
+    anchors: [
+      { value: 0, label: "Very calm" },
+      { value: 100, label: "Very activated" }
+    ],
     editable: "editable",
     validation: "required integer 0..100",
     result_json_field: "answers.emotion_assessment.affect_vas.arousal_raw_0_100"
@@ -1199,10 +1226,6 @@ function samStoryboardMarkup(assessment) {
 }
 
 function vasStoryboardMarkup(assessment) {
-  const sliders = [
-    { id: "vas.valence_raw_0_100", label: "Unpleasant - pleasant", low: "Very unpleasant", high: "Very pleasant", field: "valence_raw_0_100" },
-    { id: "vas.arousal_raw_0_100", label: "Calm - excited", low: "Very calm", high: "Very excited", field: "arousal_raw_0_100" }
-  ];
   return `
     <section class="assessment-page slider-section">
       <div class="section-title">
@@ -1210,14 +1233,14 @@ function vasStoryboardMarkup(assessment) {
         <span>Use the full line if needed</span>
       </div>
       <div class="vas-slider-rows">
-        ${sliders.map((slider) => `
+        ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">
             <header>
               <strong>${slider.label}</strong>
               <span class="slider-value">${assessment.affect_vas[slider.field]}</span>
             </header>
             <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1">
-            <div class="slider-axis"><span>${slider.low}</span><span>${slider.high}</span></div>
+            <div class="slider-axis vas-axis"><span>${slider.low}</span><span class="axis-midpoint" aria-hidden="true"></span><span>${slider.high}</span></div>
           </div>
         `).join("")}
       </div>
@@ -1332,24 +1355,8 @@ function renderSamRows() {
 
 function renderVasSliders() {
   const assessment = activeAssessment();
-  const sliders = [
-    {
-      id: "vas.valence_raw_0_100",
-      label: "Unpleasant - pleasant",
-      low: "Very unpleasant",
-      high: "Very pleasant",
-      field: "valence_raw_0_100"
-    },
-    {
-      id: "vas.arousal_raw_0_100",
-      label: "Calm - excited",
-      low: "Very calm",
-      high: "Very excited",
-      field: "arousal_raw_0_100"
-    }
-  ];
   elements.sliderRows.replaceChildren();
-  sliders.forEach((slider) => {
+  AFFECT_VAS_SLIDERS.forEach((slider) => {
     const row = document.createElement("div");
     row.className = "slider-row vas-slider-row";
     row.innerHTML = `
@@ -1358,7 +1365,7 @@ function renderVasSliders() {
         <span class="slider-value" id="${slider.id}.value">${assessment.affect_vas[slider.field]}</span>
       </header>
       <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}">
-      <div class="slider-axis"><span>${slider.low}</span><span>${slider.high}</span></div>
+      <div class="slider-axis vas-axis"><span>${slider.low}</span><span class="axis-midpoint" aria-hidden="true"></span><span>${slider.high}</span></div>
     `;
     const input = row.querySelector("input");
     input.addEventListener("input", () => {
