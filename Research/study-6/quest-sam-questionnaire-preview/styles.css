@@ -775,6 +775,23 @@ input[type="range"] {
   padding: 14px 16px;
 }
 
+.ekman-slider-row header {
+  position: relative;
+  display: block;
+  text-align: center;
+}
+
+.ekman-slider-row strong {
+  display: block;
+  padding: 0 42px;
+}
+
+.ekman-slider-row .slider-value {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 .panel-footer {
   min-height: 68px;
   display: flex;

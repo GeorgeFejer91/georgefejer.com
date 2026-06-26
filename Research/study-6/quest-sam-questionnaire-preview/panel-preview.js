@@ -75,7 +75,7 @@ const ASSESSMENT_PAGES = [
   {
     id: "ekman_intensity",
     label: "3/3",
-    title: "Which emotion did the particles show?",
+    title: "To what degree were the emotions represented by the way the particles were moving?",
     summary: "Assessment block page 3 of 3",
     block_group: "Perceived Ekman emotion represented by particle movement 0-100"
   }
@@ -466,7 +466,7 @@ const CONTROL_MODEL = [
   },
   ...EKMAN_EMOTIONS.map((emotion) => ({
     id: `ekman_intensity.${ekmanFieldId(emotion.id)}`,
-    label: `${emotion.label} represented`,
+    label: emotion.label,
     page: "ekman_intensity",
     type: "range",
     default: 0,
@@ -1406,17 +1406,17 @@ function ekmanStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page ekman-section">
       <div class="section-title">
-        <h2>Rate the emotion shown by the particles</h2>
+        <h2>Rate each emotion</h2>
         <span>Multiple emotions can apply</span>
       </div>
-      <p class="page-instruction">Rate how strongly each emotion seemed represented by the particle movement. If the scenario felt like a mix, rate more than one emotion.</p>
+      <p class="page-instruction">If the movement felt like a mix, rate more than one emotion.</p>
       <div class="ekman-slider-grid">
         ${EKMAN_EMOTIONS.map((emotion) => {
           const field = ekmanFieldId(emotion.id);
           return `
             <div class="slider-row ekman-slider-row">
               <header>
-                <strong>${emotion.label} represented</strong>
+                <strong>${emotion.label}</strong>
                 <span class="slider-value">${assessment.ekman_intensity[field]}</span>
               </header>
               <input type="range" min="0" max="100" step="1" value="${assessment.ekman_intensity[field]}" tabindex="-1">
@@ -1573,10 +1573,10 @@ function renderEkmanSliders() {
     row.className = "slider-row ekman-slider-row";
     row.innerHTML = `
       <header>
-        <strong>${emotion.label} represented</strong>
+        <strong>${emotion.label}</strong>
         <span class="slider-value" id="ekman_intensity.${field}.value">${assessment.ekman_intensity[field]}</span>
       </header>
-      <input id="ekman_intensity.${field}" type="range" min="0" max="100" step="1" value="${assessment.ekman_intensity[field]}">
+      <input id="ekman_intensity.${field}" type="range" min="0" max="100" step="1" value="${assessment.ekman_intensity[field]}" aria-label="${emotion.label}">
       <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
     `;
     const input = row.querySelector("input");
