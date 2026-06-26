@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Redirecting</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font: 16px/1.5 "Courier New", monospace;
+    }
+    a { color: #4ecdc4; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>Redirecting to <a id="redirect-link" href="/">georgefejer.com</a>.</p>
+  </main>
+  <script>
+    const legacyRedirects = [
+      [/^\/assets\/(.*)$/i, "/Academic/assets/$1"],
+      [/^\/einhorn-sammler(?:\/(.*))?$/i, "/Hobby/einhorn-sammler/$1"],
+      [/^\/projects\/games\/einhorn-sammler(?:\/(.*))?$/i, "/Hobby/einhorn-sammler/$1"],
+      [/^\/kuramoto-mesh-lab(?:\/(.*))?$/i, "/Research/study-6/kuramoto-mesh-lab/$1"],
+      [/^\/Research\/kuramoto-mesh-lab(?:\/(.*))?$/i, "/Research/study-6/kuramoto-mesh-lab/$1"],
+      [/^\/projects\/research\/kuramoto-mesh-lab(?:\/(.*))?$/i, "/Research/study-6/kuramoto-mesh-lab/$1"],
+      [/^\/audio-assets(?:\/(.*))?$/i, "/Research/study-6/kuramoto-mesh-lab/audio-assets/$1"],
+      [/^\/projects\/research\/kuramoto-mesh-lab\/audio-assets(?:\/(.*))?$/i, "/Research/study-6/kuramoto-mesh-lab/audio-assets/$1"],
+      [/^\/quest-sam-questionnaire-preview(?:\/(.*))?$/i, "/Research/study-6/quest-sam-questionnaire-preview/$1"],
+      [/^\/Research\/quest-sam-questionnaire-preview(?:\/(.*))?$/i, "/Research/study-6/quest-sam-questionnaire-preview/$1"],
+      [/^\/projects\/research\/quest-sam-questionnaire-preview(?:\/(.*))?$/i, "/Research/study-6/quest-sam-questionnaire-preview/$1"],
+      [/^\/print(?:\/(.*))?$/i, "/Research/study-6/vr-atemexperiment-teilnahmebestaetigung/$1"],
+      [/^\/Academic\/print\/vr-atemexperiment-teilnahmebestaetigung(?:\/(.*))?$/i, "/Research/study-6/vr-atemexperiment-teilnahmebestaetigung/$1"],
+      [/^\/projects\/print\/vr-atemexperiment-teilnahmebestaetigung(?:\/(.*))?$/i, "/Research/study-6/vr-atemexperiment-teilnahmebestaetigung/$1"],
+      [/^\/print2(?:\/(.*))?$/i, "/Research/study-6/questionnaire-packets/$1"],
+      [/^\/Academic\/print\/questionnaire-packets(?:\/(.*))?$/i, "/Research/study-6/questionnaire-packets/$1"],
+      [/^\/projects\/print\/questionnaire-packets(?:\/(.*))?$/i, "/Research/study-6/questionnaire-packets/$1"]
+    ];
+
+    function targetFor(pathname) {
+      for (const [pattern, replacement] of legacyRedirects) {
+        if (pattern.test(pathname)) {
+          return pathname.replace(pattern, replacement).replace(/\/undefined$/i, "/");
+        }
+      }
+      return "/";
+    }
+
+    const target = targetFor(window.location.pathname) + window.location.search + window.location.hash;
+    document.getElementById("redirect-link").href = target;
+    window.location.replace(target);
+  </script>
+</body>
+</html>
