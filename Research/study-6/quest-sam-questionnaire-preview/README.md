@@ -94,6 +94,10 @@ three-page assessment block:
 2. `affect_vas`: how the participant felt during the condition, using independent 0-100 valence and arousal VAS sliders.
 3. `ekman_intensity`: how strongly each Ekman emotion seemed represented by the particle movement in the scenario, using independent 0-100 VAS sliders.
 
+The SAM manikin rows do not preselect any picture. Each row is a forced
+response: the selected marker appears only after the participant indicates a
+position on that 1-9 picture scale.
+
 The valence/arousal VAS sliders initialize at 50 and visibly mark the unlabeled
 center position. Each VAS row presents a direct participant question above the
 slider: valence asks `How positive or negative did you feel during the last

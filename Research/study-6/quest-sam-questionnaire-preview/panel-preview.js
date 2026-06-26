@@ -403,7 +403,7 @@ const CONTROL_MODEL = [
     label: "Retrospective SAM valence",
     page: "sam_pictographic",
     type: "pictographic-choice",
-    default: 5,
+    default: null,
     min: 1,
     max: 9,
     step: 1,
@@ -417,7 +417,7 @@ const CONTROL_MODEL = [
     label: "Retrospective SAM arousal",
     page: "sam_pictographic",
     type: "pictographic-choice",
-    default: 5,
+    default: null,
     min: 1,
     max: 9,
     step: 1,
@@ -494,8 +494,8 @@ function defaultAffectVasTouched() {
 function defaultAssessment() {
   return {
     sam: {
-      valence_raw_1_9: 5,
-      arousal_raw_1_9: 5
+      valence_raw_1_9: null,
+      arousal_raw_1_9: null
     },
     affect_vas: {
       valence_raw_0_100: 50,
@@ -1047,7 +1047,7 @@ function storyboardOnboardingState() {
 function storyboardAssessmentFor(conditionPosition) {
   const examples = [
     {
-      sam: { valence_raw_1_9: 5, arousal_raw_1_9: 5 },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 52, arousal_raw_0_100: 48 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1060,7 +1060,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: 7, arousal_raw_1_9: 6 },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 72, arousal_raw_0_100: 64 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1073,7 +1073,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: 3, arousal_raw_1_9: 8 },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 24, arousal_raw_0_100: 82 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1086,7 +1086,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: 8, arousal_raw_1_9: 3 },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 84, arousal_raw_0_100: 28 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {

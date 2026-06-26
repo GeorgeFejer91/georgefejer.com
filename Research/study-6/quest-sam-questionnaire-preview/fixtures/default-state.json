@@ -197,7 +197,7 @@
       "label": "Retrospective SAM valence",
       "page": "sam_pictographic",
       "type": "pictographic-choice",
-      "default": 5,
+      "default": null,
       "min": 1,
       "max": 9,
       "step": 1,
@@ -221,7 +221,7 @@
       "label": "Retrospective SAM arousal",
       "page": "sam_pictographic",
       "type": "pictographic-choice",
-      "default": 5,
+      "default": null,
       "min": 1,
       "max": 9,
       "step": 1,
@@ -1093,8 +1093,8 @@
       "condition_id": "induction_a",
       "assessment": {
         "sam": {
-          "valence_raw_1_9": 5,
-          "arousal_raw_1_9": 5
+          "valence_raw_1_9": null,
+          "arousal_raw_1_9": null
         },
         "affect_vas": {
           "valence_raw_0_100": 50,
@@ -1122,8 +1122,8 @@
       "condition_id": "induction_b",
       "assessment": {
         "sam": {
-          "valence_raw_1_9": 5,
-          "arousal_raw_1_9": 5
+          "valence_raw_1_9": null,
+          "arousal_raw_1_9": null
         },
         "affect_vas": {
           "valence_raw_0_100": 50,
@@ -1151,8 +1151,8 @@
       "condition_id": "induction_d",
       "assessment": {
         "sam": {
-          "valence_raw_1_9": 5,
-          "arousal_raw_1_9": 5
+          "valence_raw_1_9": null,
+          "arousal_raw_1_9": null
         },
         "affect_vas": {
           "valence_raw_0_100": 50,
@@ -1180,8 +1180,8 @@
       "condition_id": "induction_c",
       "assessment": {
         "sam": {
-          "valence_raw_1_9": 5,
-          "arousal_raw_1_9": 5
+          "valence_raw_1_9": null,
+          "arousal_raw_1_9": null
         },
         "affect_vas": {
           "valence_raw_0_100": 50,
