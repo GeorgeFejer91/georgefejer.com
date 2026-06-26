@@ -1,7 +1,7 @@
 "use strict";
 
 const PANEL_ID = "emotion_induction_sam_preview";
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
@@ -219,6 +219,8 @@ function defaultOnboarding() {
   return {
     polar_validation: defaultPolarValidation(),
     language_code: "en",
+    participant_first_name: "",
+    participant_last_name: "",
     participant_name: "",
     age_years: null,
     handedness: "",
@@ -228,6 +230,21 @@ function defaultOnboarding() {
     signature: defaultSignature(),
     complete: false
   };
+}
+
+function splitParticipantName(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  return {
+    first: parts.shift() || "",
+    last: parts.join(" ")
+  };
+}
+
+function combinedParticipantName(firstName, lastName) {
+  return [firstName, lastName]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" ");
 }
 
 function normalizeSignature(rawSignature) {
@@ -252,12 +269,21 @@ function normalizeOnboarding(rawOnboarding) {
     ...(raw.polar_validation || {})
   };
   const age = raw.age_years === "" || raw.age_years === undefined ? null : raw.age_years;
+  const legacyName = typeof raw.participant_name === "string" ? raw.participant_name : "";
+  const splitName = splitParticipantName(legacyName);
+  const rawFirstName = typeof raw.participant_first_name === "string" ? raw.participant_first_name : "";
+  const rawLastName = typeof raw.participant_last_name === "string" ? raw.participant_last_name : "";
+  const useLegacySplit = rawFirstName.trim().length === 0 && rawLastName.trim().length === 0 && legacyName.trim().length > 0;
+  const firstName = useLegacySplit ? splitName.first : rawFirstName;
+  const lastName = useLegacySplit ? splitName.last : rawLastName;
   return {
     ...base,
     ...raw,
     polar_validation: polar,
     language_code: LANGUAGE_OPTIONS.some((option) => option.id === raw.language_code) ? raw.language_code : base.language_code,
-    participant_name: typeof raw.participant_name === "string" ? raw.participant_name : base.participant_name,
+    participant_first_name: firstName,
+    participant_last_name: lastName,
+    participant_name: combinedParticipantName(firstName, lastName),
     age_years: age === null ? null : Number(age),
     handedness: typeof raw.handedness === "string" ? raw.handedness : base.handedness,
     gender: typeof raw.gender === "string" ? raw.gender : base.gender,
@@ -292,13 +318,33 @@ const CONTROL_MODEL = [
     result_json_field: "answers.onboarding.language_code"
   },
   {
-    id: "onboarding.participant_name",
-    label: "Name",
+    id: "onboarding.participant_first_name",
+    label: "First name",
     page: "onboarding",
     type: "text",
     default: "",
     editable: "editable",
     validation: "required non-empty text",
+    result_json_field: "answers.onboarding.participant_first_name"
+  },
+  {
+    id: "onboarding.participant_last_name",
+    label: "Last name",
+    page: "onboarding",
+    type: "text",
+    default: "",
+    editable: "editable",
+    validation: "required non-empty text",
+    result_json_field: "answers.onboarding.participant_last_name"
+  },
+  {
+    id: "onboarding.participant_name",
+    label: "Full name",
+    page: "onboarding",
+    type: "readonly-derived",
+    default: "",
+    editable: "derived",
+    validation: "derived from first and last name",
     result_json_field: "answers.onboarding.participant_name"
   },
   {
@@ -583,7 +629,8 @@ function makeEdgeState() {
       diagnostic: "ECG stream waiting for samples"
     },
     language_code: "de",
-    participant_name: "Preview Participant",
+    participant_first_name: "Preview",
+    participant_last_name: "Participant",
     age_years: 29,
     handedness: "left",
     gender: "prefer_not_to_say",
@@ -638,7 +685,8 @@ const elements = {
   polarDiagnostic: document.getElementById("polarDiagnostic"),
   polarWaveform: document.getElementById("polarWaveform"),
   languageOptions: document.getElementById("languageOptions"),
-  participantName: document.getElementById("participantName"),
+  participantFirstName: document.getElementById("participantFirstName"),
+  participantLastName: document.getElementById("participantLastName"),
   participantAge: document.getElementById("participantAge"),
   handednessOptions: document.getElementById("handednessOptions"),
   genderOptions: document.getElementById("genderOptions"),
@@ -937,8 +985,11 @@ function renderOnboarding() {
     onboarding.complete = false;
   });
 
-  if (document.activeElement !== elements.participantName) {
-    elements.participantName.value = onboarding.participant_name;
+  if (document.activeElement !== elements.participantFirstName) {
+    elements.participantFirstName.value = onboarding.participant_first_name;
+  }
+  if (document.activeElement !== elements.participantLastName) {
+    elements.participantLastName.value = onboarding.participant_last_name;
   }
   if (document.activeElement !== elements.participantAge) {
     elements.participantAge.value = onboarding.age_years === null || Number.isNaN(onboarding.age_years)
@@ -1018,7 +1069,8 @@ function storyboardOnboardingState() {
   return normalizeOnboarding({
     polar_validation: defaultPolarValidation(),
     language_code: "en",
-    participant_name: "Preview Participant",
+    participant_first_name: "Preview",
+    participant_last_name: "Participant",
     age_years: 29,
     handedness: "right",
     gender: "prefer_not_to_say",
@@ -1275,9 +1327,15 @@ function onboardingStoryboardMarkup() {
             <label>Language</label>
             <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, onboarding.language_code)}</div>
           </div>
-          <div class="field-row">
-            <label>Name</label>
-            <input type="text" autocomplete="off" inputmode="text" value="${escapeHtml(onboarding.participant_name)}" readonly>
+          <div class="split-field-row">
+            <div class="field-row">
+              <label>First name</label>
+              <input type="text" autocomplete="given-name" inputmode="text" value="${escapeHtml(onboarding.participant_first_name)}" readonly>
+            </div>
+            <div class="field-row">
+              <label>Last name</label>
+              <input type="text" autocomplete="family-name" inputmode="text" value="${escapeHtml(onboarding.participant_last_name)}" readonly>
+            </div>
           </div>
           <div class="field-row compact">
             <label>Age</label>
@@ -1738,8 +1796,11 @@ function onboardingValidationErrors(onboarding = state.onboarding) {
   if (!LANGUAGE_OPTIONS.some((option) => option.id === normalized.language_code)) {
     errors.push("Select language.");
   }
-  if (normalized.participant_name.trim().length === 0) {
-    errors.push("Enter name.");
+  if (normalized.participant_first_name.trim().length === 0) {
+    errors.push("Enter first name.");
+  }
+  if (normalized.participant_last_name.trim().length === 0) {
+    errors.push("Enter last name.");
   }
   if (!isIntegerInRange(normalized.age_years, 0, 120)) {
     errors.push("Enter age.");
@@ -1843,7 +1904,7 @@ function pageGroups() {
       groups: [
         { id: "polar_validation", fields: ["onboarding.polar_validation.ready"] },
         { id: "language", fields: ["onboarding.language_code"] },
-        { id: "demographics", fields: ["onboarding.participant_name", "onboarding.age_years", "onboarding.handedness", "onboarding.gender"] },
+        { id: "demographics", fields: ["onboarding.participant_first_name", "onboarding.participant_last_name", "onboarding.participant_name", "onboarding.age_years", "onboarding.handedness", "onboarding.gender"] },
         { id: "consent", fields: ["onboarding.consent_confirmed", "onboarding.consent_text", "onboarding.signature"] }
       ]
     },
@@ -2150,11 +2211,23 @@ elements.nextPage.addEventListener("click", () => {
   render();
 });
 
-elements.participantName.addEventListener("input", () => {
-  state.onboarding.participant_name = elements.participantName.value;
+function updateParticipantNameField(field, value) {
+  state.onboarding[field] = value;
+  state.onboarding.participant_name = combinedParticipantName(
+    state.onboarding.participant_first_name,
+    state.onboarding.participant_last_name
+  );
   state.onboarding.complete = false;
   renderValidation();
   renderExport();
+}
+
+elements.participantFirstName.addEventListener("input", () => {
+  updateParticipantNameField("participant_first_name", elements.participantFirstName.value);
+});
+
+elements.participantLastName.addEventListener("input", () => {
+  updateParticipantNameField("participant_last_name", elements.participantLastName.value);
 });
 
 elements.participantAge.addEventListener("input", () => {

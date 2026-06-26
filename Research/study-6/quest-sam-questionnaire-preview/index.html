@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Emotion SAM Panel Preview</title>
-  <link rel="stylesheet" href="styles.css?v=20260626-ekman-labels-v1">
+  <link rel="stylesheet" href="styles.css?v=20260626-split-name-v1">
 </head>
 <body>
   <main class="workspace">
@@ -46,9 +46,16 @@
               <div id="languageOptions" class="option-group two-options"></div>
             </div>
 
-            <div class="field-row">
-              <label for="participantName">Name</label>
-              <input id="participantName" type="text" autocomplete="off" inputmode="text">
+            <div class="split-field-row">
+              <div class="field-row">
+                <label for="participantFirstName">First name</label>
+                <input id="participantFirstName" type="text" autocomplete="given-name" inputmode="text">
+              </div>
+
+              <div class="field-row">
+                <label for="participantLastName">Last name</label>
+                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text">
+              </div>
             </div>
 
             <div class="field-row compact">
@@ -170,6 +177,6 @@
     <div id="storyboardPanels" class="storyboard-panels"></div>
   </section>
 
-  <script src="panel-preview.js?v=20260626-ekman-labels-v1"></script>
+  <script src="panel-preview.js?v=20260626-split-name-v1"></script>
 </body>
 </html>

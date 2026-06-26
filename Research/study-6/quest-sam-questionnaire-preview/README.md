@@ -39,6 +39,8 @@ The one-time onboarding page records:
 
 - `onboarding.polar_validation.ready`
 - `onboarding.language_code`
+- `onboarding.participant_first_name`
+- `onboarding.participant_last_name`
 - `onboarding.participant_name`
 - `onboarding.age_years`
 - `onboarding.handedness`
