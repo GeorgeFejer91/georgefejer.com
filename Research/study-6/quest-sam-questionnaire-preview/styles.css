@@ -491,16 +491,11 @@ h2 {
 
 .sam-row {
   display: grid;
-  grid-template-columns: 92px 1fr;
-  gap: 12px;
-  align-items: stretch;
+  gap: 8px;
 }
 
 .row-label {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  text-align: center;
   color: var(--muted);
   font-size: 13px;
 }
@@ -508,6 +503,32 @@ h2 {
 .row-label strong {
   color: var(--text);
   font-size: 16px;
+}
+
+.sam-scale-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 104px) minmax(0, 1fr) minmax(92px, 104px);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.sam-row-anchor {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.18;
+}
+
+.sam-row-anchor-low {
+  justify-content: flex-start;
+}
+
+.sam-row-anchor-high {
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .sam-options {

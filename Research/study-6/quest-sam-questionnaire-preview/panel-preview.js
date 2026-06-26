@@ -139,6 +139,23 @@ const AFFECT_VAS_SLIDERS = [
   }
 ];
 
+const SAM_MANIKIN_ROWS = [
+  {
+    id: "valence",
+    label: "Negative - positive",
+    low: "Very negative",
+    high: "Very positive",
+    field: "valence_raw_1_9"
+  },
+  {
+    id: "arousal",
+    label: "Inactive - active",
+    low: "Very inactive",
+    high: "Very active",
+    field: "arousal_raw_1_9"
+  }
+];
+
 const VAS_INTERACTION_KEYS = new Set([
   "ArrowLeft",
   "ArrowRight",
@@ -1319,10 +1336,6 @@ function inductionStoryboardMarkup(item) {
 }
 
 function samStoryboardMarkup(assessment) {
-  const rows = [
-    { id: "valence", label: "Unpleasant - pleasant", low: "Very unpleasant", high: "Very pleasant", field: "valence_raw_1_9" },
-    { id: "arousal", label: "Activation level", low: "Very low activation", high: "Very high activation", field: "arousal_raw_1_9" }
-  ];
   return `
     <section class="assessment-page sam-section">
       <div class="section-title">
@@ -1331,19 +1344,23 @@ function samStoryboardMarkup(assessment) {
       </div>
       <p class="page-instruction">Select the SAM pictures that best match how you felt during the condition you just experienced.</p>
       <div class="sam-rows">
-        ${rows.map((row) => `
+        ${SAM_MANIKIN_ROWS.map((row) => `
           <div class="sam-row">
-            <div class="row-label"><strong>${row.label}</strong><span>${row.low}</span><span>${row.high}</span></div>
-            <div class="sam-options">
-              ${Array.from({ length: 9 }, (_, index) => {
-                const score = index + 1;
-                return `
-                  <button type="button" class="sam-choice" aria-label="${row.label} ${score}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
-                    <img src="assets/sam/${row.id}/${row.id}-${score}.svg" alt="" draggable="false">
-                    <span>${score}</span>
-                  </button>
-                `;
-              }).join("")}
+            <div class="row-label"><strong>${row.label}</strong></div>
+            <div class="sam-scale-row">
+              <span class="sam-row-anchor sam-row-anchor-low">${row.low}</span>
+              <div class="sam-options">
+                ${Array.from({ length: 9 }, (_, index) => {
+                  const score = index + 1;
+                  return `
+                    <button type="button" class="sam-choice" aria-label="${row.label} ${score}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
+                      <img src="assets/sam/${row.id}/${row.id}-${score}.svg" alt="" draggable="false">
+                      <span>${score}</span>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+              <span class="sam-row-anchor sam-row-anchor-high">${row.high}</span>
             </div>
           </div>
         `).join("")}
@@ -1450,31 +1467,23 @@ function markAffectVasTouchedAndRefresh(field) {
 
 function renderSamRows() {
   const assessment = activeAssessment();
-  const rows = [
-    {
-      id: "valence",
-      label: "Unpleasant - pleasant",
-      low: "Very unpleasant",
-      high: "Very pleasant",
-      field: "valence_raw_1_9"
-    },
-    {
-      id: "arousal",
-      label: "Activation level",
-      low: "Very low activation",
-      high: "Very high activation",
-      field: "arousal_raw_1_9"
-    }
-  ];
   elements.samRows.replaceChildren();
-  rows.forEach((row) => {
+  SAM_MANIKIN_ROWS.forEach((row) => {
     const container = document.createElement("div");
     container.className = "sam-row";
 
     const label = document.createElement("div");
     label.className = "row-label";
-    label.innerHTML = `<strong>${row.label}</strong><span>${row.low}</span><span>${row.high}</span>`;
+    label.innerHTML = `<strong>${row.label}</strong>`;
     container.appendChild(label);
+
+    const scaleRow = document.createElement("div");
+    scaleRow.className = "sam-scale-row";
+
+    const lowAnchor = document.createElement("span");
+    lowAnchor.className = "sam-row-anchor sam-row-anchor-low";
+    lowAnchor.textContent = row.low;
+    scaleRow.appendChild(lowAnchor);
 
     const options = document.createElement("div");
     options.className = "sam-options";
@@ -1500,7 +1509,14 @@ function renderSamRows() {
       button.appendChild(number);
       options.appendChild(button);
     }
-    container.appendChild(options);
+    scaleRow.appendChild(options);
+
+    const highAnchor = document.createElement("span");
+    highAnchor.className = "sam-row-anchor sam-row-anchor-high";
+    highAnchor.textContent = row.high;
+    scaleRow.appendChild(highAnchor);
+
+    container.appendChild(scaleRow);
     elements.samRows.appendChild(container);
   });
 }

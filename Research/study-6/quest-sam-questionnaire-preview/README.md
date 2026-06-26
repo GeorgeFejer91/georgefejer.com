@@ -90,7 +90,7 @@ induction content before the assessment block.
 The participant assessment sequence repeats after every condition as one
 three-page assessment block:
 
-1. `sam_pictographic`: how the participant felt during the condition, using SAM valence and arousal on the 9-picture manikin.
+1. `sam_pictographic`: how the participant felt during the condition, using SAM valence and arousal on the 9-picture manikin with the same left/right anchors as the VAS rows (`Very negative` to `Very positive`; `Very inactive` to `Very active`).
 2. `affect_vas`: how the participant felt during the condition, using independent 0-100 valence and arousal VAS sliders.
 3. `ekman_intensity`: how strongly each Ekman emotion seemed represented by the particle movement in the scenario, using independent 0-100 VAS sliders.
 
