@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study 6 Neutral Hand Audio Research Protocol</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      --line: color-mix(in srgb, currentColor 18%, transparent);
+      --muted: color-mix(in srgb, currentColor 70%, transparent);
+    }
+
+    body {
+      margin: 0;
+      padding: 32px;
+      max-width: 1080px;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin: 0 0 8px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin: 32px 0 10px;
+    }
+
+    p {
+      max-width: 820px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    audio {
+      width: min(340px, 100%);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    }
+
+    a {
+      color: currentColor;
+      text-underline-offset: 0.18em;
+    }
+
+    .meta {
+      color: var(--muted);
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      list-style: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Study 6 Neutral Hand Audio Research Protocol</h1>
+    <p class="meta">Research-facing protocol package with project goals, full context, exact wordings, audio assets, validation reports, cached prompt assets, and rebuild scripts.</p>
+
+    <h2>Protocol Files</h2>
+    <ul class="links">
+      <li><a href="README.md">Package README</a></li>
+      <li><a href="protocol/PROJECT_GOALS.md">Project goals</a></li>
+      <li><a href="protocol/RESEARCH_PROTOCOL.md">Research protocol</a></li>
+      <li><a href="protocol/FULL_CONTEXT.md">Full project context</a></li>
+      <li><a href="protocol/ASSET_AND_WORDING_MAP.md">Asset and wording map</a></li>
+      <li><a href="protocol/VALIDATION_CHECKLIST.md">Validation checklist</a></li>
+      <li><a href="wordings/EXACT_WORDING_LIBRARY.md">Exact wording library</a></li>
+      <li><a href="RESEARCH_PROJECT_MANIFEST.csv">Research project manifest</a></li>
+      <li><a href="asset-package/">Bundled asset package</a></li>
+      <li><a href="../../projects/study6-neutral-hand-audio/">Canonical asset page</a></li>
+    </ul>
+
+    <h2>Timing Standard</h2>
+    <p>Each final audio file is exactly <code>300.000000</code> seconds. Setup is <code>00:00-00:20</code>, the four core clusters run from <code>00:20-04:20</code>, and the closing circle runs from <code>04:20-05:00</code>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Core Order</th>
+          <th>English Audio</th>
+          <th>German Audio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>V01</td>
+          <td>A, B, D, C</td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V01_EN.mp3"></audio></td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V01_DE.mp3"></audio></td>
+        </tr>
+        <tr>
+          <td>V02</td>
+          <td>B, C, A, D</td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V02_EN.mp3"></audio></td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V02_DE.mp3"></audio></td>
+        </tr>
+        <tr>
+          <td>V03</td>
+          <td>D, A, C, B</td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V03_EN.mp3"></audio></td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V03_DE.mp3"></audio></td>
+        </tr>
+        <tr>
+          <td>V04</td>
+          <td>C, D, B, A</td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V04_EN.mp3"></audio></td>
+          <td><audio controls preload="none" src="asset-package/audio/study6_neutral_hand_audio_V04_DE.mp3"></audio></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

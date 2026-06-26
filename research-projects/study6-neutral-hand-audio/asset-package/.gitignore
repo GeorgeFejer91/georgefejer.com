@@ -1,0 +1,9 @@
+.env
+*.env
+elevenlabs_access_codex.txt
+*.key
+prompt_audio_wav/
+choreo_v2_prompt_wav/
+__pycache__/
+*.pyc
+audio/*.wav
