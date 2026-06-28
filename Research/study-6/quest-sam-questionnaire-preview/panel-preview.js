@@ -6,7 +6,7 @@ const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
 const AUDIO_RANDOMIZATION_NOTE = "Emotion scenario order is counterbalanced; audio instruction variant is randomized at runtime.";
-const AUDIO_ASSET_BASE_PATH = "../kuramoto-mesh-lab/audio-assets";
+const AUDIO_ASSET_BASE_PATH = "../../../projects/study6-neutral-hand-audio/audio";
 
 const CONDITIONS = [
   { id: "induction_a", label: "Condition A" },

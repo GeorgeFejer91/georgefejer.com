@@ -781,16 +781,16 @@
       "assets/sam/arousal/arousal-9.svg"
     ],
     "license_path": "assets/sam/LICENSE-BSD-2-Clause.txt",
-    "audio_instruction_asset_base_path": "../kuramoto-mesh-lab/audio-assets",
+    "audio_instruction_asset_base_path": "../../../projects/study6-neutral-hand-audio/audio",
     "audio_instruction_asset_paths": [
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_EN.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_DE.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_EN.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_DE.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_EN.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_DE.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_EN.mp3",
-      "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_DE.mp3"
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+      "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
     ]
   },
   "expanded_preview_sequence": [
@@ -1034,32 +1034,32 @@
         "id": "audio_instruction_set_1",
         "label": "Audio variant V01",
         "asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3"
         }
       },
       {
         "id": "audio_instruction_set_2",
         "label": "Audio variant V02",
         "asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3"
         }
       },
       {
         "id": "audio_instruction_set_3",
         "label": "Audio variant V03",
         "asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3"
         }
       },
       {
         "id": "audio_instruction_set_4",
         "label": "Audio variant V04",
         "asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
         }
       }
     ],
@@ -1072,8 +1072,8 @@
         "preview_audio_instruction_id": "audio_instruction_set_1",
         "preview_audio_instruction_label": "Audio variant V01",
         "preview_audio_asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V01_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3"
         },
         "assignment_mode": "runtime-randomized; preview shows a representative variant"
       },
@@ -1085,8 +1085,8 @@
         "preview_audio_instruction_id": "audio_instruction_set_2",
         "preview_audio_instruction_label": "Audio variant V02",
         "preview_audio_asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V02_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3"
         },
         "assignment_mode": "runtime-randomized; preview shows a representative variant"
       },
@@ -1098,8 +1098,8 @@
         "preview_audio_instruction_id": "audio_instruction_set_3",
         "preview_audio_instruction_label": "Audio variant V03",
         "preview_audio_asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V03_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3"
         },
         "assignment_mode": "runtime-randomized; preview shows a representative variant"
       },
@@ -1111,8 +1111,8 @@
         "preview_audio_instruction_id": "audio_instruction_set_4",
         "preview_audio_instruction_label": "Audio variant V04",
         "preview_audio_asset_paths": {
-          "en": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_EN.mp3",
-          "de": "../kuramoto-mesh-lab/audio-assets/study6_neutral_hand_audio_V04_DE.mp3"
+          "en": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+          "de": "../../../projects/study6-neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
         },
         "assignment_mode": "runtime-randomized; preview shows a representative variant"
       }
