@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 107">
+  <title>dominance_08</title>
+  <defs>
+    <style>
+      .outline,.face,.structure{fill:none;stroke:#000;stroke-linecap:square;stroke-linejoin:miter;vector-effect:non-scaling-stroke}
+      .outline{stroke-width:2.1}
+      .face{stroke-width:1.65}
+      .structure{stroke-width:1.75}
+      .pupil{fill:#000}
+    </style>
+  </defs>
+  <g transform="translate(-11.75 -8.375) scale(1.235 1.125)">
+    <path class="outline" d="M37 27V40H15V62H25V89H14V100H37V89H63V100H86V89H75V62H85V40H63V16H37V27H31V10H69V27H63"/>
+    <path class="structure" d="M25 51V62M75 51V62"/>
+    <path class="face" d="M41 21.5H47M53 21.5H59"/>
+    <rect class="face" x="41.2" y="24.4" width="6.4" height="6.2"/>
+    <rect class="face" x="52.4" y="24.4" width="6.4" height="6.2"/>
+    <circle class="pupil" cx="44.4" cy="27.5" r="1.2"/>
+    <circle class="pupil" cx="55.6" cy="27.5" r="1.2"/>
+    <path class="face" d="M47.7 31.4L48.5 36.6H51.5L52.3 31.4"/>
+    <path class="face" d="M43.8 40.2H56.2"/>
+  </g>
+</svg>

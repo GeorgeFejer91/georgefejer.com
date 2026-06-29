@@ -1,0 +1,73 @@
+{
+  "catalog_id": "study6_sam_pictographs",
+  "version": 1,
+  "asset_root": "questionnaire-assets/sam",
+  "canonical_file_pattern": "{scale_id}_{score_2digit}.svg",
+  "naming_rule": "Only the live zero-padded snake_case SVG filenames are retained, such as valence_01.svg through valence_09.svg.",
+  "license_path": "LICENSE-BSD-2-Clause.txt",
+  "scales": [
+    {
+      "scale_id": "valence",
+      "scale_label": "SAM valence",
+      "questionnaire_item_id": "sam.valence_raw_1_9",
+      "variable_name": "sam_valence_raw_1_9",
+      "anchors": [
+        { "score": 1, "label": "Very negative" },
+        { "score": 9, "label": "Very positive" }
+      ],
+      "assets": [
+        { "score": 1, "asset_name": "valence_01", "path": "valence/valence_01.svg" },
+        { "score": 2, "asset_name": "valence_02", "path": "valence/valence_02.svg" },
+        { "score": 3, "asset_name": "valence_03", "path": "valence/valence_03.svg" },
+        { "score": 4, "asset_name": "valence_04", "path": "valence/valence_04.svg" },
+        { "score": 5, "asset_name": "valence_05", "path": "valence/valence_05.svg" },
+        { "score": 6, "asset_name": "valence_06", "path": "valence/valence_06.svg" },
+        { "score": 7, "asset_name": "valence_07", "path": "valence/valence_07.svg" },
+        { "score": 8, "asset_name": "valence_08", "path": "valence/valence_08.svg" },
+        { "score": 9, "asset_name": "valence_09", "path": "valence/valence_09.svg" }
+      ]
+    },
+    {
+      "scale_id": "arousal",
+      "scale_label": "SAM arousal",
+      "questionnaire_item_id": "sam.arousal_raw_1_9",
+      "variable_name": "sam_arousal_raw_1_9",
+      "anchors": [
+        { "score": 1, "label": "Very inactive" },
+        { "score": 9, "label": "Very active" }
+      ],
+      "assets": [
+        { "score": 1, "asset_name": "arousal_01", "path": "arousal/arousal_01.svg" },
+        { "score": 2, "asset_name": "arousal_02", "path": "arousal/arousal_02.svg" },
+        { "score": 3, "asset_name": "arousal_03", "path": "arousal/arousal_03.svg" },
+        { "score": 4, "asset_name": "arousal_04", "path": "arousal/arousal_04.svg" },
+        { "score": 5, "asset_name": "arousal_05", "path": "arousal/arousal_05.svg" },
+        { "score": 6, "asset_name": "arousal_06", "path": "arousal/arousal_06.svg" },
+        { "score": 7, "asset_name": "arousal_07", "path": "arousal/arousal_07.svg" },
+        { "score": 8, "asset_name": "arousal_08", "path": "arousal/arousal_08.svg" },
+        { "score": 9, "asset_name": "arousal_09", "path": "arousal/arousal_09.svg" }
+      ]
+    },
+    {
+      "scale_id": "dominance",
+      "scale_label": "SAM dominance/control",
+      "questionnaire_item_id": "sam.dominance_raw_1_9",
+      "variable_name": "sam_dominance_raw_1_9",
+      "anchors": [
+        { "score": 1, "label": "Very controlled" },
+        { "score": 9, "label": "Very in control" }
+      ],
+      "assets": [
+        { "score": 1, "asset_name": "dominance_01", "path": "dominance/dominance_01.svg" },
+        { "score": 2, "asset_name": "dominance_02", "path": "dominance/dominance_02.svg" },
+        { "score": 3, "asset_name": "dominance_03", "path": "dominance/dominance_03.svg" },
+        { "score": 4, "asset_name": "dominance_04", "path": "dominance/dominance_04.svg" },
+        { "score": 5, "asset_name": "dominance_05", "path": "dominance/dominance_05.svg" },
+        { "score": 6, "asset_name": "dominance_06", "path": "dominance/dominance_06.svg" },
+        { "score": 7, "asset_name": "dominance_07", "path": "dominance/dominance_07.svg" },
+        { "score": 8, "asset_name": "dominance_08", "path": "dominance/dominance_08.svg" },
+        { "score": 9, "asset_name": "dominance_09", "path": "dominance/dominance_09.svg" }
+      ]
+    }
+  ]
+}

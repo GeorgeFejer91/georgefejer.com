@@ -1,12 +1,21 @@
 "use strict";
 
 const PANEL_ID = "emotion_induction_sam_preview";
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
-const AUDIO_RANDOMIZATION_NOTE = "Emotion scenario order is counterbalanced; audio instruction variant is randomized at runtime.";
-const AUDIO_ASSET_BASE_PATH = "../../../projects/study6-neutral-hand-audio/audio";
+const AUDIO_ASSET_BASE_PATH = "../neutral-hand-audio/audio";
+const SAM_ASSET_BASE_PATH = "../questionnaire-assets/sam";
+const QUESTIONNAIRE_ITEM_LIBRARY = window.STUDY6_QUESTIONNAIRE_ITEM_LIBRARY;
+
+if (!QUESTIONNAIRE_ITEM_LIBRARY || !Array.isArray(QUESTIONNAIRE_ITEM_LIBRARY.items)) {
+  throw new Error("Study 6 questionnaire item library is missing.");
+}
+
+const QUESTIONNAIRE_ITEMS = QUESTIONNAIRE_ITEM_LIBRARY.items;
+const QUESTIONNAIRE_PAGE_GROUPS = QUESTIONNAIRE_ITEM_LIBRARY.pages || [];
+const CONTROL_MODEL = QUESTIONNAIRE_ITEMS.map((item) => ({ ...item }));
 
 const CONDITIONS = [
   { id: "induction_a", label: "Condition A" },
@@ -63,7 +72,7 @@ const ASSESSMENT_PAGES = [
     label: "1/3",
     title: "How did you feel during the block?",
     summary: "Assessment block page 1 of 3",
-    block_group: "Retrospective SAM valence and arousal pictographic rating"
+    block_group: "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
   },
   {
     id: "affect_vas",
@@ -118,43 +127,56 @@ const GENDER_OPTIONS = [
   { id: "prefer_not_to_say", label: "Prefer not to say" }
 ];
 
-const AFFECT_VAS_SLIDERS = [
-  {
-    id: "vas.valence_raw_0_100",
-    label: "Negative - positive",
-    question: "How positive or negative did you feel during the last session?",
-    touchLabel: "valence",
-    low: "Very negative",
-    high: "Very positive",
-    field: "valence_raw_0_100"
-  },
-  {
-    id: "vas.arousal_raw_0_100",
-    label: "Inactive - active",
-    question: "How active or inactive did you feel during the last session?",
-    touchLabel: "arousal",
-    low: "Very inactive",
-    high: "Very active",
-    field: "arousal_raw_0_100"
-  }
-];
+const REQUIRED_SAM_DIMENSIONS = ["valence", "arousal", "dominance"];
 
-const SAM_MANIKIN_ROWS = [
-  {
-    id: "valence",
-    label: "Negative - positive",
-    low: "Very negative",
-    high: "Very positive",
-    field: "valence_raw_1_9"
-  },
-  {
-    id: "arousal",
-    label: "Inactive - active",
-    low: "Very inactive",
-    high: "Very active",
-    field: "arousal_raw_1_9"
+function samDimensionSortIndex(scaleId) {
+  const index = REQUIRED_SAM_DIMENSIONS.indexOf(scaleId);
+  return index === -1 ? REQUIRED_SAM_DIMENSIONS.length : index;
+}
+
+function assertCompleteSamManikinRows(rows) {
+  const rowIds = rows.map((row) => row.id);
+  const missing = REQUIRED_SAM_DIMENSIONS.filter((dimension) => !rowIds.includes(dimension));
+  const duplicates = [...new Set(rowIds.filter((id, index) => rowIds.indexOf(id) !== index))];
+  if (missing.length > 0 || duplicates.length > 0) {
+    const details = [
+      missing.length > 0 ? `missing ${missing.join(", ")}` : "",
+      duplicates.length > 0 ? `duplicate ${duplicates.join(", ")}` : ""
+    ].filter(Boolean).join("; ");
+    throw new Error(`SAM pictographic assessments must include valence, arousal, and dominance rows: ${details}.`);
   }
-];
+}
+
+const SAM_MANIKIN_ROWS = QUESTIONNAIRE_ITEMS
+  .filter((item) => item.page === "sam_pictographic" && item.type === "pictographic-choice")
+  .map((item) => ({
+    item_id: item.id,
+    variable_name: item.variable_name,
+    id: item.scale_id,
+    label: item.axis_label,
+    question: item.question,
+    low: item.low,
+    high: item.high,
+    field: item.field,
+    options: item.options
+  }))
+  .sort((a, b) => samDimensionSortIndex(a.id) - samDimensionSortIndex(b.id));
+
+assertCompleteSamManikinRows(SAM_MANIKIN_ROWS);
+
+const AFFECT_VAS_SLIDERS = QUESTIONNAIRE_ITEMS
+  .filter((item) => item.page === "affect_vas" && item.response_namespace === "affect_vas")
+  .map((item) => ({
+    item_id: item.id,
+    variable_name: item.variable_name,
+    id: item.id,
+    label: item.axis_label,
+    question: item.question,
+    touchLabel: item.touchLabel,
+    low: item.low,
+    high: item.high,
+    field: item.field
+  }));
 
 const VAS_INTERACTION_KEYS = new Set([
   "ArrowLeft",
@@ -167,17 +189,27 @@ const VAS_INTERACTION_KEYS = new Set([
   "PageDown"
 ]);
 
-const EKMAN_EMOTIONS = [
-  { id: "anger", label: "Anger" },
-  { id: "disgust", label: "Disgust" },
-  { id: "fear", label: "Fear" },
-  { id: "happiness", label: "Happiness" },
-  { id: "sadness", label: "Sadness" },
-  { id: "surprise", label: "Surprise" }
-];
+const EKMAN_EMOTIONS = QUESTIONNAIRE_ITEMS
+  .filter((item) => item.page === "ekman_intensity" && item.response_namespace === "ekman_intensity")
+  .map((item) => ({
+    item_id: item.id,
+    variable_name: item.variable_name,
+    id: item.emotion_id,
+    label: item.label,
+    field: item.field
+  }));
 
 function ekmanFieldId(emotionId) {
-  return `${emotionId}_raw_0_100`;
+  const item = EKMAN_EMOTIONS.find((emotion) => emotion.id === emotionId);
+  return item ? item.field : `${emotionId}_raw_0_100`;
+}
+
+function twoDigitScore(score) {
+  return String(score).padStart(2, "0");
+}
+
+function samAssetPath(scaleId, score) {
+  return `${SAM_ASSET_BASE_PATH}/${scaleId}/${scaleId}_${twoDigitScore(score)}.svg`;
 }
 
 function defaultPolarValidation() {
@@ -294,237 +326,6 @@ function normalizeOnboarding(rawOnboarding) {
   };
 }
 
-const CONTROL_MODEL = [
-  {
-    id: "onboarding.polar_validation.ready",
-    label: "Polar H10 ECG validation",
-    page: "onboarding",
-    type: "readonly-status-strip",
-    default: true,
-    editable: "native-owned",
-    validation: "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
-    native_state_field: "questionnaire_state.onboarding.polar_validation.ready",
-    result_json_field: "answers.onboarding.polar_validation"
-  },
-  {
-    id: "onboarding.language_code",
-    label: "Language",
-    page: "onboarding",
-    type: "segmented",
-    default: "en",
-    options: LANGUAGE_OPTIONS.map((option) => option.id),
-    editable: "editable",
-    validation: "required; must be en or de",
-    result_json_field: "answers.onboarding.language_code"
-  },
-  {
-    id: "onboarding.participant_first_name",
-    label: "First name",
-    page: "onboarding",
-    type: "text",
-    default: "",
-    editable: "editable",
-    validation: "required non-empty text",
-    result_json_field: "answers.onboarding.participant_first_name"
-  },
-  {
-    id: "onboarding.participant_last_name",
-    label: "Last name",
-    page: "onboarding",
-    type: "text",
-    default: "",
-    editable: "editable",
-    validation: "required non-empty text",
-    result_json_field: "answers.onboarding.participant_last_name"
-  },
-  {
-    id: "onboarding.participant_name",
-    label: "Full name",
-    page: "onboarding",
-    type: "readonly-derived",
-    default: "",
-    editable: "derived",
-    validation: "derived from first and last name",
-    result_json_field: "answers.onboarding.participant_name"
-  },
-  {
-    id: "onboarding.age_years",
-    label: "Age",
-    page: "onboarding",
-    type: "number",
-    default: null,
-    min: 0,
-    max: 120,
-    step: 1,
-    editable: "editable",
-    validation: "required integer 0..120",
-    result_json_field: "answers.onboarding.age_years"
-  },
-  {
-    id: "onboarding.handedness",
-    label: "Handedness",
-    page: "onboarding",
-    type: "segmented",
-    default: "",
-    options: HANDEDNESS_OPTIONS.map((option) => option.id),
-    editable: "editable",
-    validation: "required; must be one handedness option id",
-    result_json_field: "answers.onboarding.handedness"
-  },
-  {
-    id: "onboarding.gender",
-    label: "Gender",
-    page: "onboarding",
-    type: "segmented",
-    default: "",
-    options: GENDER_OPTIONS.map((option) => option.id),
-    editable: "editable",
-    validation: "required; must be one gender option id",
-    result_json_field: "answers.onboarding.gender"
-  },
-  {
-    id: "onboarding.consent_confirmed",
-    label: "Study consent",
-    page: "onboarding",
-    type: "checkbox",
-    default: false,
-    editable: "editable",
-    validation: "required; must be checked",
-    result_json_field: "answers.onboarding.consent_confirmed"
-  },
-  {
-    id: "onboarding.signature",
-    label: "Consent signature",
-    page: "onboarding",
-    type: "signature-pad",
-    default: { has_signature: false, stroke_count: 0 },
-    editable: "editable",
-    validation: "required signature stroke data",
-    result_json_field: "answers.onboarding.signature"
-  },
-  {
-    id: "counterbalance.order_id",
-    label: "Counterbalance order",
-    type: "select",
-    default: "order_01",
-    options: COUNTERBALANCE_ORDERS.map((order) => order.id),
-    editable: "preview-only",
-    validation: "must be one of counterbalance order ids",
-    native_state_field: "questionnaire_state.counterbalance_order_id"
-  },
-  {
-    id: "condition.active_index",
-    label: "Active condition index",
-    type: "segmented-preview-navigation",
-    default: 1,
-    min: 1,
-    max: 4,
-    step: 1,
-    editable: "preview-only",
-    validation: "must be 1..4",
-    native_state_field: "questionnaire_state.condition_index"
-  },
-  {
-    id: "condition.induction_placeholder",
-    label: "Emotion induction placeholder",
-    page: "emotion_induction_placeholder",
-    type: "placeholder-stage",
-    default: "condition-specific native induction",
-    editable: "caller-owned",
-    validation: "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
-    native_state_field: "questionnaire_state.condition_induction_stage"
-  },
-  {
-    id: "assessment.active_page_id",
-    label: "Active assessment page",
-    type: "segmented-preview-navigation",
-    default: "sam_pictographic",
-    options: ASSESSMENT_PAGES.map((page) => page.id),
-    editable: "preview-only",
-    validation: "must be one of assessment page ids",
-    native_state_field: "questionnaire_state.open_stage"
-  },
-  {
-    id: "sam.valence_raw_1_9",
-    label: "Retrospective SAM valence",
-    page: "sam_pictographic",
-    type: "pictographic-choice",
-    default: null,
-    min: 1,
-    max: 9,
-    step: 1,
-    options: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    editable: "editable",
-    validation: "required integer 1..9",
-    result_json_field: "answers.emotion_assessment.sam.valence_raw_1_9"
-  },
-  {
-    id: "sam.arousal_raw_1_9",
-    label: "Retrospective SAM arousal",
-    page: "sam_pictographic",
-    type: "pictographic-choice",
-    default: null,
-    min: 1,
-    max: 9,
-    step: 1,
-    options: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    editable: "editable",
-    validation: "required integer 1..9",
-    result_json_field: "answers.emotion_assessment.sam.arousal_raw_1_9"
-  },
-  {
-    id: "vas.valence_raw_0_100",
-    label: "Retrospective valence VAS",
-    page: "affect_vas",
-    type: "range",
-    default: 50,
-    min: 0,
-    max: 100,
-    step: 1,
-    center_marker: 50,
-    question: "How positive or negative did you feel during the last session?",
-    anchors: [
-      { value: 0, label: "Very negative" },
-      { value: 100, label: "Very positive" }
-    ],
-    editable: "editable",
-    validation: "required integer 0..100; slider must be touched once before page completion",
-    result_json_field: "answers.emotion_assessment.affect_vas.valence_raw_0_100"
-  },
-  {
-    id: "vas.arousal_raw_0_100",
-    label: "Retrospective arousal VAS",
-    page: "affect_vas",
-    type: "range",
-    default: 50,
-    min: 0,
-    max: 100,
-    step: 1,
-    center_marker: 50,
-    question: "How active or inactive did you feel during the last session?",
-    anchors: [
-      { value: 0, label: "Very inactive" },
-      { value: 100, label: "Very active" }
-    ],
-    editable: "editable",
-    validation: "required integer 0..100; slider must be touched once before page completion",
-    result_json_field: "answers.emotion_assessment.affect_vas.arousal_raw_0_100"
-  },
-  ...EKMAN_EMOTIONS.map((emotion) => ({
-    id: `ekman_intensity.${ekmanFieldId(emotion.id)}`,
-    label: emotion.label,
-    page: "ekman_intensity",
-    type: "range",
-    default: 0,
-    min: 0,
-    max: 100,
-    step: 1,
-    editable: "editable",
-    validation: "required integer 0..100",
-    result_json_field: `answers.emotion_assessment.ekman_intensity.${ekmanFieldId(emotion.id)}`
-  }))
-];
-
 function defaultPageCompletion() {
   return Object.fromEntries(ASSESSMENT_PAGES.map((page) => [page.id, false]));
 }
@@ -537,12 +338,13 @@ function defaultAffectVasTouched() {
   return Object.fromEntries(AFFECT_VAS_SLIDERS.map((slider) => [slider.field, false]));
 }
 
+function defaultSamAssessment() {
+  return Object.fromEntries(SAM_MANIKIN_ROWS.map((row) => [row.field, null]));
+}
+
 function defaultAssessment() {
   return {
-    sam: {
-      valence_raw_1_9: null,
-      arousal_raw_1_9: null
-    },
+    sam: defaultSamAssessment(),
     affect_vas: {
       valence_raw_0_100: 50,
       arousal_raw_0_100: 50
@@ -658,6 +460,7 @@ function makeEdgeState() {
     const assessment = entry.assessment;
     assessment.sam.valence_raw_1_9 = index === 3 ? 1 : 9;
     assessment.sam.arousal_raw_1_9 = index === 3 ? 9 : 1;
+    assessment.sam.dominance_raw_1_9 = index === 3 ? 1 : 9;
     assessment.affect_vas.valence_raw_0_100 = index === 3 ? 0 : 100;
     assessment.affect_vas.arousal_raw_0_100 = index === 3 ? 100 : 0;
     EKMAN_EMOTIONS.forEach((emotion, emotionIndex) => {
@@ -671,7 +474,12 @@ function makeEdgeState() {
   return state;
 }
 
-let state = makeState();
+function initialPreviewState() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("fixture") === "edge" ? makeEdgeState() : makeState();
+}
+
+let state = initialPreviewState();
 
 const elements = {
   conditionStatus: document.getElementById("conditionStatus"),
@@ -722,7 +530,6 @@ const elements = {
   loadEdge: document.getElementById("loadEdge"),
   exportState: document.getElementById("exportState"),
   jsonOutput: document.getElementById("jsonOutput"),
-  inspector: document.querySelector(".inspector"),
   storyboardSection: document.querySelector(".storyboard"),
   storyboardPanels: document.getElementById("storyboardPanels")
 };
@@ -844,9 +651,6 @@ function setState(nextState) {
 }
 
 function render() {
-  renderOrderSelect();
-  renderConditionButtons();
-  renderPageButtons();
   renderHeader();
   renderVisiblePage();
   renderOnboarding();
@@ -860,6 +664,9 @@ function render() {
 }
 
 function renderOrderSelect() {
+  if (!elements.orderSelect) {
+    return;
+  }
   elements.orderSelect.replaceChildren();
   COUNTERBALANCE_ORDERS.forEach((order) => {
     const option = document.createElement("option");
@@ -871,6 +678,9 @@ function renderOrderSelect() {
 }
 
 function renderConditionButtons() {
+  if (!elements.conditionButtons) {
+    return;
+  }
   elements.conditionButtons.replaceChildren();
   const order = activeOrder();
   order.condition_ids.forEach((conditionId, index) => {
@@ -889,6 +699,9 @@ function renderConditionButtons() {
 }
 
 function renderPageButtons() {
+  if (!elements.pageButtons) {
+    return;
+  }
   elements.pageButtons.replaceChildren();
   WORKFLOW_PAGES.forEach((page, index) => {
     const button = document.createElement("button");
@@ -1025,14 +838,13 @@ function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect
 }
 
 function renderInductionPlaceholder() {
-  const audio = audioInstructionFor(state.active_condition_position);
   elements.inductionKicker.textContent = `Block ${state.active_condition_position} of 4`;
   elements.inductionHeading.textContent = `Block ${state.active_condition_position} instructions`;
   elements.inductionConditionLabel.textContent = `Block ${state.active_condition_position}`;
-  elements.inductionAudioLabel.textContent = `${audio.label} preview`;
-  elements.inductionAudioSummary.textContent = "Runtime randomly selects one of the four instruction variants.";
-  elements.inductionRandomizationNote.textContent = AUDIO_RANDOMIZATION_NOTE;
-  renderAudioAssetLinks(elements.inductionAudioLinks, state.onboarding.language_code);
+  elements.inductionAudioLabel.textContent = "Audio ready";
+  elements.inductionAudioSummary.textContent = "Please follow the instructions.";
+  elements.inductionRandomizationNote.textContent = "";
+  elements.inductionAudioLinks.replaceChildren();
   elements.inductionSummary.textContent = "A short response section follows.";
 }
 
@@ -1051,7 +863,7 @@ function storyboardItems(order = activeOrder()) {
           condition_id: conditionId,
           condition_position: conditionPosition,
           storyboard_title: `Block ${conditionPosition}: instructions`,
-          storyboard_subtitle: "Emotion order counterbalanced; audio randomized"
+          storyboard_subtitle: "Instructions before the response pages"
         },
         ...ASSESSMENT_PAGES.map((page, pageIndex) => ({
           page_id: page.id,
@@ -1099,7 +911,7 @@ function storyboardOnboardingState() {
 function storyboardAssessmentFor(conditionPosition) {
   const examples = [
     {
-      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 52, arousal_raw_0_100: 48 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1112,7 +924,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 72, arousal_raw_0_100: 64 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1125,7 +937,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 24, arousal_raw_0_100: 82 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1138,7 +950,7 @@ function storyboardAssessmentFor(conditionPosition) {
       }
     },
     {
-      sam: { valence_raw_1_9: null, arousal_raw_1_9: null },
+      sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 84, arousal_raw_0_100: 28 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
       ekman_intensity: {
@@ -1369,8 +1181,6 @@ function onboardingStoryboardMarkup() {
 }
 
 function inductionStoryboardMarkup(item) {
-  const audio = audioInstructionFor(item.condition_position);
-  const languageCode = normalizeOnboarding(state.onboarding).language_code;
   return `
     <section class="assessment-page induction-section">
       <div class="induction-shell">
@@ -1381,10 +1191,8 @@ function inductionStoryboardMarkup(item) {
           <strong>Instruction placeholder</strong>
           <div class="induction-audio">
             <small>Instructions</small>
-            <b>${escapeHtml(audio.label)} preview</b>
-            <em>Runtime randomly selects one of the four instruction variants.</em>
-            <p class="induction-randomization-note">${escapeHtml(AUDIO_RANDOMIZATION_NOTE)}</p>
-            <div class="audio-asset-links" aria-label="Audio instruction assets">${audioAssetLinksMarkup(languageCode)}</div>
+            <b>Audio ready</b>
+            <em>Please follow the instructions.</em>
           </div>
         </div>
         <p class="induction-summary">A short response section follows.</p>
@@ -1404,21 +1212,23 @@ function samStoryboardMarkup(assessment) {
       <div class="sam-rows">
         ${SAM_MANIKIN_ROWS.map((row) => `
           <div class="sam-row">
-            <div class="row-label"><strong>${row.label}</strong></div>
+            <div class="row-label">
+              <strong class="sam-row-question">${escapeHtml(row.question)}</strong>
+              <span class="sam-row-axis">${escapeHtml(row.label)}</span>
+            </div>
             <div class="sam-scale-row">
-              <span class="sam-row-anchor sam-row-anchor-low">${row.low}</span>
+              <span class="sam-row-anchor sam-row-anchor-low">${escapeHtml(row.low)}</span>
               <div class="sam-options">
-                ${Array.from({ length: 9 }, (_, index) => {
-                  const score = index + 1;
+                ${(row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => {
                   return `
-                    <button type="button" class="sam-choice" aria-label="${row.label} ${score}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
-                      <img src="assets/sam/${row.id}/${row.id}-${score}.svg" alt="" draggable="false">
+                    <button type="button" class="sam-choice" aria-label="${escapeHtml(`${row.question} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
+                      <img src="${samAssetPath(row.id, score)}" alt="" draggable="false">
                       <span>${score}</span>
                     </button>
                   `;
                 }).join("")}
               </div>
-              <span class="sam-row-anchor sam-row-anchor-high">${row.high}</span>
+              <span class="sam-row-anchor sam-row-anchor-high">${escapeHtml(row.high)}</span>
             </div>
           </div>
         `).join("")}
@@ -1532,7 +1342,14 @@ function renderSamRows() {
 
     const label = document.createElement("div");
     label.className = "row-label";
-    label.innerHTML = `<strong>${row.label}</strong>`;
+    const question = document.createElement("strong");
+    question.className = "sam-row-question";
+    question.textContent = row.question;
+    const axis = document.createElement("span");
+    axis.className = "sam-row-axis";
+    axis.textContent = row.label;
+    label.appendChild(question);
+    label.appendChild(axis);
     container.appendChild(label);
 
     const scaleRow = document.createElement("div");
@@ -1545,18 +1362,20 @@ function renderSamRows() {
 
     const options = document.createElement("div");
     options.className = "sam-options";
-    for (let score = 1; score <= 9; score += 1) {
+    (row.options || Array.from({ length: 9 }, (_, index) => index + 1)).forEach((score) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "sam-choice";
-      button.id = `sam.${row.id}.${score}`;
+      button.id = `sam.${row.id}_${twoDigitScore(score)}`;
+      button.dataset.itemId = row.item_id;
+      button.dataset.variableName = row.variable_name;
       button.dataset.samField = row.field;
       button.dataset.samScore = String(score);
-      button.setAttribute("aria-label", `${row.label} ${score}`);
+      button.setAttribute("aria-label", `${row.question} ${score}`);
       button.setAttribute("aria-pressed", String(assessment.sam[row.field] === score));
 
       const img = document.createElement("img");
-      img.src = `assets/sam/${row.id}/${row.id}-${score}.svg`;
+      img.src = samAssetPath(row.id, score);
       img.alt = "";
       img.draggable = false;
 
@@ -1566,7 +1385,7 @@ function renderSamRows() {
       button.appendChild(img);
       button.appendChild(number);
       options.appendChild(button);
-    }
+    });
     scaleRow.appendChild(options);
 
     const highAnchor = document.createElement("span");
@@ -1824,12 +1643,11 @@ function validationErrors(assessment = activeAssessment(), pageId = activePage()
   const normalized = normalizeAssessment(assessment);
   const errors = [];
   if (pageId === "sam_pictographic") {
-    if (!isIntegerInRange(normalized.sam.valence_raw_1_9, 1, 9)) {
-      errors.push("Select SAM valence.");
-    }
-    if (!isIntegerInRange(normalized.sam.arousal_raw_1_9, 1, 9)) {
-      errors.push("Select SAM arousal.");
-    }
+    SAM_MANIKIN_ROWS.forEach((row) => {
+      if (!isIntegerInRange(normalized.sam[row.field], 1, 9)) {
+        errors.push(`Select SAM ${row.id}.`);
+      }
+    });
   }
   if (pageId === "affect_vas") {
     AFFECT_VAS_SLIDERS.forEach((slider) => {
@@ -1897,46 +1715,13 @@ function renderValidation() {
 }
 
 function pageGroups() {
-  return [
-    {
-      id: "onboarding",
-      title: "Participant onboarding",
-      groups: [
-        { id: "polar_validation", fields: ["onboarding.polar_validation.ready"] },
-        { id: "language", fields: ["onboarding.language_code"] },
-        { id: "demographics", fields: ["onboarding.participant_first_name", "onboarding.participant_last_name", "onboarding.participant_name", "onboarding.age_years", "onboarding.handedness", "onboarding.gender"] },
-        { id: "consent", fields: ["onboarding.consent_confirmed", "onboarding.consent_text", "onboarding.signature"] }
-      ]
-    },
-    {
-      id: "emotion_induction_placeholder",
-      title: "Emotion induction placeholder",
-      groups: [
-        { id: "condition_induction", fields: ["condition.induction_placeholder"] }
-      ]
-    },
-    {
-      id: "sam_pictographic",
-      title: "SAM: feelings during the condition",
-      groups: [
-        { id: "sam", fields: ["sam.valence_raw_1_9", "sam.arousal_raw_1_9"] }
-      ]
-    },
-    {
-      id: "affect_vas",
-      title: "Retrospective valence and arousal VAS",
-      groups: [
-        { id: "affect_vas", fields: ["vas.valence_raw_0_100", "vas.arousal_raw_0_100"] }
-      ]
-    },
-    {
-      id: "ekman_intensity",
-      title: "Particle movement emotion VAS",
-      groups: [
-        { id: "ekman_intensity", fields: EKMAN_EMOTIONS.map((emotion) => `ekman_intensity.${ekmanFieldId(emotion.id)}`) }
-      ]
-    }
-  ];
+  return QUESTIONNAIRE_PAGE_GROUPS.map((page) => ({
+    ...page,
+    groups: page.groups.map((group) => ({
+      ...group,
+      fields: [...group.fields]
+    }))
+  }));
 }
 
 function conditionBlockSequence() {
@@ -1976,8 +1761,8 @@ function expandedPreviewSequence(order = activeOrder()) {
 }
 
 function samSvgAssetPaths() {
-  return ["valence", "arousal"].flatMap((dimension) =>
-    Array.from({ length: 9 }, (_, index) => `assets/sam/${dimension}/${dimension}-${index + 1}.svg`)
+  return SAM_MANIKIN_ROWS.flatMap((row) =>
+    (row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => samAssetPath(row.id, score))
   );
 }
 
@@ -2026,7 +1811,7 @@ function previewAudioAssignments(order = activeOrder()) {
       preview_audio_instruction_id: audio.id,
       preview_audio_instruction_label: audio.label,
       preview_audio_asset_paths: audio.asset_paths,
-      assignment_mode: "runtime-randomized; preview shows a representative variant"
+      assignment_mode: "runtime-randomized across the four blocks; preview shows a representative variant"
     };
   });
 }
@@ -2051,16 +1836,12 @@ function previewControlsEnabled() {
 }
 
 function applyPreviewControlsVisibility() {
-  const showControls = previewControlsEnabled();
-  if (elements.inspector) {
-    elements.inspector.hidden = !showControls;
-    elements.inspector.setAttribute("aria-hidden", String(!showControls));
-  }
+  const showStoryboard = previewControlsEnabled();
   if (elements.storyboardSection) {
-    elements.storyboardSection.hidden = !showControls;
-    elements.storyboardSection.setAttribute("aria-hidden", String(!showControls));
+    elements.storyboardSection.hidden = !showStoryboard;
+    elements.storyboardSection.setAttribute("aria-hidden", String(!showStoryboard));
   }
-  if (!showControls && elements.storyboardPanels) {
+  if (!showStoryboard && elements.storyboardPanels) {
     elements.storyboardPanels.replaceChildren();
   }
 }
@@ -2088,15 +1869,18 @@ function exportObject() {
       result_owner: "caller-owned content URI"
     },
     preview_transfer_note: "Browser preview state is a layout and fixture artifact only. The Polar strip is a visual/native-state preview; native Android/Compose request parsing, H10 validation, result writing, focus, and headset validation remain authoritative.",
+    questionnaire_item_library: QUESTIONNAIRE_ITEM_LIBRARY,
     control_model: CONTROL_MODEL,
     pages: pageGroups(),
     onboarding: normalizeOnboarding(state.onboarding),
     visual_storyboard: visualStoryboardExport(order),
     asset_manifest: {
+      questionnaire_asset_catalog_path: "../questionnaire-assets/asset-catalog.json",
+      sam_asset_catalog_path: `${SAM_ASSET_BASE_PATH}/asset-catalog.json`,
       sam_svg_paths: samSvgAssetPaths(),
       audio_instruction_asset_base_path: AUDIO_ASSET_BASE_PATH,
       audio_instruction_asset_paths: audioInstructionAssetPaths(),
-      license_path: "assets/sam/LICENSE-BSD-2-Clause.txt"
+      license_path: `${SAM_ASSET_BASE_PATH}/LICENSE-BSD-2-Clause.txt`
     },
     expanded_preview_sequence: expandedPreviewSequence(order),
     counterbalance: {
@@ -2106,14 +1890,16 @@ function exportObject() {
         block_position: index + 1,
         condition_id: conditionId
       })),
-      assignment_policy: "assign participants evenly across counterbalance orders; each order maps counterbalanced conditions onto block positions",
+      assignment_policy: "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps counterbalanced conditions onto block positions",
       equal_participant_allocation: true,
-      editable_in_preview: true,
-      editable_in_native_panel: false
+      visible_in_questionnaire_panel: false,
+      editable_in_preview: false,
+      editable_in_native_panel: false,
+      participant_input_required: false
     },
     audio_instruction_randomization: {
       condition_order_policy: "counterbalance emotion scenario order through counterbalance.order_id",
-      assignment_policy: "randomly assign one audio instruction variant per condition at runtime",
+      assignment_policy: "randomly shuffle the four audio instruction variants so each runtime block receives one variant",
       options: AUDIO_INSTRUCTION_SETS,
       preview_assignments: previewAudioAssignments(order)
     },
@@ -2135,16 +1921,37 @@ function exportObject() {
 }
 
 function renderExport() {
-  elements.jsonOutput.textContent = JSON.stringify(exportObject(), null, 2);
+  const text = JSON.stringify(exportObject(), null, 2);
+  let exportNode = document.getElementById("previewExportJson");
+  if (!exportNode) {
+    exportNode = document.createElement("script");
+    exportNode.type = "application/json";
+    exportNode.id = "previewExportJson";
+    document.body.appendChild(exportNode);
+  }
+  exportNode.textContent = text;
+  if (!elements.jsonOutput) {
+    return;
+  }
+  elements.jsonOutput.textContent = text;
 }
 
-elements.orderSelect.addEventListener("change", () => {
-  state.counterbalance_order_id = elements.orderSelect.value;
-  state.active_condition_position = 1;
-  state.active_panel_page_id = "onboarding";
-  state.active_assessment_page_id = "sam_pictographic";
-  render();
-});
+window.STUDY6_QUESTIONNAIRE_PREVIEW = {
+  exportObject,
+  makeState,
+  makeEdgeState,
+  setState
+};
+
+if (elements.orderSelect) {
+  elements.orderSelect.addEventListener("change", () => {
+    state.counterbalance_order_id = elements.orderSelect.value;
+    state.active_condition_position = 1;
+    state.active_panel_page_id = "onboarding";
+    state.active_assessment_page_id = "sam_pictographic";
+    render();
+  });
+}
 
 elements.previousPage.addEventListener("click", () => {
   if (isOnboardingActive()) {
@@ -2297,19 +2104,29 @@ elements.clearSignature.addEventListener("click", () => {
   render();
 });
 
-elements.loadDefault.addEventListener("click", () => setState(makeState()));
-elements.loadEdge.addEventListener("click", () => setState(makeEdgeState()));
-elements.exportState.addEventListener("click", async () => {
-  const text = JSON.stringify(exportObject(), null, 2);
-  elements.jsonOutput.textContent = text;
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (_) {
-      // Clipboard support varies for file:// previews; the JSON remains visible.
+if (elements.loadDefault) {
+  elements.loadDefault.addEventListener("click", () => setState(makeState()));
+}
+
+if (elements.loadEdge) {
+  elements.loadEdge.addEventListener("click", () => setState(makeEdgeState()));
+}
+
+if (elements.exportState) {
+  elements.exportState.addEventListener("click", async () => {
+    const text = JSON.stringify(exportObject(), null, 2);
+    if (elements.jsonOutput) {
+      elements.jsonOutput.textContent = text;
     }
-  }
-});
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {
+        // Clipboard support varies for file:// previews; the JSON remains available to the caller.
+      }
+    }
+  });
+}
 
 window.addEventListener("resize", updateResponsivePreviewScale);
 window.addEventListener("orientationchange", updateResponsivePreviewScale);

@@ -485,37 +485,63 @@ h2 {
 }
 
 .sam-section {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  row-gap: 6px;
+}
+
+.sam-section .section-title {
+  margin-bottom: 0;
+}
+
+.sam-section .page-instruction {
+  margin-bottom: 2px;
+  font-size: 13px;
 }
 
 .sam-rows {
   display: grid;
-  gap: 18px;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   min-height: 0;
 }
 
 .sam-row {
   display: grid;
-  gap: 8px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 3px;
+  min-height: 0;
 }
 
 .row-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   text-align: center;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 11px;
+  line-height: 1.14;
 }
 
-.row-label strong {
+.sam-row-question {
   color: var(--text);
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sam-row-axis {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .sam-scale-row {
   display: grid;
-  grid-template-columns: minmax(92px, 104px) minmax(0, 1fr) minmax(92px, 104px);
-  gap: 10px;
+  grid-template-columns: minmax(78px, 92px) minmax(0, 1fr) minmax(78px, 92px);
+  gap: 6px;
   align-items: stretch;
+  min-height: 0;
 }
 
 .sam-row-anchor {
@@ -523,7 +549,7 @@ h2 {
   align-items: center;
   min-width: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1.18;
 }
@@ -540,19 +566,20 @@ h2 {
 .sam-options {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 8px;
+  gap: 4px;
+  min-height: 0;
 }
 
 .sam-choice {
-  height: 172px;
+  height: 88px;
   min-width: 0;
-  padding: 8px 4px 4px;
+  padding: 4px 2px 2px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
   display: grid;
-  grid-template-rows: 1fr 18px;
+  grid-template-rows: minmax(0, 1fr) 14px;
   align-items: center;
   justify-items: center;
   cursor: pointer;
@@ -560,14 +587,14 @@ h2 {
 
 .sam-choice img {
   display: block;
-  max-width: 78px;
-  max-height: 136px;
+  max-width: 46px;
+  max-height: 62px;
   width: auto;
   height: auto;
 }
 
 .sam-choice span {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 

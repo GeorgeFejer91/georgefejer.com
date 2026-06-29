@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Emotion SAM Panel Preview</title>
-  <link rel="stylesheet" href="styles.css?v=20260626-split-name-v1">
+  <link rel="stylesheet" href="styles.css?v=20260629-study6-item-library-v1">
 </head>
 <body>
   <main class="workspace">
@@ -100,8 +100,8 @@
               <small>Instructions</small>
               <b id="inductionAudioLabel">Audio ready</b>
               <em id="inductionAudioSummary">Please follow the instructions.</em>
-              <p id="inductionRandomizationNote" class="induction-randomization-note">Emotion scenario order is counterbalanced; audio instruction variant is randomized at runtime.</p>
-              <div id="inductionAudioLinks" class="audio-asset-links" aria-label="Audio instruction assets"></div>
+              <p id="inductionRandomizationNote" class="induction-randomization-note" hidden aria-hidden="true"></p>
+              <div id="inductionAudioLinks" class="audio-asset-links" aria-label="Audio instruction assets" hidden aria-hidden="true"></div>
             </div>
           </div>
           <p id="inductionSummary" class="induction-summary">A short response section follows.</p>
@@ -148,25 +148,6 @@
       </section>
     </div>
 
-    <aside class="inspector" aria-label="Preview state controls" hidden aria-hidden="true">
-      <h2>Preview controls</h2>
-      <label for="orderSelect">Counterbalance order</label>
-      <select id="orderSelect"></select>
-
-      <label>Active condition</label>
-      <div id="conditionButtons" class="condition-buttons"></div>
-
-      <label>Workflow page</label>
-      <div id="pageButtons" class="page-buttons"></div>
-
-      <div class="inspector-grid">
-        <button id="loadDefault" type="button">Default</button>
-        <button id="loadEdge" type="button">Edge case</button>
-      </div>
-
-      <button id="exportState" class="secondary-button" type="button">Export JSON</button>
-      <pre id="jsonOutput" class="json-output" aria-live="polite"></pre>
-    </aside>
   </main>
 
   <section class="storyboard" aria-labelledby="storyboardHeading" hidden aria-hidden="true">
@@ -177,6 +158,7 @@
     <div id="storyboardPanels" class="storyboard-panels"></div>
   </section>
 
-  <script src="panel-preview.js?v=20260626-split-name-v1"></script>
+  <script src="questionnaire-item-library.js?v=20260629-study6-item-library-v1"></script>
+  <script src="panel-preview.js?v=20260629-study6-item-library-v1"></script>
 </body>
 </html>

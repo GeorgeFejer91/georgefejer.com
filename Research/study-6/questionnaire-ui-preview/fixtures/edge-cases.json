@@ -1,0 +1,2316 @@
+﻿{
+  "panel_id": "emotion_induction_sam_preview",
+  "schema_version": 7,
+  "quest_panel_frame": {
+    "width_dp": 1080,
+    "height_dp": 720
+  },
+  "terminology": {
+    "block_position": "presentation order position shown to the participant",
+    "condition_id": "counterbalanced condition assigned to a block",
+    "counterbalance_order_id": "mapping from block positions to counterbalanced conditions"
+  },
+  "native_contract_authority": {
+    "protocol_version": "quest.questionnaire.v1",
+    "schema_id": "emotion-induction-sam-v7",
+    "open_stage": "onboarding",
+    "screen_sequence": [
+      "onboarding",
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "onboarding_required_once": true,
+    "condition_block_sequence": [
+      "emotion_induction_placeholder",
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "condition_assessment_sequence": [
+      "sam_pictographic",
+      "affect_vas",
+      "ekman_intensity"
+    ],
+    "repeated_after_each_condition": true,
+    "result_owner": "caller-owned content URI"
+  },
+  "preview_transfer_note": "Browser preview state is a layout and fixture artifact only. The Polar strip is a visual/native-state preview; native Android/Compose request parsing, H10 validation, result writing, focus, and headset validation remain authoritative.",
+  "questionnaire_item_library": {
+    "id": "study6_questionnaire_item_library",
+    "version": 1,
+    "naming_rule": "Use namespaced dot ids for nested JSON paths and flat snake_case variable_name values for exports/spreadsheets.",
+    "items": [
+      {
+        "item_library_version": 1,
+        "id": "onboarding.polar_validation.ready",
+        "variable_name": "onboarding_polar_validation_ready",
+        "label": "Polar H10 ECG validation",
+        "page": "onboarding",
+        "group": "polar_validation",
+        "response_namespace": "onboarding",
+        "field": "polar_validation.ready",
+        "type": "readonly-status-strip",
+        "default": true,
+        "editable": "native-owned",
+        "validation": "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
+        "native_state_field": "questionnaire_state.onboarding.polar_validation.ready",
+        "result_json_field": "answers.onboarding.polar_validation"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.language_code",
+        "variable_name": "onboarding_language_code",
+        "label": "Language",
+        "page": "onboarding",
+        "group": "language",
+        "response_namespace": "onboarding",
+        "field": "language_code",
+        "type": "segmented",
+        "default": "en",
+        "options": [
+          "en",
+          "de"
+        ],
+        "editable": "editable",
+        "validation": "required; must be en or de",
+        "result_json_field": "answers.onboarding.language_code"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.participant_first_name",
+        "variable_name": "onboarding_participant_first_name",
+        "label": "First name",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "participant_first_name",
+        "type": "text",
+        "default": "",
+        "editable": "editable",
+        "validation": "required non-empty text",
+        "result_json_field": "answers.onboarding.participant_first_name"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.participant_last_name",
+        "variable_name": "onboarding_participant_last_name",
+        "label": "Last name",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "participant_last_name",
+        "type": "text",
+        "default": "",
+        "editable": "editable",
+        "validation": "required non-empty text",
+        "result_json_field": "answers.onboarding.participant_last_name"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.participant_name",
+        "variable_name": "onboarding_participant_name",
+        "label": "Full name",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "participant_name",
+        "type": "readonly-derived",
+        "default": "",
+        "editable": "derived",
+        "validation": "derived from first and last name",
+        "result_json_field": "answers.onboarding.participant_name"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.age_years",
+        "variable_name": "onboarding_age_years",
+        "label": "Age",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "age_years",
+        "type": "number",
+        "default": null,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "editable": "editable",
+        "validation": "required integer 0..120",
+        "result_json_field": "answers.onboarding.age_years"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.handedness",
+        "variable_name": "onboarding_handedness",
+        "label": "Handedness",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "handedness",
+        "type": "segmented",
+        "default": "",
+        "options": [
+          "right",
+          "left",
+          "ambidextrous",
+          "prefer_not_to_say"
+        ],
+        "editable": "editable",
+        "validation": "required; must be one handedness option id",
+        "result_json_field": "answers.onboarding.handedness"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.gender",
+        "variable_name": "onboarding_gender",
+        "label": "Gender",
+        "page": "onboarding",
+        "group": "demographics",
+        "response_namespace": "onboarding",
+        "field": "gender",
+        "type": "segmented",
+        "default": "",
+        "options": [
+          "male",
+          "female",
+          "other",
+          "prefer_not_to_say"
+        ],
+        "editable": "editable",
+        "validation": "required; must be one gender option id",
+        "result_json_field": "answers.onboarding.gender"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.consent_confirmed",
+        "variable_name": "onboarding_consent_confirmed",
+        "label": "Study consent",
+        "page": "onboarding",
+        "group": "consent",
+        "response_namespace": "onboarding",
+        "field": "consent_confirmed",
+        "type": "checkbox",
+        "default": false,
+        "editable": "editable",
+        "validation": "required; must be checked",
+        "result_json_field": "answers.onboarding.consent_confirmed"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.consent_text",
+        "variable_name": "onboarding_consent_text",
+        "label": "Consent text",
+        "page": "onboarding",
+        "group": "consent",
+        "response_namespace": "onboarding",
+        "field": "consent_text",
+        "type": "readonly-text",
+        "default": "I consent to participate in this study.",
+        "editable": "fixed",
+        "validation": "fixed consent wording shown to participant",
+        "result_json_field": "answers.onboarding.consent_text"
+      },
+      {
+        "item_library_version": 1,
+        "id": "onboarding.signature",
+        "variable_name": "onboarding_signature",
+        "label": "Consent signature",
+        "page": "onboarding",
+        "group": "consent",
+        "response_namespace": "onboarding",
+        "field": "signature",
+        "type": "signature-pad",
+        "default": {
+          "has_signature": false,
+          "stroke_count": 0
+        },
+        "editable": "editable",
+        "validation": "required signature stroke data",
+        "result_json_field": "answers.onboarding.signature"
+      },
+      {
+        "item_library_version": 1,
+        "id": "counterbalance.order_id",
+        "variable_name": "counterbalance_order_id",
+        "label": "Counterbalance order assignment",
+        "group": "background_assignment",
+        "response_namespace": "runtime_metadata",
+        "field": "counterbalance_order_id",
+        "type": "background-allocation",
+        "default": "order_01",
+        "options": [
+          "order_01",
+          "order_02",
+          "order_03",
+          "order_04"
+        ],
+        "editable": "caller-owned-background",
+        "validation": "assigned by the study runner from accumulated allocation counts; must be one of counterbalance order ids",
+        "native_state_field": "questionnaire_state.counterbalance_order_id"
+      },
+      {
+        "item_library_version": 1,
+        "id": "condition.active_index",
+        "variable_name": "condition_active_index",
+        "label": "Active condition index",
+        "group": "runtime_navigation",
+        "response_namespace": "runtime_metadata",
+        "field": "active_condition_position",
+        "type": "runtime-state",
+        "default": 1,
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "editable": "runtime-owned",
+        "validation": "derived from the current block position; must be 1..4",
+        "native_state_field": "questionnaire_state.condition_index"
+      },
+      {
+        "item_library_version": 1,
+        "id": "condition.induction_placeholder",
+        "variable_name": "condition_induction_placeholder",
+        "label": "Emotion induction placeholder",
+        "page": "emotion_induction_placeholder",
+        "group": "condition_induction",
+        "response_namespace": "condition_runtime",
+        "field": "induction_placeholder",
+        "type": "placeholder-stage",
+        "default": "condition-specific native induction",
+        "editable": "caller-owned",
+        "validation": "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
+        "native_state_field": "questionnaire_state.condition_induction_stage"
+      },
+      {
+        "item_library_version": 1,
+        "id": "assessment.active_page_id",
+        "variable_name": "assessment_active_page_id",
+        "label": "Active assessment page",
+        "group": "runtime_navigation",
+        "response_namespace": "runtime_metadata",
+        "field": "active_assessment_page_id",
+        "type": "runtime-navigation-state",
+        "default": "sam_pictographic",
+        "options": [
+          "sam_pictographic",
+          "affect_vas",
+          "ekman_intensity"
+        ],
+        "editable": "runtime-owned",
+        "validation": "derived from questionnaire workflow navigation; must be one of assessment page ids",
+        "native_state_field": "questionnaire_state.open_stage"
+      },
+      {
+        "item_library_version": 1,
+        "id": "sam.valence_raw_1_9",
+        "variable_name": "sam_valence_raw_1_9",
+        "label": "Retrospective SAM valence",
+        "scale_id": "valence",
+        "axis_label": "Negative - positive",
+        "question": "How positive or negative did you feel during the last session?",
+        "low": "Very negative",
+        "high": "Very positive",
+        "field": "valence_raw_1_9",
+        "page": "sam_pictographic",
+        "group": "sam",
+        "response_namespace": "sam",
+        "type": "pictographic-choice",
+        "default": null,
+        "min": 1,
+        "max": 9,
+        "step": 1,
+        "options": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "anchors": [
+          {
+            "value": 1,
+            "label": "Very negative"
+          },
+          {
+            "value": 9,
+            "label": "Very positive"
+          }
+        ],
+        "asset_catalog_id": "sam.valence",
+        "asset_name_pattern": "valence_{score_2digit}",
+        "editable": "editable",
+        "validation": "required integer 1..9",
+        "result_json_field": "answers.emotion_assessment.sam.valence_raw_1_9"
+      },
+      {
+        "item_library_version": 1,
+        "id": "sam.arousal_raw_1_9",
+        "variable_name": "sam_arousal_raw_1_9",
+        "label": "Retrospective SAM arousal",
+        "scale_id": "arousal",
+        "axis_label": "Inactive - active",
+        "question": "How active or inactive did you feel during the last session?",
+        "low": "Very inactive",
+        "high": "Very active",
+        "field": "arousal_raw_1_9",
+        "page": "sam_pictographic",
+        "group": "sam",
+        "response_namespace": "sam",
+        "type": "pictographic-choice",
+        "default": null,
+        "min": 1,
+        "max": 9,
+        "step": 1,
+        "options": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "anchors": [
+          {
+            "value": 1,
+            "label": "Very inactive"
+          },
+          {
+            "value": 9,
+            "label": "Very active"
+          }
+        ],
+        "asset_catalog_id": "sam.arousal",
+        "asset_name_pattern": "arousal_{score_2digit}",
+        "editable": "editable",
+        "validation": "required integer 1..9",
+        "result_json_field": "answers.emotion_assessment.sam.arousal_raw_1_9"
+      },
+      {
+        "item_library_version": 1,
+        "id": "sam.dominance_raw_1_9",
+        "variable_name": "sam_dominance_raw_1_9",
+        "label": "Retrospective SAM dominance/control",
+        "scale_id": "dominance",
+        "axis_label": "Controlled - in control",
+        "question": "How controlled or in control did you feel during the last session?",
+        "low": "Very controlled",
+        "high": "Very in control",
+        "field": "dominance_raw_1_9",
+        "page": "sam_pictographic",
+        "group": "sam",
+        "response_namespace": "sam",
+        "type": "pictographic-choice",
+        "default": null,
+        "min": 1,
+        "max": 9,
+        "step": 1,
+        "options": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "anchors": [
+          {
+            "value": 1,
+            "label": "Very controlled"
+          },
+          {
+            "value": 9,
+            "label": "Very in control"
+          }
+        ],
+        "asset_catalog_id": "sam.dominance",
+        "asset_name_pattern": "dominance_{score_2digit}",
+        "editable": "editable",
+        "validation": "required integer 1..9",
+        "result_json_field": "answers.emotion_assessment.sam.dominance_raw_1_9"
+      },
+      {
+        "item_library_version": 1,
+        "id": "vas.valence_raw_0_100",
+        "variable_name": "affect_vas_valence_raw_0_100",
+        "label": "Retrospective valence VAS",
+        "axis_label": "Negative - positive",
+        "question": "How positive or negative did you feel during the last session?",
+        "touchLabel": "valence",
+        "low": "Very negative",
+        "high": "Very positive",
+        "field": "valence_raw_0_100",
+        "page": "affect_vas",
+        "group": "affect_vas",
+        "response_namespace": "affect_vas",
+        "type": "range",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "center_marker": 50,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Very negative"
+          },
+          {
+            "value": 100,
+            "label": "Very positive"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100; slider must be touched once before page completion",
+        "result_json_field": "answers.emotion_assessment.affect_vas.valence_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "vas.arousal_raw_0_100",
+        "variable_name": "affect_vas_arousal_raw_0_100",
+        "label": "Retrospective arousal VAS",
+        "axis_label": "Inactive - active",
+        "question": "How active or inactive did you feel during the last session?",
+        "touchLabel": "arousal",
+        "low": "Very inactive",
+        "high": "Very active",
+        "field": "arousal_raw_0_100",
+        "page": "affect_vas",
+        "group": "affect_vas",
+        "response_namespace": "affect_vas",
+        "type": "range",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "center_marker": 50,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Very inactive"
+          },
+          {
+            "value": 100,
+            "label": "Very active"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100; slider must be touched once before page completion",
+        "result_json_field": "answers.emotion_assessment.affect_vas.arousal_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.anger_raw_0_100",
+        "variable_name": "particle_ekman_anger_raw_0_100",
+        "label": "Anger",
+        "emotion_id": "anger",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "anger_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.anger_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.disgust_raw_0_100",
+        "variable_name": "particle_ekman_disgust_raw_0_100",
+        "label": "Disgust",
+        "emotion_id": "disgust",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "disgust_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.disgust_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.fear_raw_0_100",
+        "variable_name": "particle_ekman_fear_raw_0_100",
+        "label": "Fear",
+        "emotion_id": "fear",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "fear_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.fear_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.happiness_raw_0_100",
+        "variable_name": "particle_ekman_happiness_raw_0_100",
+        "label": "Happiness",
+        "emotion_id": "happiness",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "happiness_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.happiness_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.sadness_raw_0_100",
+        "variable_name": "particle_ekman_sadness_raw_0_100",
+        "label": "Sadness",
+        "emotion_id": "sadness",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "sadness_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.sadness_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "ekman_intensity.surprise_raw_0_100",
+        "variable_name": "particle_ekman_surprise_raw_0_100",
+        "label": "Surprise",
+        "emotion_id": "surprise",
+        "page": "ekman_intensity",
+        "group": "ekman_intensity",
+        "response_namespace": "ekman_intensity",
+        "field": "surprise_raw_0_100",
+        "type": "range",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "anchors": [
+          {
+            "value": 0,
+            "label": "Not represented"
+          },
+          {
+            "value": 100,
+            "label": "Clearly represented"
+          }
+        ],
+        "editable": "editable",
+        "validation": "required integer 0..100",
+        "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+      }
+    ],
+    "pages": [
+      {
+        "id": "onboarding",
+        "title": "Participant onboarding",
+        "groups": [
+          {
+            "id": "polar_validation",
+            "fields": [
+              "onboarding.polar_validation.ready"
+            ]
+          },
+          {
+            "id": "language",
+            "fields": [
+              "onboarding.language_code"
+            ]
+          },
+          {
+            "id": "demographics",
+            "fields": [
+              "onboarding.participant_first_name",
+              "onboarding.participant_last_name",
+              "onboarding.participant_name",
+              "onboarding.age_years",
+              "onboarding.handedness",
+              "onboarding.gender"
+            ]
+          },
+          {
+            "id": "consent",
+            "fields": [
+              "onboarding.consent_confirmed",
+              "onboarding.consent_text",
+              "onboarding.signature"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "emotion_induction_placeholder",
+        "title": "Emotion induction placeholder",
+        "groups": [
+          {
+            "id": "condition_induction",
+            "fields": [
+              "condition.induction_placeholder"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sam_pictographic",
+        "title": "SAM: feelings during the condition",
+        "groups": [
+          {
+            "id": "sam",
+            "fields": [
+              "sam.valence_raw_1_9",
+              "sam.arousal_raw_1_9",
+              "sam.dominance_raw_1_9"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "affect_vas",
+        "title": "Retrospective valence and arousal VAS",
+        "groups": [
+          {
+            "id": "affect_vas",
+            "fields": [
+              "vas.valence_raw_0_100",
+              "vas.arousal_raw_0_100"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ekman_intensity",
+        "title": "Particle movement emotion VAS",
+        "groups": [
+          {
+            "id": "ekman_intensity",
+            "fields": [
+              "ekman_intensity.anger_raw_0_100",
+              "ekman_intensity.disgust_raw_0_100",
+              "ekman_intensity.fear_raw_0_100",
+              "ekman_intensity.happiness_raw_0_100",
+              "ekman_intensity.sadness_raw_0_100",
+              "ekman_intensity.surprise_raw_0_100"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "control_model": [
+    {
+      "item_library_version": 1,
+      "id": "onboarding.polar_validation.ready",
+      "variable_name": "onboarding_polar_validation_ready",
+      "label": "Polar H10 ECG validation",
+      "page": "onboarding",
+      "group": "polar_validation",
+      "response_namespace": "onboarding",
+      "field": "polar_validation.ready",
+      "type": "readonly-status-strip",
+      "default": true,
+      "editable": "native-owned",
+      "validation": "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
+      "native_state_field": "questionnaire_state.onboarding.polar_validation.ready",
+      "result_json_field": "answers.onboarding.polar_validation"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.language_code",
+      "variable_name": "onboarding_language_code",
+      "label": "Language",
+      "page": "onboarding",
+      "group": "language",
+      "response_namespace": "onboarding",
+      "field": "language_code",
+      "type": "segmented",
+      "default": "en",
+      "options": [
+        "en",
+        "de"
+      ],
+      "editable": "editable",
+      "validation": "required; must be en or de",
+      "result_json_field": "answers.onboarding.language_code"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.participant_first_name",
+      "variable_name": "onboarding_participant_first_name",
+      "label": "First name",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "participant_first_name",
+      "type": "text",
+      "default": "",
+      "editable": "editable",
+      "validation": "required non-empty text",
+      "result_json_field": "answers.onboarding.participant_first_name"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.participant_last_name",
+      "variable_name": "onboarding_participant_last_name",
+      "label": "Last name",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "participant_last_name",
+      "type": "text",
+      "default": "",
+      "editable": "editable",
+      "validation": "required non-empty text",
+      "result_json_field": "answers.onboarding.participant_last_name"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.participant_name",
+      "variable_name": "onboarding_participant_name",
+      "label": "Full name",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "participant_name",
+      "type": "readonly-derived",
+      "default": "",
+      "editable": "derived",
+      "validation": "derived from first and last name",
+      "result_json_field": "answers.onboarding.participant_name"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.age_years",
+      "variable_name": "onboarding_age_years",
+      "label": "Age",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "age_years",
+      "type": "number",
+      "default": null,
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "editable": "editable",
+      "validation": "required integer 0..120",
+      "result_json_field": "answers.onboarding.age_years"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.handedness",
+      "variable_name": "onboarding_handedness",
+      "label": "Handedness",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "handedness",
+      "type": "segmented",
+      "default": "",
+      "options": [
+        "right",
+        "left",
+        "ambidextrous",
+        "prefer_not_to_say"
+      ],
+      "editable": "editable",
+      "validation": "required; must be one handedness option id",
+      "result_json_field": "answers.onboarding.handedness"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.gender",
+      "variable_name": "onboarding_gender",
+      "label": "Gender",
+      "page": "onboarding",
+      "group": "demographics",
+      "response_namespace": "onboarding",
+      "field": "gender",
+      "type": "segmented",
+      "default": "",
+      "options": [
+        "male",
+        "female",
+        "other",
+        "prefer_not_to_say"
+      ],
+      "editable": "editable",
+      "validation": "required; must be one gender option id",
+      "result_json_field": "answers.onboarding.gender"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.consent_confirmed",
+      "variable_name": "onboarding_consent_confirmed",
+      "label": "Study consent",
+      "page": "onboarding",
+      "group": "consent",
+      "response_namespace": "onboarding",
+      "field": "consent_confirmed",
+      "type": "checkbox",
+      "default": false,
+      "editable": "editable",
+      "validation": "required; must be checked",
+      "result_json_field": "answers.onboarding.consent_confirmed"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.consent_text",
+      "variable_name": "onboarding_consent_text",
+      "label": "Consent text",
+      "page": "onboarding",
+      "group": "consent",
+      "response_namespace": "onboarding",
+      "field": "consent_text",
+      "type": "readonly-text",
+      "default": "I consent to participate in this study.",
+      "editable": "fixed",
+      "validation": "fixed consent wording shown to participant",
+      "result_json_field": "answers.onboarding.consent_text"
+    },
+    {
+      "item_library_version": 1,
+      "id": "onboarding.signature",
+      "variable_name": "onboarding_signature",
+      "label": "Consent signature",
+      "page": "onboarding",
+      "group": "consent",
+      "response_namespace": "onboarding",
+      "field": "signature",
+      "type": "signature-pad",
+      "default": {
+        "has_signature": false,
+        "stroke_count": 0
+      },
+      "editable": "editable",
+      "validation": "required signature stroke data",
+      "result_json_field": "answers.onboarding.signature"
+    },
+    {
+      "item_library_version": 1,
+      "id": "counterbalance.order_id",
+      "variable_name": "counterbalance_order_id",
+      "label": "Counterbalance order assignment",
+      "group": "background_assignment",
+      "response_namespace": "runtime_metadata",
+      "field": "counterbalance_order_id",
+      "type": "background-allocation",
+      "default": "order_01",
+      "options": [
+        "order_01",
+        "order_02",
+        "order_03",
+        "order_04"
+      ],
+      "editable": "caller-owned-background",
+      "validation": "assigned by the study runner from accumulated allocation counts; must be one of counterbalance order ids",
+      "native_state_field": "questionnaire_state.counterbalance_order_id"
+    },
+    {
+      "item_library_version": 1,
+      "id": "condition.active_index",
+      "variable_name": "condition_active_index",
+      "label": "Active condition index",
+      "group": "runtime_navigation",
+      "response_namespace": "runtime_metadata",
+      "field": "active_condition_position",
+      "type": "runtime-state",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "editable": "runtime-owned",
+      "validation": "derived from the current block position; must be 1..4",
+      "native_state_field": "questionnaire_state.condition_index"
+    },
+    {
+      "item_library_version": 1,
+      "id": "condition.induction_placeholder",
+      "variable_name": "condition_induction_placeholder",
+      "label": "Emotion induction placeholder",
+      "page": "emotion_induction_placeholder",
+      "group": "condition_induction",
+      "response_namespace": "condition_runtime",
+      "field": "induction_placeholder",
+      "type": "placeholder-stage",
+      "default": "condition-specific native induction",
+      "editable": "caller-owned",
+      "validation": "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
+      "native_state_field": "questionnaire_state.condition_induction_stage"
+    },
+    {
+      "item_library_version": 1,
+      "id": "assessment.active_page_id",
+      "variable_name": "assessment_active_page_id",
+      "label": "Active assessment page",
+      "group": "runtime_navigation",
+      "response_namespace": "runtime_metadata",
+      "field": "active_assessment_page_id",
+      "type": "runtime-navigation-state",
+      "default": "sam_pictographic",
+      "options": [
+        "sam_pictographic",
+        "affect_vas",
+        "ekman_intensity"
+      ],
+      "editable": "runtime-owned",
+      "validation": "derived from questionnaire workflow navigation; must be one of assessment page ids",
+      "native_state_field": "questionnaire_state.open_stage"
+    },
+    {
+      "item_library_version": 1,
+      "id": "sam.valence_raw_1_9",
+      "variable_name": "sam_valence_raw_1_9",
+      "label": "Retrospective SAM valence",
+      "scale_id": "valence",
+      "axis_label": "Negative - positive",
+      "question": "How positive or negative did you feel during the last session?",
+      "low": "Very negative",
+      "high": "Very positive",
+      "field": "valence_raw_1_9",
+      "page": "sam_pictographic",
+      "group": "sam",
+      "response_namespace": "sam",
+      "type": "pictographic-choice",
+      "default": null,
+      "min": 1,
+      "max": 9,
+      "step": 1,
+      "options": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "anchors": [
+        {
+          "value": 1,
+          "label": "Very negative"
+        },
+        {
+          "value": 9,
+          "label": "Very positive"
+        }
+      ],
+      "asset_catalog_id": "sam.valence",
+      "asset_name_pattern": "valence_{score_2digit}",
+      "editable": "editable",
+      "validation": "required integer 1..9",
+      "result_json_field": "answers.emotion_assessment.sam.valence_raw_1_9"
+    },
+    {
+      "item_library_version": 1,
+      "id": "sam.arousal_raw_1_9",
+      "variable_name": "sam_arousal_raw_1_9",
+      "label": "Retrospective SAM arousal",
+      "scale_id": "arousal",
+      "axis_label": "Inactive - active",
+      "question": "How active or inactive did you feel during the last session?",
+      "low": "Very inactive",
+      "high": "Very active",
+      "field": "arousal_raw_1_9",
+      "page": "sam_pictographic",
+      "group": "sam",
+      "response_namespace": "sam",
+      "type": "pictographic-choice",
+      "default": null,
+      "min": 1,
+      "max": 9,
+      "step": 1,
+      "options": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "anchors": [
+        {
+          "value": 1,
+          "label": "Very inactive"
+        },
+        {
+          "value": 9,
+          "label": "Very active"
+        }
+      ],
+      "asset_catalog_id": "sam.arousal",
+      "asset_name_pattern": "arousal_{score_2digit}",
+      "editable": "editable",
+      "validation": "required integer 1..9",
+      "result_json_field": "answers.emotion_assessment.sam.arousal_raw_1_9"
+    },
+    {
+      "item_library_version": 1,
+      "id": "sam.dominance_raw_1_9",
+      "variable_name": "sam_dominance_raw_1_9",
+      "label": "Retrospective SAM dominance/control",
+      "scale_id": "dominance",
+      "axis_label": "Controlled - in control",
+      "question": "How controlled or in control did you feel during the last session?",
+      "low": "Very controlled",
+      "high": "Very in control",
+      "field": "dominance_raw_1_9",
+      "page": "sam_pictographic",
+      "group": "sam",
+      "response_namespace": "sam",
+      "type": "pictographic-choice",
+      "default": null,
+      "min": 1,
+      "max": 9,
+      "step": 1,
+      "options": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "anchors": [
+        {
+          "value": 1,
+          "label": "Very controlled"
+        },
+        {
+          "value": 9,
+          "label": "Very in control"
+        }
+      ],
+      "asset_catalog_id": "sam.dominance",
+      "asset_name_pattern": "dominance_{score_2digit}",
+      "editable": "editable",
+      "validation": "required integer 1..9",
+      "result_json_field": "answers.emotion_assessment.sam.dominance_raw_1_9"
+    },
+    {
+      "item_library_version": 1,
+      "id": "vas.valence_raw_0_100",
+      "variable_name": "affect_vas_valence_raw_0_100",
+      "label": "Retrospective valence VAS",
+      "axis_label": "Negative - positive",
+      "question": "How positive or negative did you feel during the last session?",
+      "touchLabel": "valence",
+      "low": "Very negative",
+      "high": "Very positive",
+      "field": "valence_raw_0_100",
+      "page": "affect_vas",
+      "group": "affect_vas",
+      "response_namespace": "affect_vas",
+      "type": "range",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "center_marker": 50,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Very negative"
+        },
+        {
+          "value": 100,
+          "label": "Very positive"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100; slider must be touched once before page completion",
+      "result_json_field": "answers.emotion_assessment.affect_vas.valence_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "vas.arousal_raw_0_100",
+      "variable_name": "affect_vas_arousal_raw_0_100",
+      "label": "Retrospective arousal VAS",
+      "axis_label": "Inactive - active",
+      "question": "How active or inactive did you feel during the last session?",
+      "touchLabel": "arousal",
+      "low": "Very inactive",
+      "high": "Very active",
+      "field": "arousal_raw_0_100",
+      "page": "affect_vas",
+      "group": "affect_vas",
+      "response_namespace": "affect_vas",
+      "type": "range",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "center_marker": 50,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Very inactive"
+        },
+        {
+          "value": 100,
+          "label": "Very active"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100; slider must be touched once before page completion",
+      "result_json_field": "answers.emotion_assessment.affect_vas.arousal_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.anger_raw_0_100",
+      "variable_name": "particle_ekman_anger_raw_0_100",
+      "label": "Anger",
+      "emotion_id": "anger",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "anger_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.anger_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.disgust_raw_0_100",
+      "variable_name": "particle_ekman_disgust_raw_0_100",
+      "label": "Disgust",
+      "emotion_id": "disgust",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "disgust_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.disgust_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.fear_raw_0_100",
+      "variable_name": "particle_ekman_fear_raw_0_100",
+      "label": "Fear",
+      "emotion_id": "fear",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "fear_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.fear_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.happiness_raw_0_100",
+      "variable_name": "particle_ekman_happiness_raw_0_100",
+      "label": "Happiness",
+      "emotion_id": "happiness",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "happiness_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.happiness_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.sadness_raw_0_100",
+      "variable_name": "particle_ekman_sadness_raw_0_100",
+      "label": "Sadness",
+      "emotion_id": "sadness",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "sadness_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.sadness_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "ekman_intensity.surprise_raw_0_100",
+      "variable_name": "particle_ekman_surprise_raw_0_100",
+      "label": "Surprise",
+      "emotion_id": "surprise",
+      "page": "ekman_intensity",
+      "group": "ekman_intensity",
+      "response_namespace": "ekman_intensity",
+      "field": "surprise_raw_0_100",
+      "type": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "anchors": [
+        {
+          "value": 0,
+          "label": "Not represented"
+        },
+        {
+          "value": 100,
+          "label": "Clearly represented"
+        }
+      ],
+      "editable": "editable",
+      "validation": "required integer 0..100",
+      "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+    }
+  ],
+  "pages": [
+    {
+      "id": "onboarding",
+      "title": "Participant onboarding",
+      "groups": [
+        {
+          "id": "polar_validation",
+          "fields": [
+            "onboarding.polar_validation.ready"
+          ]
+        },
+        {
+          "id": "language",
+          "fields": [
+            "onboarding.language_code"
+          ]
+        },
+        {
+          "id": "demographics",
+          "fields": [
+            "onboarding.participant_first_name",
+            "onboarding.participant_last_name",
+            "onboarding.participant_name",
+            "onboarding.age_years",
+            "onboarding.handedness",
+            "onboarding.gender"
+          ]
+        },
+        {
+          "id": "consent",
+          "fields": [
+            "onboarding.consent_confirmed",
+            "onboarding.consent_text",
+            "onboarding.signature"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emotion_induction_placeholder",
+      "title": "Emotion induction placeholder",
+      "groups": [
+        {
+          "id": "condition_induction",
+          "fields": [
+            "condition.induction_placeholder"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sam_pictographic",
+      "title": "SAM: feelings during the condition",
+      "groups": [
+        {
+          "id": "sam",
+          "fields": [
+            "sam.valence_raw_1_9",
+            "sam.arousal_raw_1_9",
+            "sam.dominance_raw_1_9"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "affect_vas",
+      "title": "Retrospective valence and arousal VAS",
+      "groups": [
+        {
+          "id": "affect_vas",
+          "fields": [
+            "vas.valence_raw_0_100",
+            "vas.arousal_raw_0_100"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ekman_intensity",
+      "title": "Particle movement emotion VAS",
+      "groups": [
+        {
+          "id": "ekman_intensity",
+          "fields": [
+            "ekman_intensity.anger_raw_0_100",
+            "ekman_intensity.disgust_raw_0_100",
+            "ekman_intensity.fear_raw_0_100",
+            "ekman_intensity.happiness_raw_0_100",
+            "ekman_intensity.sadness_raw_0_100",
+            "ekman_intensity.surprise_raw_0_100"
+          ]
+        }
+      ]
+    }
+  ],
+  "onboarding": {
+    "polar_validation": {
+      "source": "browser_visual_preview",
+      "state": "ecg_streaming",
+      "ready": false,
+      "detected": true,
+      "connected": true,
+      "streaming": true,
+      "pmd_ready": true,
+      "ecg_streaming": true,
+      "heart_rate_bpm": 72,
+      "rr_interval_count": 8,
+      "ecg_sample_count": 0,
+      "pmd_frame_count": 12,
+      "requested_mtu": 23,
+      "negotiated_mtu": 23,
+      "ecg_sample_rate_hz": 130,
+      "ecg_resolution_bits": 14,
+      "pmd_control_point_indications_enabled": true,
+      "pmd_data_notifications_enabled": true,
+      "pmd_settings_received": true,
+      "pmd_start_response_received": true,
+      "diagnostic": "ECG stream waiting for samples",
+      "native_ready_rule": "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
+    },
+    "language_code": "de",
+    "participant_first_name": "Preview",
+    "participant_last_name": "Participant",
+    "participant_name": "Preview Participant",
+    "age_years": 29,
+    "handedness": "left",
+    "gender": "prefer_not_to_say",
+    "consent_confirmed": true,
+    "consent_text": "I consent to participate in this study.",
+    "signature": {
+      "has_signature": true,
+      "stroke_count": 2,
+      "strokes": [
+        [
+          {
+            "x": 0.12,
+            "y": 0.62
+          },
+          {
+            "x": 0.24,
+            "y": 0.45
+          },
+          {
+            "x": 0.36,
+            "y": 0.58
+          },
+          {
+            "x": 0.48,
+            "y": 0.38
+          }
+        ],
+        [
+          {
+            "x": 0.54,
+            "y": 0.62
+          },
+          {
+            "x": 0.65,
+            "y": 0.48
+          },
+          {
+            "x": 0.78,
+            "y": 0.54
+          },
+          {
+            "x": 0.88,
+            "y": 0.42
+          }
+        ]
+      ]
+    },
+    "complete": false
+  },
+  "visual_storyboard": {
+    "panel_count": 17,
+    "frame": {
+      "width_dp": 1080,
+      "height_dp": 720
+    },
+    "interaction_states_visible": [
+      "segmented selections",
+      "consent checkbox",
+      "signature strokes",
+      "SAM pictographic choices",
+      "VAS slider positions",
+      "Ekman slider positions",
+      "footer navigation enabled/disabled states"
+    ],
+    "panels": [
+      {
+        "panel_index": 1,
+        "page_id": "onboarding",
+        "block_position": null,
+        "condition_position": null,
+        "counterbalanced_condition_id": null,
+        "condition_id": null,
+        "audio_instruction_id": null,
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Onboarding"
+      },
+      {
+        "panel_index": 2,
+        "page_id": "emotion_induction_placeholder",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Block 1: instructions"
+      },
+      {
+        "panel_index": 3,
+        "page_id": "sam_pictographic",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
+        "title": "Block 1: page 1 of 3"
+      },
+      {
+        "panel_index": 4,
+        "page_id": "affect_vas",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
+        "title": "Block 1: page 2 of 3"
+      },
+      {
+        "panel_index": 5,
+        "page_id": "ekman_intensity",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
+        "title": "Block 1: page 3 of 3"
+      },
+      {
+        "panel_index": 6,
+        "page_id": "emotion_induction_placeholder",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Block 2: instructions"
+      },
+      {
+        "panel_index": 7,
+        "page_id": "sam_pictographic",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
+        "title": "Block 2: page 1 of 3"
+      },
+      {
+        "panel_index": 8,
+        "page_id": "affect_vas",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
+        "title": "Block 2: page 2 of 3"
+      },
+      {
+        "panel_index": 9,
+        "page_id": "ekman_intensity",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
+        "title": "Block 2: page 3 of 3"
+      },
+      {
+        "panel_index": 10,
+        "page_id": "emotion_induction_placeholder",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Block 3: instructions"
+      },
+      {
+        "panel_index": 11,
+        "page_id": "sam_pictographic",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
+        "title": "Block 3: page 1 of 3"
+      },
+      {
+        "panel_index": 12,
+        "page_id": "affect_vas",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
+        "title": "Block 3: page 2 of 3"
+      },
+      {
+        "panel_index": 13,
+        "page_id": "ekman_intensity",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
+        "title": "Block 3: page 3 of 3"
+      },
+      {
+        "panel_index": 14,
+        "page_id": "emotion_induction_placeholder",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Block 4: instructions"
+      },
+      {
+        "panel_index": 15,
+        "page_id": "sam_pictographic",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 3,
+        "title": "Block 4: page 1 of 3"
+      },
+      {
+        "panel_index": 16,
+        "page_id": "affect_vas",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 3,
+        "title": "Block 4: page 2 of 3"
+      },
+      {
+        "panel_index": 17,
+        "page_id": "ekman_intensity",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 3,
+        "title": "Block 4: page 3 of 3"
+      }
+    ]
+  },
+  "asset_manifest": {
+    "questionnaire_asset_catalog_path": "../questionnaire-assets/asset-catalog.json",
+    "sam_asset_catalog_path": "../questionnaire-assets/sam/asset-catalog.json",
+    "sam_svg_paths": [
+      "../questionnaire-assets/sam/valence/valence_01.svg",
+      "../questionnaire-assets/sam/valence/valence_02.svg",
+      "../questionnaire-assets/sam/valence/valence_03.svg",
+      "../questionnaire-assets/sam/valence/valence_04.svg",
+      "../questionnaire-assets/sam/valence/valence_05.svg",
+      "../questionnaire-assets/sam/valence/valence_06.svg",
+      "../questionnaire-assets/sam/valence/valence_07.svg",
+      "../questionnaire-assets/sam/valence/valence_08.svg",
+      "../questionnaire-assets/sam/valence/valence_09.svg",
+      "../questionnaire-assets/sam/arousal/arousal_01.svg",
+      "../questionnaire-assets/sam/arousal/arousal_02.svg",
+      "../questionnaire-assets/sam/arousal/arousal_03.svg",
+      "../questionnaire-assets/sam/arousal/arousal_04.svg",
+      "../questionnaire-assets/sam/arousal/arousal_05.svg",
+      "../questionnaire-assets/sam/arousal/arousal_06.svg",
+      "../questionnaire-assets/sam/arousal/arousal_07.svg",
+      "../questionnaire-assets/sam/arousal/arousal_08.svg",
+      "../questionnaire-assets/sam/arousal/arousal_09.svg",
+      "../questionnaire-assets/sam/dominance/dominance_01.svg",
+      "../questionnaire-assets/sam/dominance/dominance_02.svg",
+      "../questionnaire-assets/sam/dominance/dominance_03.svg",
+      "../questionnaire-assets/sam/dominance/dominance_04.svg",
+      "../questionnaire-assets/sam/dominance/dominance_05.svg",
+      "../questionnaire-assets/sam/dominance/dominance_06.svg",
+      "../questionnaire-assets/sam/dominance/dominance_07.svg",
+      "../questionnaire-assets/sam/dominance/dominance_08.svg",
+      "../questionnaire-assets/sam/dominance/dominance_09.svg"
+    ],
+    "audio_instruction_asset_base_path": "../neutral-hand-audio/audio",
+    "audio_instruction_asset_paths": [
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+      "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
+    ],
+    "license_path": "../questionnaire-assets/sam/LICENSE-BSD-2-Clause.txt"
+  },
+  "expanded_preview_sequence": [
+    {
+      "stage": "onboarding",
+      "page_id": "onboarding",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "induction_d",
+      "condition_id": "induction_d",
+      "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "induction_d",
+      "condition_id": "induction_d",
+      "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "block_1_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "induction_d",
+      "condition_id": "induction_d",
+      "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "affect_vas",
+      "assessment_block_id": "block_1_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "induction_d",
+      "condition_id": "induction_d",
+      "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "block_1_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "induction_a",
+      "condition_id": "induction_a",
+      "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "induction_a",
+      "condition_id": "induction_a",
+      "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "block_2_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "induction_a",
+      "condition_id": "induction_a",
+      "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "affect_vas",
+      "assessment_block_id": "block_2_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "induction_a",
+      "condition_id": "induction_a",
+      "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "block_2_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "induction_c",
+      "condition_id": "induction_c",
+      "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "induction_c",
+      "condition_id": "induction_c",
+      "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "block_3_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "induction_c",
+      "condition_id": "induction_c",
+      "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "affect_vas",
+      "assessment_block_id": "block_3_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "induction_c",
+      "condition_id": "induction_c",
+      "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "block_3_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "induction_b",
+      "condition_id": "induction_b",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "emotion_induction_placeholder",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "induction_b",
+      "condition_id": "induction_b",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "sam_pictographic",
+      "assessment_block_id": "block_4_assessment_block",
+      "assessment_block_page": 1,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "induction_b",
+      "condition_id": "induction_b",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "affect_vas",
+      "assessment_block_id": "block_4_assessment_block",
+      "assessment_block_page": 2,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "induction_b",
+      "condition_id": "induction_b",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "ekman_intensity",
+      "assessment_block_id": "block_4_assessment_block",
+      "assessment_block_page": 3,
+      "assessment_block_page_count": 3,
+      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    }
+  ],
+  "counterbalance": {
+    "order_id": "order_04",
+    "condition_ids": [
+      "induction_d",
+      "induction_a",
+      "induction_c",
+      "induction_b"
+    ],
+    "block_condition_map": [
+      {
+        "block_position": 1,
+        "condition_id": "induction_d"
+      },
+      {
+        "block_position": 2,
+        "condition_id": "induction_a"
+      },
+      {
+        "block_position": 3,
+        "condition_id": "induction_c"
+      },
+      {
+        "block_position": 4,
+        "condition_id": "induction_b"
+      }
+    ],
+    "assignment_policy": "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps counterbalanced conditions onto block positions",
+    "equal_participant_allocation": true,
+    "visible_in_questionnaire_panel": false,
+    "editable_in_preview": false,
+    "editable_in_native_panel": false,
+    "participant_input_required": false
+  },
+  "audio_instruction_randomization": {
+    "condition_order_policy": "counterbalance emotion scenario order through counterbalance.order_id",
+    "assignment_policy": "randomly shuffle the four audio instruction variants so each runtime block receives one variant",
+    "options": [
+      {
+        "id": "audio_instruction_set_1",
+        "label": "Audio variant V01",
+        "asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3"
+        }
+      },
+      {
+        "id": "audio_instruction_set_2",
+        "label": "Audio variant V02",
+        "asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3"
+        }
+      },
+      {
+        "id": "audio_instruction_set_3",
+        "label": "Audio variant V03",
+        "asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3"
+        }
+      },
+      {
+        "id": "audio_instruction_set_4",
+        "label": "Audio variant V04",
+        "asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
+        }
+      }
+    ],
+    "preview_assignments": [
+      {
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "preview_audio_instruction_id": "audio_instruction_set_1",
+        "preview_audio_instruction_label": "Audio variant V01",
+        "preview_audio_asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3"
+        },
+        "assignment_mode": "runtime-randomized across the four blocks; preview shows a representative variant"
+      },
+      {
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "preview_audio_instruction_id": "audio_instruction_set_2",
+        "preview_audio_instruction_label": "Audio variant V02",
+        "preview_audio_asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V02_DE.mp3"
+        },
+        "assignment_mode": "runtime-randomized across the four blocks; preview shows a representative variant"
+      },
+      {
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "preview_audio_instruction_id": "audio_instruction_set_3",
+        "preview_audio_instruction_label": "Audio variant V03",
+        "preview_audio_asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V03_DE.mp3"
+        },
+        "assignment_mode": "runtime-randomized across the four blocks; preview shows a representative variant"
+      },
+      {
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "preview_audio_instruction_id": "audio_instruction_set_4",
+        "preview_audio_instruction_label": "Audio variant V04",
+        "preview_audio_asset_paths": {
+          "en": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_EN.mp3",
+          "de": "../neutral-hand-audio/audio/study6_neutral_hand_audio_V04_DE.mp3"
+        },
+        "assignment_mode": "runtime-randomized across the four blocks; preview shows a representative variant"
+      }
+    ]
+  },
+  "active_panel_page_id": "onboarding",
+  "active_block_position": 4,
+  "active_condition_position": 4,
+  "active_condition_id": "induction_b",
+  "active_assessment_page_id": "ekman_intensity",
+  "responses_by_condition": [
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "condition_id": "induction_d",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 1,
+          "arousal_raw_1_9": 9,
+          "dominance_raw_1_9": 1
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 0,
+          "arousal_raw_0_100": 100
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 0,
+          "disgust_raw_0_100": 20,
+          "fear_raw_0_100": 40,
+          "happiness_raw_0_100": 60,
+          "sadness_raw_0_100": 80,
+          "surprise_raw_0_100": 100
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": false
+        },
+        "complete": false
+      }
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "condition_id": "induction_a",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1,
+          "dominance_raw_1_9": 9
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "condition_id": "induction_c",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1,
+          "dominance_raw_1_9": 9
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "condition_id": "induction_b",
+      "assessment": {
+        "sam": {
+          "valence_raw_1_9": 9,
+          "arousal_raw_1_9": 1,
+          "dominance_raw_1_9": 9
+        },
+        "affect_vas": {
+          "valence_raw_0_100": 100,
+          "arousal_raw_0_100": 0
+        },
+        "ekman_intensity": {
+          "anger_raw_0_100": 100,
+          "disgust_raw_0_100": 88,
+          "fear_raw_0_100": 76,
+          "happiness_raw_0_100": 64,
+          "sadness_raw_0_100": 52,
+          "surprise_raw_0_100": 40
+        },
+        "page_complete": {
+          "sam_pictographic": true,
+          "affect_vas": true,
+          "ekman_intensity": true
+        },
+        "complete": true
+      }
+    }
+  ]
+}
