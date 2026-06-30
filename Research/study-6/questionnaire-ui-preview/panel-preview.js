@@ -1383,7 +1383,7 @@ function ekmanStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page ekman-section">
       <div class="section-title">
-        <h2>Rate each emotion that applies; if the movement felt like a mix, rate more than one.</h2>
+        <h2>Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.</h2>
       </div>
       <div class="ekman-slider-grid">
         ${EKMAN_EMOTIONS.map((emotion) => {
