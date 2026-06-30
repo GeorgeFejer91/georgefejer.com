@@ -538,7 +538,7 @@ h2 {
 
 .sam-scale-row {
   display: grid;
-  grid-template-columns: minmax(58px, 72px) minmax(0, 1fr) minmax(58px, 72px);
+  grid-template-columns: 86px minmax(0, 1fr) 86px;
   gap: 6px;
   align-items: stretch;
   min-height: 0;
@@ -554,16 +554,15 @@ h2 {
   font-size: 13px;
   font-weight: 800;
   line-height: 1.04;
+  text-align: center;
 }
 
 .sam-row-anchor-low {
-  align-items: flex-start;
-  text-align: left;
+  align-items: center;
 }
 
 .sam-row-anchor-high {
-  align-items: flex-end;
-  text-align: right;
+  align-items: center;
 }
 
 .sam-options {
