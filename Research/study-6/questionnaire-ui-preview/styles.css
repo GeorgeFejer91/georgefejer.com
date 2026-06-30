@@ -762,19 +762,33 @@ canvas:focus-visible {
 .vas-range-shell {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
-  height: 34px;
+  height: 58px;
   touch-action: none;
 }
 
 .vas-range-shell .axis-midpoint {
   position: absolute;
   left: 50%;
-  top: calc(50% + 9px);
+  top: 28px;
   width: 1px;
   height: 9px;
   background: var(--text);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.vas-slider-readout {
+  position: absolute;
+  left: clamp(22px, var(--vas-readout-position, 50%), calc(100% - 22px));
+  top: 38px;
+  min-width: 44px;
+  color: var(--blue-dark);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
   transform: translateX(-50%);
   pointer-events: none;
 }

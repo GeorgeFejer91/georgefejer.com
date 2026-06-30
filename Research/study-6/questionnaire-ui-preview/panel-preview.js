@@ -1364,8 +1364,9 @@ function vasStoryboardMarkup(assessment) {
             </header>
             <div class="vas-scale">
               <div class="vas-range-shell">
-                <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1" aria-label="${slider.question}">
+                <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1" aria-label="${slider.question}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
                 <span class="axis-midpoint" aria-hidden="true"></span>
+                <span class="vas-slider-readout" style="${vasReadoutStyle(assessment.affect_vas[slider.field])}">${vasDisplayValue(assessment.affect_vas[slider.field])}</span>
               </div>
             </div>
           </div>
@@ -1473,10 +1474,34 @@ function rangeValueFromPointer(input, event) {
   return Math.min(Math.max(Math.round(steppedValue), min), max);
 }
 
+function rangeValuePercent(input) {
+  const min = Number(input.min || 0);
+  const max = Number(input.max || 100);
+  const value = Number(input.value || min);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max === min) {
+    return 50;
+  }
+  return Math.min(Math.max(((value - min) / (max - min)) * 100, 0), 100);
+}
+
+function vasDisplayValue(value) {
+  return Math.round(Number(value || 0) * 2 - 100);
+}
+
+function vasReadoutStyle(value) {
+  return `--vas-readout-position: ${Math.min(Math.max(Number(value || 0), 0), 100)}%;`;
+}
+
 function updateSliderValueDisplay(input) {
   const valueElement = document.getElementById(`${input.id}.value`);
   if (valueElement) {
     valueElement.textContent = input.value;
+  }
+  const readoutElement = document.getElementById(`${input.id}.readout`);
+  if (readoutElement) {
+    readoutElement.textContent = String(vasDisplayValue(input.value));
+    readoutElement.style.setProperty("--vas-readout-position", `${rangeValuePercent(input)}%`);
+    input.setAttribute("aria-valuetext", String(vasDisplayValue(input.value)));
   }
 }
 
@@ -1604,8 +1629,9 @@ function renderVasSliders() {
       </header>
       <div class="vas-scale">
         <div class="vas-range-shell">
-          <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" aria-label="${slider.question}">
+          <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" aria-label="${slider.question}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
           <span class="axis-midpoint" aria-hidden="true"></span>
+          <span class="vas-slider-readout" id="${slider.id}.readout" style="${vasReadoutStyle(assessment.affect_vas[slider.field])}">${vasDisplayValue(assessment.affect_vas[slider.field])}</span>
         </div>
       </div>
     `;
