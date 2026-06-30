@@ -752,6 +752,7 @@ canvas:focus-visible {
   align-items: center;
   min-width: 0;
   height: 34px;
+  touch-action: none;
 }
 
 .vas-range-shell .axis-midpoint {
@@ -773,6 +774,11 @@ canvas:focus-visible {
   -webkit-appearance: none;
   background: transparent;
   cursor: pointer;
+  touch-action: none;
+}
+
+.slider-row input[type="range"] {
+  touch-action: none;
 }
 
 .vas-range-shell input[type="range"]::-webkit-slider-runnable-track {

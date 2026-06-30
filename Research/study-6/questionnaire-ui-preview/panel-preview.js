@@ -1466,6 +1466,71 @@ function markAffectVasTouchedAndRefresh(field) {
   renderExport();
 }
 
+function rangeValueFromPointer(input, event) {
+  const rect = input.getBoundingClientRect();
+  const min = Number(input.min || 0);
+  const max = Number(input.max || 100);
+  const step = Number(input.step || 1);
+  const clampedX = Math.min(Math.max(event.clientX, rect.left), rect.right);
+  const proportion = rect.width > 0 ? (clampedX - rect.left) / rect.width : 0;
+  const rawValue = min + proportion * (max - min);
+  const steppedValue = Number.isFinite(step) && step > 0
+    ? min + Math.round((rawValue - min) / step) * step
+    : rawValue;
+  return Math.min(Math.max(Math.round(steppedValue), min), max);
+}
+
+function updateSliderValueDisplay(input) {
+  const valueElement = document.getElementById(`${input.id}.value`);
+  if (valueElement) {
+    valueElement.textContent = input.value;
+  }
+}
+
+function bindSmoothRangeDrag(input, applyValue) {
+  const dragTarget = input.closest(".vas-range-shell") || input;
+  let activePointerId = null;
+
+  const updateFromPointer = (event) => {
+    input.value = String(rangeValueFromPointer(input, event));
+    applyValue();
+  };
+
+  dragTarget.addEventListener("pointerdown", (event) => {
+    if (event.button !== undefined && event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    activePointerId = event.pointerId;
+    input.focus({ preventScroll: true });
+    if (dragTarget.setPointerCapture) {
+      dragTarget.setPointerCapture(activePointerId);
+    }
+    updateFromPointer(event);
+  });
+
+  dragTarget.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== activePointerId) {
+      return;
+    }
+    event.preventDefault();
+    updateFromPointer(event);
+  });
+
+  const finishDrag = (event) => {
+    if (event.pointerId !== activePointerId) {
+      return;
+    }
+    if (dragTarget.releasePointerCapture) {
+      dragTarget.releasePointerCapture(activePointerId);
+    }
+    activePointerId = null;
+  };
+
+  dragTarget.addEventListener("pointerup", finishDrag);
+  dragTarget.addEventListener("pointercancel", finishDrag);
+}
+
 function renderSamRows() {
   const assessment = activeAssessment();
   elements.samRows.replaceChildren();
@@ -1556,21 +1621,22 @@ function renderVasSliders() {
       </div>
     `;
     const input = row.querySelector("input");
-    ["pointerdown", "mousedown", "touchstart", "click"].forEach((eventName) => {
-      input.addEventListener(eventName, () => markAffectVasTouchedAndRefresh(slider.field));
-    });
+    const applyValue = () => {
+      const currentAssessment = activeAssessment();
+      markAffectVasTouched(currentAssessment, slider.field);
+      currentAssessment.affect_vas[slider.field] = Number(input.value);
+      updateSliderValueDisplay(input);
+      markPageDirty("affect_vas");
+      renderValidation();
+      renderExport();
+    };
+    bindSmoothRangeDrag(input, applyValue);
     input.addEventListener("keydown", (event) => {
       if (VAS_INTERACTION_KEYS.has(event.key)) {
         markAffectVasTouchedAndRefresh(slider.field);
       }
     });
-    input.addEventListener("input", () => {
-      const currentAssessment = activeAssessment();
-      markAffectVasTouched(currentAssessment, slider.field);
-      currentAssessment.affect_vas[slider.field] = Number(input.value);
-      markPageDirty("affect_vas");
-      render();
-    });
+    input.addEventListener("input", applyValue);
     elements.sliderRows.appendChild(row);
   });
 }
@@ -1591,12 +1657,16 @@ function renderEkmanSliders() {
       <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
     `;
     const input = row.querySelector("input");
-    input.addEventListener("input", () => {
+    const applyValue = () => {
       const currentAssessment = activeAssessment();
       currentAssessment.ekman_intensity[field] = Number(input.value);
+      updateSliderValueDisplay(input);
       markPageDirty("ekman_intensity");
-      render();
-    });
+      renderValidation();
+      renderExport();
+    };
+    bindSmoothRangeDrag(input, applyValue);
+    input.addEventListener("input", applyValue);
     elements.ekmanSliderRows.appendChild(row);
   });
 }
