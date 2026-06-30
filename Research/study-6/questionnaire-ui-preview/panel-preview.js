@@ -1352,12 +1352,8 @@ function samStoryboardMarkup(assessment) {
 
 function vasStoryboardMarkup(assessment) {
   return `
-    <section class="assessment-page slider-section">
-      <div class="section-title">
-        <h2>Rate the previous experience</h2>
-        <span>Touch both sliders, even if neutral</span>
-      </div>
-      <p class="page-instruction">Rate how pleasant and active it felt.</p>
+    <section class="assessment-page slider-section" aria-label="Rate the previous experience">
+      <p class="page-instruction">Touch both sliders, even if neutral</p>
       <div class="vas-slider-rows">
         ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">

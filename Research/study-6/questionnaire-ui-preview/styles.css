@@ -647,11 +647,24 @@ canvas:focus-visible {
   min-height: 0;
 }
 
+.slider-section {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: 14px;
+  padding-top: 4px;
+}
+
+.slider-section .page-instruction {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
 .vas-slider-rows {
   display: grid;
   gap: 28px;
   max-width: 900px;
-  margin: 42px auto 0;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .slider-row {
