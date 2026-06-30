@@ -586,13 +586,14 @@ h2 {
   overflow: visible;
   --sam-number-strip: 18px;
   --sam-picture-center-y: calc((100% - var(--sam-number-strip)) / 2);
+  --sam-standard-manikin-width: calc(46px * 1.4);
 }
 
 .sam-choice img {
   display: block;
-  max-width: 68px;
-  max-height: 88px;
-  width: auto;
+  max-width: none;
+  max-height: none;
+  width: var(--sam-standard-manikin-width);
   height: auto;
   position: absolute;
   left: 50%;
