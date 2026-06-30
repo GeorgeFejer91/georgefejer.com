@@ -75,22 +75,22 @@
       id: "vas.valence_raw_0_100",
       variable_name: "affect_vas_valence_raw_0_100",
       label: "Retrospective valence VAS",
-      axis_label: "Unpleasant - pleasant",
+      axis_label: "Unpleasant - Pleasant",
       question: "How pleasant did the previous experience feel?",
       touchLabel: "valence",
-      low: "-100",
-      high: "100",
+      low: "Unpleasant",
+      high: "Pleasant",
       field: "valence_raw_0_100"
     },
     {
       id: "vas.arousal_raw_0_100",
       variable_name: "affect_vas_arousal_raw_0_100",
       label: "Retrospective arousal VAS",
-      axis_label: "Inactive - active",
+      axis_label: "Low Energy - High Energy",
       question: "How active did you feel in the previous experience?",
       touchLabel: "arousal",
-      low: "-100",
-      high: "100",
+      low: "Low Energy",
+      high: "High Energy",
       field: "arousal_raw_0_100"
     }
   ].map((definition) => item({

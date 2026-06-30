@@ -692,7 +692,10 @@ canvas:focus-visible {
 
 .vas-slider-row .vas-slider-header {
   position: relative;
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(112px, 1fr) minmax(260px, 2.2fr) minmax(112px, 1fr);
+  gap: 12px;
+  align-items: center;
   text-align: center;
   margin-bottom: 14px;
 }
@@ -701,15 +704,25 @@ canvas:focus-visible {
   display: block;
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 54px;
   font-size: 17px;
   line-height: 1.28;
 }
 
-.vas-slider-header .slider-value {
-  position: absolute;
-  right: 0;
-  top: 2px;
+.vas-header-anchor {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.vas-header-anchor-low {
+  justify-self: start;
+  text-align: left;
+}
+
+.vas-header-anchor-high {
+  justify-self: end;
+  text-align: right;
 }
 
 .slider-value {
@@ -1225,6 +1238,21 @@ input[type="range"] {
 @media (max-width: 520px) {
   .workspace {
     padding: 10px;
+  }
+
+  .vas-slider-row .vas-slider-header {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 6px;
+  }
+
+  .vas-slider-row .vas-question {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .vas-header-anchor-low,
+  .vas-header-anchor-high {
+    grid-row: 2;
   }
 
   .inspector {

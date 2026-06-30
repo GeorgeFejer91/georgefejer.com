@@ -1358,18 +1358,14 @@ function vasStoryboardMarkup(assessment) {
         ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">
             <header class="vas-slider-header">
+              <span class="vas-header-anchor vas-header-anchor-low">${slider.low}</span>
               <strong class="vas-question">${slider.question}</strong>
-              <span class="slider-value">${assessment.affect_vas[slider.field]}</span>
+              <span class="vas-header-anchor vas-header-anchor-high">${slider.high}</span>
             </header>
             <div class="vas-scale">
               <div class="vas-range-shell">
                 <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1" aria-label="${slider.question}">
                 <span class="axis-midpoint" aria-hidden="true"></span>
-              </div>
-              <div class="vas-axis-labels">
-                <span class="vas-anchor vas-anchor-low">${slider.low}</span>
-                <span aria-hidden="true"></span>
-                <span class="vas-anchor vas-anchor-high">${slider.high}</span>
               </div>
             </div>
           </div>
@@ -1602,18 +1598,14 @@ function renderVasSliders() {
     row.className = "slider-row vas-slider-row";
     row.innerHTML = `
       <header class="vas-slider-header">
+        <span class="vas-header-anchor vas-header-anchor-low">${slider.low}</span>
         <strong class="vas-question">${slider.question}</strong>
-        <span class="slider-value" id="${slider.id}.value">${assessment.affect_vas[slider.field]}</span>
+        <span class="vas-header-anchor vas-header-anchor-high">${slider.high}</span>
       </header>
       <div class="vas-scale">
         <div class="vas-range-shell">
           <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" aria-label="${slider.question}">
           <span class="axis-midpoint" aria-hidden="true"></span>
-        </div>
-        <div class="vas-axis-labels">
-          <span class="vas-anchor vas-anchor-low">${slider.low}</span>
-          <span aria-hidden="true"></span>
-          <span class="vas-anchor vas-anchor-high">${slider.high}</span>
         </div>
       </div>
     `;
