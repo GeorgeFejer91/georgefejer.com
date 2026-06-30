@@ -575,17 +575,17 @@ h2 {
 .sam-choice {
   height: 116px;
   min-width: 0;
-  padding: 6px 3px 3px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) 14px;
-  align-items: center;
-  justify-items: center;
+  display: block;
+  position: relative;
   cursor: pointer;
   overflow: visible;
+  --sam-number-strip: 18px;
+  --sam-picture-center-y: calc((100% - var(--sam-number-strip)) / 2);
 }
 
 .sam-choice img {
@@ -594,19 +594,31 @@ h2 {
   max-height: 88px;
   width: auto;
   height: auto;
+  position: absolute;
+  left: 50%;
+  top: var(--sam-picture-center-y);
+  transform: translate(-50%, -50%);
 }
 
 .sam-choice img[data-sam-display="neutral-valence-scaled"] {
   max-width: none;
   max-height: none;
   width: calc(46px * var(--sam-dominance-scale, 1));
-  position: relative;
+  position: absolute;
   z-index: 1;
 }
 
 .sam-choice span {
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
   font-size: 13px;
+  line-height: 14px;
   color: var(--muted);
+  text-align: center;
+  z-index: 2;
 }
 
 .sam-choice[aria-pressed="true"] {
