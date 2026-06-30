@@ -1,6 +1,6 @@
-﻿{
+{
   "panel_id": "emotion_induction_sam_preview",
-  "schema_version": 7,
+  "schema_version": 8,
   "quest_panel_frame": {
     "width_dp": 1080,
     "height_dp": 720
@@ -12,26 +12,29 @@
   },
   "native_contract_authority": {
     "protocol_version": "quest.questionnaire.v1",
-    "schema_id": "emotion-induction-sam-v7",
+    "schema_id": "emotion-induction-sam-v8",
     "open_stage": "onboarding",
     "screen_sequence": [
       "onboarding",
       "emotion_induction_placeholder",
       "sam_pictographic",
       "affect_vas",
-      "ekman_intensity"
+      "ekman_intensity",
+      "hand_embodiment"
     ],
     "onboarding_required_once": true,
     "condition_block_sequence": [
       "emotion_induction_placeholder",
       "sam_pictographic",
       "affect_vas",
-      "ekman_intensity"
+      "ekman_intensity",
+      "hand_embodiment"
     ],
     "condition_assessment_sequence": [
       "sam_pictographic",
       "affect_vas",
-      "ekman_intensity"
+      "ekman_intensity",
+      "hand_embodiment"
     ],
     "repeated_after_each_condition": true,
     "result_owner": "caller-owned content URI"
@@ -295,7 +298,8 @@
         "options": [
           "sam_pictographic",
           "affect_vas",
-          "ekman_intensity"
+          "ekman_intensity",
+          "hand_embodiment"
         ],
         "editable": "runtime-owned",
         "validation": "derived from questionnaire workflow navigation; must be one of assessment page ids",
@@ -307,10 +311,10 @@
         "variable_name": "sam_valence_raw_1_9",
         "label": "Retrospective SAM valence",
         "scale_id": "valence",
-        "axis_label": "Negative - positive",
-        "question": "How positive or negative did you feel during the last session?",
-        "low": "Very negative",
-        "high": "Very positive",
+        "axis_label": "Unpleasant - pleasant",
+        "question": "How pleasant did this experience feel?",
+        "low": "Very unpleasant",
+        "high": "Very pleasant",
         "field": "valence_raw_1_9",
         "page": "sam_pictographic",
         "group": "sam",
@@ -334,11 +338,11 @@
         "anchors": [
           {
             "value": 1,
-            "label": "Very negative"
+            "label": "Very unpleasant"
           },
           {
             "value": 9,
-            "label": "Very positive"
+            "label": "Very pleasant"
           }
         ],
         "asset_catalog_id": "sam.valence",
@@ -354,7 +358,7 @@
         "label": "Retrospective SAM arousal",
         "scale_id": "arousal",
         "axis_label": "Inactive - active",
-        "question": "How active or inactive did you feel during the last session?",
+        "question": "How active did you feel during this experience?",
         "low": "Very inactive",
         "high": "Very active",
         "field": "arousal_raw_1_9",
@@ -399,10 +403,10 @@
         "variable_name": "sam_dominance_raw_1_9",
         "label": "Retrospective SAM dominance/control",
         "scale_id": "dominance",
-        "axis_label": "Controlled - in control",
-        "question": "How controlled or in control did you feel during the last session?",
-        "low": "Very controlled",
-        "high": "Very in control",
+        "axis_label": "Little control - much control",
+        "question": "How much control did you feel during your experience?",
+        "low": "Very little control",
+        "high": "Very much control",
         "field": "dominance_raw_1_9",
         "page": "sam_pictographic",
         "group": "sam",
@@ -426,11 +430,11 @@
         "anchors": [
           {
             "value": 1,
-            "label": "Very controlled"
+            "label": "Very little control"
           },
           {
             "value": 9,
-            "label": "Very in control"
+            "label": "Very much control"
           }
         ],
         "asset_catalog_id": "sam.dominance",
@@ -444,11 +448,11 @@
         "id": "vas.valence_raw_0_100",
         "variable_name": "affect_vas_valence_raw_0_100",
         "label": "Retrospective valence VAS",
-        "axis_label": "Negative - positive",
-        "question": "How positive or negative did you feel during the last session?",
+        "axis_label": "Unpleasant - pleasant",
+        "question": "How pleasant did the previous experience feel?",
         "touchLabel": "valence",
-        "low": "Very negative",
-        "high": "Very positive",
+        "low": "Very unpleasant",
+        "high": "Very pleasant",
         "field": "valence_raw_0_100",
         "page": "affect_vas",
         "group": "affect_vas",
@@ -462,11 +466,11 @@
         "anchors": [
           {
             "value": 0,
-            "label": "Very negative"
+            "label": "Very unpleasant"
           },
           {
             "value": 100,
-            "label": "Very positive"
+            "label": "Very pleasant"
           }
         ],
         "editable": "editable",
@@ -479,7 +483,7 @@
         "variable_name": "affect_vas_arousal_raw_0_100",
         "label": "Retrospective arousal VAS",
         "axis_label": "Inactive - active",
-        "question": "How active or inactive did you feel during the last session?",
+        "question": "How active did you feel in the previous experience?",
         "touchLabel": "arousal",
         "low": "Very inactive",
         "high": "Very active",
@@ -680,6 +684,206 @@
         "editable": "editable",
         "validation": "required integer 0..100",
         "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+      },
+      {
+        "item_library_version": 1,
+        "id": "hand_embodiment.ownership_raw_1_7",
+        "variable_name": "hand_embodiment_ownership_raw_1_7",
+        "label": "Adapted VEQ hand ownership",
+        "construct_id": "ownership",
+        "field": "ownership_raw_1_7",
+        "question": {
+          "en": "It felt like the virtual hands were my own hands.",
+          "de": "Es fühlte sich so an, als wären die virtuellen Hände meine eigenen Hände."
+        },
+        "page": "hand_embodiment",
+        "group": "hand_embodiment",
+        "response_namespace": "hand_embodiment",
+        "type": "likert-choice",
+        "default": null,
+        "min": 1,
+        "max": 7,
+        "step": 1,
+        "options": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "option_labels": [
+          {
+            "value": 1,
+            "label": {
+              "en": "Strongly disagree",
+              "de": "Stimme überhaupt nicht zu"
+            }
+          },
+          {
+            "value": 2,
+            "label": {
+              "en": "Disagree",
+              "de": "Stimme nicht zu"
+            }
+          },
+          {
+            "value": 3,
+            "label": {
+              "en": "Somewhat disagree",
+              "de": "Stimme eher nicht zu"
+            }
+          },
+          {
+            "value": 4,
+            "label": {
+              "en": "Neither agree nor disagree",
+              "de": "Weder Zustimmung noch Ablehnung"
+            }
+          },
+          {
+            "value": 5,
+            "label": {
+              "en": "Somewhat agree",
+              "de": "Stimme eher zu"
+            }
+          },
+          {
+            "value": 6,
+            "label": {
+              "en": "Agree",
+              "de": "Stimme zu"
+            }
+          },
+          {
+            "value": 7,
+            "label": {
+              "en": "Strongly agree",
+              "de": "Stimme voll und ganz zu"
+            }
+          }
+        ],
+        "anchors": [
+          {
+            "value": 1,
+            "label": {
+              "en": "Strongly disagree",
+              "de": "Stimme überhaupt nicht zu"
+            }
+          },
+          {
+            "value": 7,
+            "label": {
+              "en": "Strongly agree",
+              "de": "Stimme voll und ganz zu"
+            }
+          }
+        ],
+        "source_scale": "Adapted single-item Virtual Embodiment Questionnaire (VEQ) ownership/agency measures for virtual hands",
+        "editable": "editable",
+        "validation": "required integer 1..7",
+        "result_json_field": "answers.emotion_assessment.hand_embodiment.ownership_raw_1_7"
+      },
+      {
+        "item_library_version": 1,
+        "id": "hand_embodiment.agency_raw_1_7",
+        "variable_name": "hand_embodiment_agency_raw_1_7",
+        "label": "Adapted VEQ hand agency",
+        "construct_id": "agency",
+        "field": "agency_raw_1_7",
+        "question": {
+          "en": "It felt like I was controlling the movements of the virtual hands.",
+          "de": "Es fühlte sich so an, als würde ich die Bewegungen der virtuellen Hände kontrollieren."
+        },
+        "page": "hand_embodiment",
+        "group": "hand_embodiment",
+        "response_namespace": "hand_embodiment",
+        "type": "likert-choice",
+        "default": null,
+        "min": 1,
+        "max": 7,
+        "step": 1,
+        "options": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "option_labels": [
+          {
+            "value": 1,
+            "label": {
+              "en": "Strongly disagree",
+              "de": "Stimme überhaupt nicht zu"
+            }
+          },
+          {
+            "value": 2,
+            "label": {
+              "en": "Disagree",
+              "de": "Stimme nicht zu"
+            }
+          },
+          {
+            "value": 3,
+            "label": {
+              "en": "Somewhat disagree",
+              "de": "Stimme eher nicht zu"
+            }
+          },
+          {
+            "value": 4,
+            "label": {
+              "en": "Neither agree nor disagree",
+              "de": "Weder Zustimmung noch Ablehnung"
+            }
+          },
+          {
+            "value": 5,
+            "label": {
+              "en": "Somewhat agree",
+              "de": "Stimme eher zu"
+            }
+          },
+          {
+            "value": 6,
+            "label": {
+              "en": "Agree",
+              "de": "Stimme zu"
+            }
+          },
+          {
+            "value": 7,
+            "label": {
+              "en": "Strongly agree",
+              "de": "Stimme voll und ganz zu"
+            }
+          }
+        ],
+        "anchors": [
+          {
+            "value": 1,
+            "label": {
+              "en": "Strongly disagree",
+              "de": "Stimme überhaupt nicht zu"
+            }
+          },
+          {
+            "value": 7,
+            "label": {
+              "en": "Strongly agree",
+              "de": "Stimme voll und ganz zu"
+            }
+          }
+        ],
+        "source_scale": "Adapted single-item Virtual Embodiment Questionnaire (VEQ) ownership/agency measures for virtual hands",
+        "editable": "editable",
+        "validation": "required integer 1..7",
+        "result_json_field": "answers.emotion_assessment.hand_embodiment.agency_raw_1_7"
       }
     ],
     "pages": [
@@ -772,6 +976,19 @@
               "ekman_intensity.happiness_raw_0_100",
               "ekman_intensity.sadness_raw_0_100",
               "ekman_intensity.surprise_raw_0_100"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hand_embodiment",
+        "title": "Virtual hand embodiment",
+        "groups": [
+          {
+            "id": "hand_embodiment",
+            "fields": [
+              "hand_embodiment.ownership_raw_1_7",
+              "hand_embodiment.agency_raw_1_7"
             ]
           }
         ]
@@ -1032,7 +1249,8 @@
       "options": [
         "sam_pictographic",
         "affect_vas",
-        "ekman_intensity"
+        "ekman_intensity",
+        "hand_embodiment"
       ],
       "editable": "runtime-owned",
       "validation": "derived from questionnaire workflow navigation; must be one of assessment page ids",
@@ -1044,10 +1262,10 @@
       "variable_name": "sam_valence_raw_1_9",
       "label": "Retrospective SAM valence",
       "scale_id": "valence",
-      "axis_label": "Negative - positive",
-      "question": "How positive or negative did you feel during the last session?",
-      "low": "Very negative",
-      "high": "Very positive",
+      "axis_label": "Unpleasant - pleasant",
+      "question": "How pleasant did this experience feel?",
+      "low": "Very unpleasant",
+      "high": "Very pleasant",
       "field": "valence_raw_1_9",
       "page": "sam_pictographic",
       "group": "sam",
@@ -1071,11 +1289,11 @@
       "anchors": [
         {
           "value": 1,
-          "label": "Very negative"
+          "label": "Very unpleasant"
         },
         {
           "value": 9,
-          "label": "Very positive"
+          "label": "Very pleasant"
         }
       ],
       "asset_catalog_id": "sam.valence",
@@ -1091,7 +1309,7 @@
       "label": "Retrospective SAM arousal",
       "scale_id": "arousal",
       "axis_label": "Inactive - active",
-      "question": "How active or inactive did you feel during the last session?",
+      "question": "How active did you feel during this experience?",
       "low": "Very inactive",
       "high": "Very active",
       "field": "arousal_raw_1_9",
@@ -1136,10 +1354,10 @@
       "variable_name": "sam_dominance_raw_1_9",
       "label": "Retrospective SAM dominance/control",
       "scale_id": "dominance",
-      "axis_label": "Controlled - in control",
-      "question": "How controlled or in control did you feel during the last session?",
-      "low": "Very controlled",
-      "high": "Very in control",
+      "axis_label": "Little control - much control",
+      "question": "How much control did you feel during your experience?",
+      "low": "Very little control",
+      "high": "Very much control",
       "field": "dominance_raw_1_9",
       "page": "sam_pictographic",
       "group": "sam",
@@ -1163,11 +1381,11 @@
       "anchors": [
         {
           "value": 1,
-          "label": "Very controlled"
+          "label": "Very little control"
         },
         {
           "value": 9,
-          "label": "Very in control"
+          "label": "Very much control"
         }
       ],
       "asset_catalog_id": "sam.dominance",
@@ -1181,11 +1399,11 @@
       "id": "vas.valence_raw_0_100",
       "variable_name": "affect_vas_valence_raw_0_100",
       "label": "Retrospective valence VAS",
-      "axis_label": "Negative - positive",
-      "question": "How positive or negative did you feel during the last session?",
+      "axis_label": "Unpleasant - pleasant",
+      "question": "How pleasant did the previous experience feel?",
       "touchLabel": "valence",
-      "low": "Very negative",
-      "high": "Very positive",
+      "low": "Very unpleasant",
+      "high": "Very pleasant",
       "field": "valence_raw_0_100",
       "page": "affect_vas",
       "group": "affect_vas",
@@ -1199,11 +1417,11 @@
       "anchors": [
         {
           "value": 0,
-          "label": "Very negative"
+          "label": "Very unpleasant"
         },
         {
           "value": 100,
-          "label": "Very positive"
+          "label": "Very pleasant"
         }
       ],
       "editable": "editable",
@@ -1216,7 +1434,7 @@
       "variable_name": "affect_vas_arousal_raw_0_100",
       "label": "Retrospective arousal VAS",
       "axis_label": "Inactive - active",
-      "question": "How active or inactive did you feel during the last session?",
+      "question": "How active did you feel in the previous experience?",
       "touchLabel": "arousal",
       "low": "Very inactive",
       "high": "Very active",
@@ -1417,6 +1635,206 @@
       "editable": "editable",
       "validation": "required integer 0..100",
       "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+    },
+    {
+      "item_library_version": 1,
+      "id": "hand_embodiment.ownership_raw_1_7",
+      "variable_name": "hand_embodiment_ownership_raw_1_7",
+      "label": "Adapted VEQ hand ownership",
+      "construct_id": "ownership",
+      "field": "ownership_raw_1_7",
+      "question": {
+        "en": "It felt like the virtual hands were my own hands.",
+        "de": "Es fühlte sich so an, als wären die virtuellen Hände meine eigenen Hände."
+      },
+      "page": "hand_embodiment",
+      "group": "hand_embodiment",
+      "response_namespace": "hand_embodiment",
+      "type": "likert-choice",
+      "default": null,
+      "min": 1,
+      "max": 7,
+      "step": 1,
+      "options": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "option_labels": [
+        {
+          "value": 1,
+          "label": {
+            "en": "Strongly disagree",
+            "de": "Stimme überhaupt nicht zu"
+          }
+        },
+        {
+          "value": 2,
+          "label": {
+            "en": "Disagree",
+            "de": "Stimme nicht zu"
+          }
+        },
+        {
+          "value": 3,
+          "label": {
+            "en": "Somewhat disagree",
+            "de": "Stimme eher nicht zu"
+          }
+        },
+        {
+          "value": 4,
+          "label": {
+            "en": "Neither agree nor disagree",
+            "de": "Weder Zustimmung noch Ablehnung"
+          }
+        },
+        {
+          "value": 5,
+          "label": {
+            "en": "Somewhat agree",
+            "de": "Stimme eher zu"
+          }
+        },
+        {
+          "value": 6,
+          "label": {
+            "en": "Agree",
+            "de": "Stimme zu"
+          }
+        },
+        {
+          "value": 7,
+          "label": {
+            "en": "Strongly agree",
+            "de": "Stimme voll und ganz zu"
+          }
+        }
+      ],
+      "anchors": [
+        {
+          "value": 1,
+          "label": {
+            "en": "Strongly disagree",
+            "de": "Stimme überhaupt nicht zu"
+          }
+        },
+        {
+          "value": 7,
+          "label": {
+            "en": "Strongly agree",
+            "de": "Stimme voll und ganz zu"
+          }
+        }
+      ],
+      "source_scale": "Adapted single-item Virtual Embodiment Questionnaire (VEQ) ownership/agency measures for virtual hands",
+      "editable": "editable",
+      "validation": "required integer 1..7",
+      "result_json_field": "answers.emotion_assessment.hand_embodiment.ownership_raw_1_7"
+    },
+    {
+      "item_library_version": 1,
+      "id": "hand_embodiment.agency_raw_1_7",
+      "variable_name": "hand_embodiment_agency_raw_1_7",
+      "label": "Adapted VEQ hand agency",
+      "construct_id": "agency",
+      "field": "agency_raw_1_7",
+      "question": {
+        "en": "It felt like I was controlling the movements of the virtual hands.",
+        "de": "Es fühlte sich so an, als würde ich die Bewegungen der virtuellen Hände kontrollieren."
+      },
+      "page": "hand_embodiment",
+      "group": "hand_embodiment",
+      "response_namespace": "hand_embodiment",
+      "type": "likert-choice",
+      "default": null,
+      "min": 1,
+      "max": 7,
+      "step": 1,
+      "options": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "option_labels": [
+        {
+          "value": 1,
+          "label": {
+            "en": "Strongly disagree",
+            "de": "Stimme überhaupt nicht zu"
+          }
+        },
+        {
+          "value": 2,
+          "label": {
+            "en": "Disagree",
+            "de": "Stimme nicht zu"
+          }
+        },
+        {
+          "value": 3,
+          "label": {
+            "en": "Somewhat disagree",
+            "de": "Stimme eher nicht zu"
+          }
+        },
+        {
+          "value": 4,
+          "label": {
+            "en": "Neither agree nor disagree",
+            "de": "Weder Zustimmung noch Ablehnung"
+          }
+        },
+        {
+          "value": 5,
+          "label": {
+            "en": "Somewhat agree",
+            "de": "Stimme eher zu"
+          }
+        },
+        {
+          "value": 6,
+          "label": {
+            "en": "Agree",
+            "de": "Stimme zu"
+          }
+        },
+        {
+          "value": 7,
+          "label": {
+            "en": "Strongly agree",
+            "de": "Stimme voll und ganz zu"
+          }
+        }
+      ],
+      "anchors": [
+        {
+          "value": 1,
+          "label": {
+            "en": "Strongly disagree",
+            "de": "Stimme überhaupt nicht zu"
+          }
+        },
+        {
+          "value": 7,
+          "label": {
+            "en": "Strongly agree",
+            "de": "Stimme voll und ganz zu"
+          }
+        }
+      ],
+      "source_scale": "Adapted single-item Virtual Embodiment Questionnaire (VEQ) ownership/agency measures for virtual hands",
+      "editable": "editable",
+      "validation": "required integer 1..7",
+      "result_json_field": "answers.emotion_assessment.hand_embodiment.agency_raw_1_7"
     }
   ],
   "pages": [
@@ -1512,6 +1930,19 @@
           ]
         }
       ]
+    },
+    {
+      "id": "hand_embodiment",
+      "title": "Virtual hand embodiment",
+      "groups": [
+        {
+          "id": "hand_embodiment",
+          "fields": [
+            "hand_embodiment.ownership_raw_1_7",
+            "hand_embodiment.agency_raw_1_7"
+          ]
+        }
+      ]
     }
   ],
   "onboarding": {
@@ -1593,7 +2024,7 @@
     "complete": false
   },
   "visual_storyboard": {
-    "panel_count": 17,
+    "panel_count": 21,
     "frame": {
       "width_dp": 1080,
       "height_dp": 720
@@ -1605,6 +2036,7 @@
       "SAM pictographic choices",
       "VAS slider positions",
       "Ekman slider positions",
+      "hand embodiment Likert selections",
       "footer navigation enabled/disabled states"
     ],
     "panels": [
@@ -1630,7 +2062,7 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Block 1: instructions"
+        "title": "Instructions"
       },
       {
         "panel_index": 3,
@@ -1641,8 +2073,8 @@
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 1,
-        "assessment_block_page_count": 3,
-        "title": "Block 1: page 1 of 3"
+        "assessment_block_page_count": 4,
+        "title": "How did the previous experience feel?"
       },
       {
         "panel_index": 4,
@@ -1653,8 +2085,8 @@
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 2,
-        "assessment_block_page_count": 3,
-        "title": "Block 1: page 2 of 3"
+        "assessment_block_page_count": 4,
+        "title": "Rate the previous experience"
       },
       {
         "panel_index": 5,
@@ -1665,47 +2097,59 @@
         "condition_id": "induction_d",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 3,
-        "assessment_block_page_count": 3,
-        "title": "Block 1: page 3 of 3"
+        "assessment_block_page_count": 4,
+        "title": "To what degree were the emotions represented by the way the particles were moving?"
       },
       {
         "panel_index": 6,
-        "page_id": "emotion_induction_placeholder",
-        "block_position": 2,
-        "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
-        "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": null,
-        "assessment_block_page_count": null,
-        "title": "Block 2: instructions"
+        "page_id": "hand_embodiment",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "induction_d",
+        "condition_id": "induction_d",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 4,
+        "assessment_block_page_count": 4,
+        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
       },
       {
         "panel_index": 7,
-        "page_id": "sam_pictographic",
+        "page_id": "emotion_induction_placeholder",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "induction_a",
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": 1,
-        "assessment_block_page_count": 3,
-        "title": "Block 2: page 1 of 3"
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Instructions"
       },
       {
         "panel_index": 8,
-        "page_id": "affect_vas",
+        "page_id": "sam_pictographic",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "induction_a",
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": 2,
-        "assessment_block_page_count": 3,
-        "title": "Block 2: page 2 of 3"
+        "assessment_block_page": 1,
+        "assessment_block_page_count": 4,
+        "title": "How did the previous experience feel?"
       },
       {
         "panel_index": 9,
+        "page_id": "affect_vas",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 4,
+        "title": "Rate the previous experience"
+      },
+      {
+        "panel_index": 10,
         "page_id": "ekman_intensity",
         "block_position": 2,
         "condition_position": 2,
@@ -1713,23 +2157,35 @@
         "condition_id": "induction_a",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 3,
-        "assessment_block_page_count": 3,
-        "title": "Block 2: page 3 of 3"
-      },
-      {
-        "panel_index": 10,
-        "page_id": "emotion_induction_placeholder",
-        "block_position": 3,
-        "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
-        "audio_instruction_id": "audio_instruction_set_3",
-        "assessment_block_page": null,
-        "assessment_block_page_count": null,
-        "title": "Block 3: instructions"
+        "assessment_block_page_count": 4,
+        "title": "To what degree were the emotions represented by the way the particles were moving?"
       },
       {
         "panel_index": 11,
+        "page_id": "hand_embodiment",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "induction_a",
+        "condition_id": "induction_a",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 4,
+        "assessment_block_page_count": 4,
+        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+      },
+      {
+        "panel_index": 12,
+        "page_id": "emotion_induction_placeholder",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Instructions"
+      },
+      {
+        "panel_index": 13,
         "page_id": "sam_pictographic",
         "block_position": 3,
         "condition_position": 3,
@@ -1737,11 +2193,11 @@
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 1,
-        "assessment_block_page_count": 3,
-        "title": "Block 3: page 1 of 3"
+        "assessment_block_page_count": 4,
+        "title": "How did the previous experience feel?"
       },
       {
-        "panel_index": 12,
+        "panel_index": 14,
         "page_id": "affect_vas",
         "block_position": 3,
         "condition_position": 3,
@@ -1749,11 +2205,11 @@
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 2,
-        "assessment_block_page_count": 3,
-        "title": "Block 3: page 2 of 3"
+        "assessment_block_page_count": 4,
+        "title": "Rate the previous experience"
       },
       {
-        "panel_index": 13,
+        "panel_index": 15,
         "page_id": "ekman_intensity",
         "block_position": 3,
         "condition_position": 3,
@@ -1761,11 +2217,23 @@
         "condition_id": "induction_c",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 3,
-        "assessment_block_page_count": 3,
-        "title": "Block 3: page 3 of 3"
+        "assessment_block_page_count": 4,
+        "title": "To what degree were the emotions represented by the way the particles were moving?"
       },
       {
-        "panel_index": 14,
+        "panel_index": 16,
+        "page_id": "hand_embodiment",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "induction_c",
+        "condition_id": "induction_c",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": 4,
+        "assessment_block_page_count": 4,
+        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+      },
+      {
+        "panel_index": 17,
         "page_id": "emotion_induction_placeholder",
         "block_position": 4,
         "condition_position": 4,
@@ -1774,10 +2242,10 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Block 4: instructions"
+        "title": "Instructions"
       },
       {
-        "panel_index": 15,
+        "panel_index": 18,
         "page_id": "sam_pictographic",
         "block_position": 4,
         "condition_position": 4,
@@ -1785,11 +2253,11 @@
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 1,
-        "assessment_block_page_count": 3,
-        "title": "Block 4: page 1 of 3"
+        "assessment_block_page_count": 4,
+        "title": "How did the previous experience feel?"
       },
       {
-        "panel_index": 16,
+        "panel_index": 19,
         "page_id": "affect_vas",
         "block_position": 4,
         "condition_position": 4,
@@ -1797,11 +2265,11 @@
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 2,
-        "assessment_block_page_count": 3,
-        "title": "Block 4: page 2 of 3"
+        "assessment_block_page_count": 4,
+        "title": "Rate the previous experience"
       },
       {
-        "panel_index": 17,
+        "panel_index": 20,
         "page_id": "ekman_intensity",
         "block_position": 4,
         "condition_position": 4,
@@ -1809,8 +2277,20 @@
         "condition_id": "induction_b",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 3,
-        "assessment_block_page_count": 3,
-        "title": "Block 4: page 3 of 3"
+        "assessment_block_page_count": 4,
+        "title": "To what degree were the emotions represented by the way the particles were moving?"
+      },
+      {
+        "panel_index": 21,
+        "page_id": "hand_embodiment",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "induction_b",
+        "condition_id": "induction_b",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": 4,
+        "assessment_block_page_count": 4,
+        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
       }
     ]
   },
@@ -1889,7 +2369,7 @@
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 1,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
     },
     {
@@ -1901,7 +2381,7 @@
       "page_id": "affect_vas",
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 2,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
     },
     {
@@ -1913,8 +2393,20 @@
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 3,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "induction_d",
+      "condition_id": "induction_d",
+      "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "hand_embodiment",
+      "assessment_block_id": "block_1_assessment_block",
+      "assessment_block_page": 4,
+      "assessment_block_page_count": 4,
+      "assessment_block_group": "Adapted VEQ virtual hand ownership and agency ratings"
     },
     {
       "block_position": 2,
@@ -1937,7 +2429,7 @@
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 1,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
     },
     {
@@ -1949,7 +2441,7 @@
       "page_id": "affect_vas",
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 2,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
     },
     {
@@ -1961,8 +2453,20 @@
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 3,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "induction_a",
+      "condition_id": "induction_a",
+      "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "hand_embodiment",
+      "assessment_block_id": "block_2_assessment_block",
+      "assessment_block_page": 4,
+      "assessment_block_page_count": 4,
+      "assessment_block_group": "Adapted VEQ virtual hand ownership and agency ratings"
     },
     {
       "block_position": 3,
@@ -1985,7 +2489,7 @@
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 1,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
     },
     {
@@ -1997,7 +2501,7 @@
       "page_id": "affect_vas",
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 2,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
     },
     {
@@ -2009,8 +2513,20 @@
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 3,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "induction_c",
+      "condition_id": "induction_c",
+      "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "hand_embodiment",
+      "assessment_block_id": "block_3_assessment_block",
+      "assessment_block_page": 4,
+      "assessment_block_page_count": 4,
+      "assessment_block_group": "Adapted VEQ virtual hand ownership and agency ratings"
     },
     {
       "block_position": 4,
@@ -2033,7 +2549,7 @@
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 1,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
     },
     {
@@ -2045,7 +2561,7 @@
       "page_id": "affect_vas",
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 2,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
     },
     {
@@ -2057,8 +2573,20 @@
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 3,
-      "assessment_block_page_count": 3,
+      "assessment_block_page_count": 4,
       "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "induction_b",
+      "condition_id": "induction_b",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "hand_embodiment",
+      "assessment_block_id": "block_4_assessment_block",
+      "assessment_block_page": 4,
+      "assessment_block_page_count": 4,
+      "assessment_block_group": "Adapted VEQ virtual hand ownership and agency ratings"
     }
   ],
   "counterbalance": {
@@ -2214,10 +2742,15 @@
           "sadness_raw_0_100": 80,
           "surprise_raw_0_100": 100
         },
+        "hand_embodiment": {
+          "ownership_raw_1_7": 2,
+          "agency_raw_1_7": 3
+        },
         "page_complete": {
           "sam_pictographic": true,
           "affect_vas": true,
-          "ekman_intensity": false
+          "ekman_intensity": true,
+          "hand_embodiment": false
         },
         "complete": false
       }
@@ -2244,10 +2777,15 @@
           "sadness_raw_0_100": 52,
           "surprise_raw_0_100": 40
         },
+        "hand_embodiment": {
+          "ownership_raw_1_7": 6,
+          "agency_raw_1_7": 7
+        },
         "page_complete": {
           "sam_pictographic": true,
           "affect_vas": true,
-          "ekman_intensity": true
+          "ekman_intensity": true,
+          "hand_embodiment": true
         },
         "complete": true
       }
@@ -2274,10 +2812,15 @@
           "sadness_raw_0_100": 52,
           "surprise_raw_0_100": 40
         },
+        "hand_embodiment": {
+          "ownership_raw_1_7": 6,
+          "agency_raw_1_7": 7
+        },
         "page_complete": {
           "sam_pictographic": true,
           "affect_vas": true,
-          "ekman_intensity": true
+          "ekman_intensity": true,
+          "hand_embodiment": true
         },
         "complete": true
       }
@@ -2304,10 +2847,15 @@
           "sadness_raw_0_100": 52,
           "surprise_raw_0_100": 40
         },
+        "hand_embodiment": {
+          "ownership_raw_1_7": 6,
+          "agency_raw_1_7": 7
+        },
         "page_complete": {
           "sam_pictographic": true,
           "affect_vas": true,
-          "ekman_intensity": true
+          "ekman_intensity": true,
+          "hand_embodiment": true
         },
         "complete": true
       }

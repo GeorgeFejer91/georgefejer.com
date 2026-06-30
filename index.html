@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>Your Name - Portfolio</title>
+    <title>George Fejer - Academic Profile</title>
     <style>
         /* ---- ROOT VARIABLES ---- */
         :root {
@@ -781,6 +781,11 @@
 
         /* ---- MOBILE MENU ---- */
         @media (max-width: 768px) {
+            .container {
+                display: block;
+                min-height: auto;
+            }
+
             .sidebar {
                 display: none;
             }
@@ -921,6 +926,514 @@
                 min-width: 100px;
             }
         }
+
+        /* ---- PROFESSIONAL ACADEMIC REFRESH ---- */
+        :root {
+            --main-bg-color: #f6f7f5;
+            --main-text-color: #242622;
+            --accent-color: #28594b;
+            --accent-secondary: #704139;
+            --separator-color: #d9ded7;
+            --highlight-color: #f1f4ef;
+            --menu-hover-color: #eef3ef;
+            --menu-active-color: #e4ece6;
+            --frame-border: #d9ded7;
+            --sprocket-color: transparent;
+            --sprocket-border: transparent;
+            --frame-height: auto;
+            --mobile-menu-height: auto;
+            --card-bg: #ffffff;
+            --muted-text: #62675f;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation: none !important;
+            text-shadow: none !important;
+            box-shadow: none !important;
+        }
+
+        html,
+        body {
+            scroll-behavior: smooth;
+            scrollbar-color: #a9b2a8 #edf0ec;
+        }
+
+        body {
+            font-family: "Aptos", "Helvetica Neue", sans-serif;
+            background: var(--main-bg-color);
+            background-image: none;
+            color: var(--main-text-color);
+            font-size: 16px;
+            line-height: 1.65;
+        }
+
+        body::-webkit-scrollbar,
+        html::-webkit-scrollbar,
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        body::-webkit-scrollbar-track,
+        html::-webkit-scrollbar-track,
+        .sidebar::-webkit-scrollbar-track {
+            background: #edf0ec;
+        }
+
+        body::-webkit-scrollbar-thumb,
+        html::-webkit-scrollbar-thumb,
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #a9b2a8;
+            border: 0;
+            border-radius: 4px;
+        }
+
+        .container {
+            background: var(--main-bg-color);
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--separator-color);
+            padding: 0;
+        }
+
+        .logo {
+            text-align: left;
+            padding: 28px 24px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--separator-color);
+        }
+
+        .profile-photo {
+            width: 88px;
+            height: 88px;
+            min-width: 88px;
+            min-height: 88px;
+            max-width: 88px;
+            max-height: 88px;
+            border: 1px solid var(--separator-color);
+            border-radius: 8px;
+            margin: 0 0 18px;
+        }
+
+        .logo h1 {
+            color: var(--main-text-color);
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: 0;
+            margin-bottom: 4px;
+        }
+
+        .logo h2 {
+            color: var(--muted-text);
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.45;
+        }
+
+        .film-strip,
+        .mobile-film-strip {
+            background: #ffffff;
+        }
+
+        .nav-menu {
+            padding: 12px;
+        }
+
+        .nav-menu li,
+        .nav-menu li:first-child {
+            height: auto;
+            justify-content: flex-start;
+            border: 0;
+            background: transparent;
+            margin: 2px 0;
+        }
+
+        .nav-menu li a {
+            justify-content: flex-start;
+            color: var(--muted-text);
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: none;
+            padding: 9px 12px;
+            border-radius: 6px;
+            transition: color 160ms ease, background-color 160ms ease;
+        }
+
+        .nav-menu li:hover,
+        .nav-menu .active {
+            background: transparent;
+            border-left: 0;
+        }
+
+        .nav-menu li:hover a,
+        .nav-menu .active a {
+            color: var(--accent-color);
+            background: var(--menu-active-color);
+        }
+
+        .nav-menu li span,
+        .mobile-nav li span {
+            display: none;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            max-width: calc(100vw - 260px);
+            background: var(--main-bg-color);
+        }
+
+        .hero {
+            min-height: 72vh;
+            height: auto;
+            justify-content: center;
+            padding: 72px 64px 64px;
+            background: var(--main-bg-color);
+            border-bottom: 1px solid var(--separator-color);
+        }
+
+        .hero::before,
+        .section::before,
+        .section-title::after,
+        .card::before,
+        .timeline::before {
+            display: none;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero-name-container {
+            gap: 28px;
+            margin-bottom: 22px;
+        }
+
+        .hero-profile-photo {
+            width: 112px;
+            height: 112px;
+            min-width: 112px;
+            min-height: 112px;
+            max-width: 112px;
+            max-height: 112px;
+            border: 1px solid var(--separator-color);
+            border-radius: 8px;
+            margin-left: 0;
+        }
+
+        .hero h1 {
+            color: var(--main-text-color);
+            font-size: clamp(2.6rem, 5vw, 4.2rem);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: 1;
+        }
+
+        .hero h2 {
+            color: var(--accent-color);
+            font-size: clamp(1.25rem, 2vw, 1.6rem);
+            font-weight: 500;
+            letter-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            color: var(--muted-text);
+            font-size: 1.05rem;
+            line-height: 1.75;
+            max-width: 760px;
+        }
+
+        .section {
+            min-height: auto;
+            width: min(100%, 1040px);
+            padding: 52px 64px;
+            scroll-margin-top: 24px;
+        }
+
+        .section-title {
+            color: var(--main-text-color);
+            display: block;
+            font-size: 1.7rem;
+            font-weight: 650;
+            letter-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        .section > p[style] {
+            color: var(--main-text-color);
+            font-size: 1rem !important;
+            line-height: 1.7 !important;
+            max-width: 780px !important;
+        }
+
+        .cards-grid {
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .card,
+        .timeline-item {
+            background: var(--card-bg);
+            border: 1px solid var(--separator-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card {
+            transition: border-color 160ms ease, background-color 160ms ease;
+        }
+
+        .card:hover {
+            border-color: #b9c4b8;
+            transform: none;
+        }
+
+        .card h3,
+        .timeline-item h3 {
+            color: var(--main-text-color);
+            font-size: 1.12rem;
+            font-weight: 650;
+            letter-spacing: 0;
+            line-height: 1.35;
+            margin-bottom: 10px;
+        }
+
+        .card p,
+        .timeline-item p {
+            color: var(--muted-text);
+            line-height: 1.65;
+        }
+
+        .card-link {
+            color: var(--accent-color);
+            border: 1px solid var(--separator-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-weight: 600;
+            letter-spacing: 0;
+            transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+
+        .card-link:hover {
+            color: var(--accent-color);
+            border-color: #b9c4b8;
+            background: var(--highlight-color);
+        }
+
+        .skills-list {
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .skill-tag {
+            background: #ffffff;
+            border: 1px solid var(--separator-color);
+            border-radius: 6px;
+            color: var(--main-text-color);
+            padding: 7px 10px;
+            font-size: 0.94rem;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+
+        .skill-tag:hover {
+            background: var(--highlight-color);
+            border-color: #b9c4b8;
+            transform: none;
+        }
+
+        .timeline {
+            margin-top: 24px;
+            padding-left: 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        .timeline-item {
+            margin: 0;
+        }
+
+        .timeline-item::before {
+            display: none;
+        }
+
+        .timeline-item .date {
+            color: var(--accent-secondary);
+            font-size: 0.95rem;
+            font-style: normal;
+            margin-bottom: 8px;
+        }
+
+        .contact-links {
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .contact-link {
+            background: #ffffff;
+            border: 1px solid var(--separator-color);
+            border-radius: 6px;
+            color: var(--accent-color);
+            font-weight: 600;
+            letter-spacing: 0;
+            padding: 9px 12px;
+            transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+
+        .contact-link:hover {
+            background: var(--highlight-color);
+            border-color: #b9c4b8;
+            color: var(--accent-color);
+            transform: none;
+        }
+
+        .footer {
+            background: #ffffff;
+            border-top: 1px solid var(--separator-color);
+            color: var(--muted-text);
+            font-size: 0.92rem;
+            padding: 24px 64px;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                margin-left: 0;
+                width: 100%;
+                max-width: 100vw;
+                padding-bottom: 0;
+            }
+
+            .mobile-menu {
+                display: block;
+                position: sticky;
+                top: 0;
+                left: auto;
+                bottom: auto;
+                width: 100%;
+                height: auto;
+                background: #ffffff;
+                border-top: 0;
+                border-bottom: 1px solid var(--separator-color);
+                z-index: 1000;
+                overflow: hidden;
+            }
+
+            .mobile-film-strip {
+                background: #ffffff;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .mobile-nav {
+                display: inline-flex;
+                gap: 4px;
+                height: auto;
+                padding: 8px;
+                list-style: none;
+            }
+
+            .mobile-nav li {
+                min-width: auto;
+                height: auto;
+                margin: 0;
+                border: 0;
+                background: transparent;
+            }
+
+            .mobile-nav li a {
+                color: var(--muted-text);
+                display: block;
+                font-size: 0.93rem;
+                font-weight: 500;
+                height: auto;
+                padding: 8px 10px;
+                border-radius: 6px;
+                text-decoration: none;
+            }
+
+            .mobile-nav li.active,
+            .mobile-nav li:hover {
+                background: transparent;
+                border: 0;
+            }
+
+            .mobile-nav li.active a,
+            .mobile-nav li:hover a {
+                color: var(--accent-color);
+                background: var(--menu-active-color);
+            }
+
+            .hero {
+                min-height: auto;
+                align-items: flex-start;
+                text-align: left;
+                padding: 48px 22px 42px;
+                max-width: 100%;
+            }
+
+            .hero-content,
+            .hero p,
+            .section,
+            .section > *,
+            .card,
+            .timeline,
+            .timeline-item {
+                max-width: 100%;
+            }
+
+            .hero p,
+            .section p,
+            .card p,
+            .timeline-item p {
+                overflow-wrap: break-word;
+                word-break: normal;
+            }
+
+            .hero-name-container {
+                align-items: flex-start;
+                flex-direction: column-reverse;
+                gap: 18px;
+            }
+
+            .hero-profile-photo {
+                width: 96px;
+                height: 96px;
+                min-width: 96px;
+                min-height: 96px;
+                max-width: 96px;
+                max-height: 96px;
+                margin-bottom: 0;
+            }
+
+            .section {
+                width: 100%;
+                padding: 36px 22px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 22px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -929,8 +1442,8 @@
         <div class="sidebar">
             <div class="logo">
                 <img src="Academic/assets/images/crop_selfie.png" alt="George Fejer" class="profile-photo">
-                <h1>GEORGE FEJER</h1>
-                <h2>Neuropsychologist, PhD Candidate</h2>
+                <h1>George Fejer</h1>
+                <h2>PhD Candidate, Cognitive Psychology</h2>
             </div>
             <div class="film-strip">
                 <ul class="nav-menu">
@@ -957,15 +1470,6 @@
                         <span class="sprocket-left-2"></span>
                         <span class="sprocket-left-3"></span>
                         <a href="#projects">Projects</a>
-                        <span class="sprocket-right-1"></span>
-                        <span class="sprocket-right-2"></span>
-                        <span class="sprocket-right-3"></span>
-                    </li>
-                    <li>
-                        <span class="sprocket-left-1"></span>
-                        <span class="sprocket-left-2"></span>
-                        <span class="sprocket-left-3"></span>
-                        <a href="Hobby/einhorn-sammler/">Game</a>
                         <span class="sprocket-right-1"></span>
                         <span class="sprocket-right-2"></span>
                         <span class="sprocket-right-3"></span>
@@ -1029,13 +1533,6 @@
                     <li>
                         <span class="sprocket-top-1"></span>
                         <span class="sprocket-top-2"></span>
-                        <a href="Hobby/einhorn-sammler/">Game</a>
-                        <span class="sprocket-bottom-1"></span>
-                        <span class="sprocket-bottom-2"></span>
-                    </li>
-                    <li>
-                        <span class="sprocket-top-1"></span>
-                        <span class="sprocket-top-2"></span>
                         <a href="#publications">Publications</a>
                         <span class="sprocket-bottom-1"></span>
                         <span class="sprocket-bottom-2"></span>
@@ -1064,19 +1561,19 @@
             <section id="home" class="hero">
                 <div class="hero-content">
                     <div class="hero-name-container">
-                        <h1>GEORGE FEJER</h1>
+                        <h1>George Fejer</h1>
                         <img src="Academic/assets/images/crop_selfie.png" alt="George Fejer" class="hero-profile-photo">
                     </div>
-                    <h2>Neuropsychologist & Consciousness Researcher</h2>
-                    <p>Exploring the neurophenomenology of embodied states of consciousness through Virtual Reality, psychedelics research, and advanced neuroimaging. Coordinator of the ALIUS Research Group and PhD candidate at the University of Konstanz.</p>
+                    <h2>PhD Candidate in Cognitive Psychology</h2>
+                    <p>Researching embodiment, altered states of consciousness, virtual reality, and neurophenomenology at the University of Konstanz. Coordinator of the ALIUS Research Group.</p>
                 </div>
             </section>
 
             <!-- ABOUT -->
             <section id="about" class="section">
-                <h2 class="section-title">About Me</h2>
+                <h2 class="section-title">About</h2>
                 <p style="max-width: 800px; font-size: 1.1rem; line-height: 1.8;">
-                    I'm a neuropsychologist and PhD candidate at the University of Konstanz, where I investigate the 
+                    I am a neuropsychologist and PhD candidate at the University of Konstanz, where I investigate the 
                     neurophenomenology of embodied states of consciousness under the supervision of Prof. Bigna Lenggenhager. 
                     My research combines cutting-edge Virtual Reality technologies with electrophysiology and neuroimaging 
                     to understand altered states of consciousness, multisensory integration, and the effects of psychedelic substances. 
@@ -1088,7 +1585,7 @@
 
             <!-- PROJECTS -->
             <section id="projects" class="section">
-                <h2 class="section-title">Research Projects</h2>
+                <h2 class="section-title">Research</h2>
                 <div class="cards-grid">
                     <div class="card">
                         <h3>Neurophenomenology of Embodiment</h3>
@@ -1105,11 +1602,6 @@
                     <div class="card">
                         <h3>Multisensory Integration & VR</h3>
                         <p>Investigating audiovisual speech perception and temporal binding windows in altered states. Using Unity-based VR paradigms combined with EEG to explore how consciousness modulates sensory integration processes.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Unicorn Labyrinth Chase</h3>
-                        <p>A 2D forest maze game where a unicorn must get from A to B while a witch gives chase and random treats grant speed, shields, freezes, and bonus magic.</p>
-                        <a class="card-link" href="Hobby/einhorn-sammler/">Play Game</a>
                     </div>
                 </div>
             </section>
@@ -1148,7 +1640,7 @@
 
             <!-- EXPERTISE -->
             <section id="expertise" class="section">
-                <h2 class="section-title">Expertise & Experience</h2>
+                <h2 class="section-title">Expertise</h2>
                 <div class="skills-list">
                     <span class="skill-tag">Neuropsychology</span>
                     <span class="skill-tag">Virtual Reality (Unity)</span>
@@ -1200,7 +1692,7 @@
                     <strong>Berlin, Germany</strong>
                 </p>
                 <p style="font-size: 1.1rem; margin-bottom: 2rem; max-width: 600px;">
-                    Interested in collaboration, research inquiries, or speaking engagements? I'm always open to discussing 
+                    Interested in collaboration, research inquiries, or speaking engagements? I am open to discussing 
                     innovative approaches in consciousness research, VR applications, and psychedelics science.
                 </p>
                 <div class="contact-links">
@@ -1208,14 +1700,14 @@
                     <a href="https://scholar.google.com/citations?user=GPARoloAAAAJ&hl=en" class="contact-link">Google Scholar</a>
                     <a href="https://orcid.org/0000-0002-4904-5504" class="contact-link">ORCID</a>
                     <a href="https://www.linkedin.com/in/george-fejer1/" class="contact-link">LinkedIn</a>
-                    <a href="https://twitter.com/GeorgeFejer" class="contact-link">Fascist Twitter / X</a>
+                    <a href="https://twitter.com/GeorgeFejer" class="contact-link">X / Twitter</a>
                     <a href="https://www.aliusresearch.org/" class="contact-link">ALIUS</a>
                 </div>
             </section>
 
             <!-- FOOTER -->
             <footer class="footer">
-                <p>&copy; 2025 George Fejer, PhD Candidate | Neuropsychology & Consciousness Research 🧠</p>
+                <p>&copy; 2026 George Fejer, PhD Candidate | Neuropsychology & Consciousness Research</p>
             </footer>
         </div>
     </div>

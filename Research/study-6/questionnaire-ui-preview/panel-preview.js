@@ -1353,7 +1353,6 @@ function samStoryboardMarkup(assessment) {
 function vasStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page slider-section" aria-label="Rate the previous experience">
-      <p class="page-instruction">Touch both sliders, even if neutral</p>
       <div class="vas-slider-rows">
         ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">

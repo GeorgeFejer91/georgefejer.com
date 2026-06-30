@@ -2,7 +2,7 @@
 
 Static browser preview for a counterbalanced four-condition emotion-induction
 workflow. A one-time onboarding page is shown first, then each condition has an
-emotion-induction placeholder followed by the same three-page emotion assessment
+emotion-induction placeholder followed by the same four-page emotion assessment
 sequence.
 
 This folder is the browser-facing representation and formatting layer for the
@@ -32,7 +32,8 @@ same chronology as the app structure:
 - block instructions;
 - SAM pictographic assessment;
 - valence/arousal VAS assessment;
-- particle-movement emotion VAS assessment.
+- particle-movement emotion VAS assessment;
+- virtual hand embodiment agreement ratings.
 
 The full visual storyboard is available with `?previewControls=1`. It renders
 every participant-facing panel at the same `1080dp x 720dp` size with
@@ -100,17 +101,19 @@ Each condition block is represented as:
 2. `sam_pictographic`: retrospective 9-picture SAM valence, arousal, and dominance/control ratings.
 3. `affect_vas`: retrospective valence and arousal visual analog scale sliders.
 4. `ekman_intensity`: particle-movement emotion representation visual analog scale sliders.
+5. `hand_embodiment`: adapted single-item VEQ ownership and agency ratings for the virtual hands.
 
 The induction placeholder is not a participant response page. It marks where
 the native Quest app or caller-owned experiment runtime presents condition 1-4
 induction content before the assessment block.
 
 The participant assessment sequence repeats after every condition as one
-three-page assessment block:
+four-page assessment block:
 
 1. `sam_pictographic`: how the participant felt during the condition, using SAM valence, arousal, and dominance/control on the 9-picture manikin with compact left/right anchors (`Unpleasant` to `Pleasant`; `Inactive` to `Active`; `Not in control` to `In control`).
 2. `affect_vas`: how the participant felt during the condition, using independent 0-100 valence and arousal VAS sliders.
 3. `ekman_intensity`: to what degree the emotions were represented by the way the particles were moving, using independent 0-100 VAS sliders labeled with the emotion category names.
+4. `hand_embodiment`: two adapted VEQ single-item agreement ratings, one for virtual hand ownership and one for virtual hand agency, on the original 1-7 agreement scale.
 
 The SAM manikin rows do not preselect any picture. Each row is a forced
 response: the selected marker appears only after the participant indicates a
@@ -132,6 +135,11 @@ once whether the emotions were represented by the way the particles were
 moving; each slider is headed only by the emotion category name. More than one
 emotion can be rated when the movement feels like a mix. They remain endpoint-only
 (`Not represented` to `Clearly represented`) and do not show a center marker.
+The virtual hand embodiment page asks `It felt like the virtual hands were my
+own hands.` and `It felt like I was controlling the movements of the virtual
+hands.` in English, or the equivalent German wording when German is selected.
+Each item uses a required 1-7 Likert response with every numeric option labeled
+from `Strongly disagree` to `Strongly agree`.
 
 The participant assessment block records:
 
@@ -146,11 +154,15 @@ The participant assessment block records:
 - `ekman_intensity.happiness_raw_0_100`
 - `ekman_intensity.sadness_raw_0_100`
 - `ekman_intensity.surprise_raw_0_100`
+- `hand_embodiment.ownership_raw_1_7`
+- `hand_embodiment.agency_raw_1_7`
 
 The unified item library also exposes distinguishable flat variable names for
 these fields, such as `sam_valence_raw_1_9`,
 `affect_vas_valence_raw_0_100`, and
-`particle_ekman_happiness_raw_0_100`.
+`particle_ekman_happiness_raw_0_100`. The adapted VEQ hand items export as
+`hand_embodiment_ownership_raw_1_7` and
+`hand_embodiment_agency_raw_1_7`.
 
 The Ekman sliders are independent ratings, not a forced rank order, so mixed or
 ambiguous movement impressions can be represented.

@@ -7,14 +7,14 @@ Personal website for `www.georgefejer.com`.
 The repository keeps the public homepage as a single root `index.html`.
 Canonical assets and subprojects live under three top-level folders:
 
-- `Academic/` for public homepage assets such as images and SVGs.
+- `Academic/` for public homepage assets and standalone academic/print files.
 - `Hobby/` for miscellaneous fun projects such as `einhorn-sammler`.
 - `Research/` for research prototypes, study assets, and experiment previews.
 
 The Study 6 research project is grouped under `Research/study-6/`, including
-the Quest/SAM questionnaire preview, questionnaire packets, and VR
-Atemexperiment print files. The Study 6 neutral hand audio package is available
-under `projects/study6-neutral-hand-audio/`.
+shared questionnaire assets, the browser-based VR questionnaire preview,
+publication and preregistration support materials, participant-facing audio, and
+AI/operator handoff notes.
 
 The repository root is intentionally kept small for GitHub Pages:
 
@@ -24,6 +24,6 @@ The repository root is intentionally kept small for GitHub Pages:
   and repository behavior stable.
 
 Do not recreate old root content folders such as `assets/`, `einhorn-sammler/`,
-`quest-sam-questionnaire-preview/`, `audio-assets/`, `print/`, or `print2/`.
-New work should target the canonical `Academic/`, `Hobby/`, `Research/`, and
-`projects/` paths.
+`quest-sam-questionnaire-preview/`, `audio-assets/`, `print/`, `print2/`,
+`projects/`, or `research-projects/`. New work should target the canonical
+`Academic/`, `Hobby/`, and `Research/` paths.

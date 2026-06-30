@@ -151,7 +151,7 @@
       value: 1,
       label: {
         en: "Strongly disagree",
-        de: "Stimme \u00fcberhaupt nicht zu"
+        de: "Stimme überhaupt nicht zu"
       }
     },
     {
@@ -207,7 +207,7 @@
       field: "ownership_raw_1_7",
       question: {
         en: "It felt like the virtual hands were my own hands.",
-        de: "Es f\u00fchlte sich so an, als w\u00e4ren die virtuellen H\u00e4nde meine eigenen H\u00e4nde."
+        de: "Es fühlte sich so an, als wären die virtuellen Hände meine eigenen Hände."
       }
     },
     {
@@ -218,7 +218,7 @@
       field: "agency_raw_1_7",
       question: {
         en: "It felt like I was controlling the movements of the virtual hands.",
-        de: "Es f\u00fchlte sich so an, als w\u00fcrde ich die Bewegungen der virtuellen H\u00e4nde kontrollieren."
+        de: "Es fühlte sich so an, als würde ich die Bewegungen der virtuellen Hände kontrollieren."
       }
     }
   ].map((definition) => item({

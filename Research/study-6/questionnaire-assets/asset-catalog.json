@@ -1,0 +1,31 @@
+{
+  "catalog_id": "study6_questionnaire_assets",
+  "version": 1,
+  "asset_root": "questionnaire-assets",
+  "canonical_rule": "Questionnaire assets live in this folder. Asset modules expose a machine-readable catalog and use stable, zero-padded snake_case filenames where an ordered sequence exists.",
+  "modules": [
+    {
+      "module_id": "sam_pictographs",
+      "label": "SAM pictographic scales",
+      "path": "sam/",
+      "catalog_path": "sam/asset-catalog.json",
+      "canonical_file_pattern": "{scale_id}_{score_2digit}.svg",
+      "scales": [
+        "valence",
+        "arousal",
+        "dominance"
+      ]
+    },
+    {
+      "module_id": "participation_confirmation",
+      "label": "VR Atemexperiment participation confirmation",
+      "path": "participation-confirmation/",
+      "catalog_path": null,
+      "primary_assets": [
+        "participation-confirmation/vr_atemexperiment_teilnahmebestaetigung_a4.pdf",
+        "participation-confirmation/vr_atemexperiment_teilnahmebestaetigung_a4_page_1.jpg",
+        "participation-confirmation/vr_atemexperiment_teilnahmebestaetigung_a4_page_2.jpg"
+      ]
+    }
+  ]
+}
