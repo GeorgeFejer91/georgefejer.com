@@ -7,6 +7,9 @@ const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
 const AUDIO_ASSET_BASE_PATH = "../neutral-hand-audio/audio";
 const SAM_ASSET_BASE_PATH = "../questionnaire-assets/sam";
+const HAND_EMBODIMENT_PROMPT = "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?";
+const DOMINANCE_NEUTRAL_VALENCE_SCORE = 5;
+const DOMINANCE_SAM_SCALE_FACTORS = [0.75, 0.9, 1.05, 1.2, 1.4, 1.65, 1.95, 2.25, 2.55];
 const QUESTIONNAIRE_ITEM_LIBRARY = window.STUDY6_QUESTIONNAIRE_ITEM_LIBRARY;
 
 if (!QUESTIONNAIRE_ITEM_LIBRARY || !Array.isArray(QUESTIONNAIRE_ITEM_LIBRARY.items)) {
@@ -91,7 +94,7 @@ const ASSESSMENT_PAGES = [
   {
     id: "hand_embodiment",
     label: "4/4",
-    title: "Rate the virtual hands",
+    title: HAND_EMBODIMENT_PROMPT,
     summary: "Assessment block page 4 of 4",
     block_group: "Adapted VEQ virtual hand ownership and agency ratings"
   }
@@ -230,6 +233,23 @@ function twoDigitScore(score) {
 
 function samAssetPath(scaleId, score) {
   return `${SAM_ASSET_BASE_PATH}/${scaleId}/${scaleId}_${twoDigitScore(score)}.svg`;
+}
+
+function samManikinImagePath(scaleId, score) {
+  return scaleId === "dominance"
+    ? samAssetPath("valence", DOMINANCE_NEUTRAL_VALENCE_SCORE)
+    : samAssetPath(scaleId, score);
+}
+
+function dominanceManikinScale(score) {
+  return DOMINANCE_SAM_SCALE_FACTORS[score - 1] || 1;
+}
+
+function dominanceManikinStyleAttribute(scaleId, score) {
+  if (scaleId !== "dominance") {
+    return "";
+  }
+  return ` style="--sam-dominance-scale: ${dominanceManikinScale(score)}" data-sam-display="neutral-valence-scaled"`;
 }
 
 function defaultPolarValidation() {
@@ -1076,6 +1096,7 @@ function stackedLabelMarkup(label) {
 
 function appendStackedLabel(element, label) {
   element.replaceChildren();
+  element.setAttribute("aria-label", label);
   String(label)
     .split(/\s+/)
     .filter(Boolean)
@@ -1302,18 +1323,18 @@ function samStoryboardMarkup(assessment) {
               <strong class="sam-row-question">${escapeHtml(row.question)}</strong>
             </div>
             <div class="sam-scale-row">
-              <span class="sam-row-anchor sam-row-anchor-low">${stackedLabelMarkup(row.low)}</span>
+              <span class="sam-row-anchor sam-row-anchor-low" aria-label="${escapeHtml(row.low)}">${stackedLabelMarkup(row.low)}</span>
               <div class="sam-options">
                 ${(row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => {
                   return `
                     <button type="button" class="sam-choice" aria-label="${escapeHtml(`${row.question} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
-                      <img src="${samAssetPath(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}">
+                      <img src="${samManikinImagePath(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}"${dominanceManikinStyleAttribute(row.id, score)}>
                       <span>${score}</span>
                     </button>
                   `;
                 }).join("")}
               </div>
-              <span class="sam-row-anchor sam-row-anchor-high">${stackedLabelMarkup(row.high)}</span>
+              <span class="sam-row-anchor sam-row-anchor-high" aria-label="${escapeHtml(row.high)}">${stackedLabelMarkup(row.high)}</span>
             </div>
           </div>
         `).join("")}
@@ -1359,10 +1380,8 @@ function ekmanStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page ekman-section">
       <div class="section-title">
-        <h2>Rate each emotion</h2>
-        <span>Multiple emotions can apply</span>
+        <h2>Rate each emotion that applies; if the movement felt like a mix, rate more than one.</h2>
       </div>
-      <p class="page-instruction">If the movement felt like a mix, rate more than one emotion.</p>
       <div class="ekman-slider-grid">
         ${EKMAN_EMOTIONS.map((emotion) => {
           const field = ekmanFieldId(emotion.id);
@@ -1387,8 +1406,7 @@ function handEmbodimentStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page hand-embodiment-section">
       <div class="section-title">
-        <h2>Rate the virtual hands</h2>
-        <span>Choose one response per question</span>
+        <h2>${HAND_EMBODIMENT_PROMPT}</h2>
       </div>
       <div class="hand-likert-rows">
         ${HAND_EMBODIMENT_ITEMS.map((item) => `
@@ -1483,10 +1501,14 @@ function renderSamRows() {
       button.setAttribute("aria-pressed", String(assessment.sam[row.field] === score));
 
       const img = document.createElement("img");
-      img.src = samAssetPath(row.id, score);
+      img.src = samManikinImagePath(row.id, score);
       img.alt = "";
       img.draggable = false;
       img.dataset.samScale = row.id;
+      if (row.id === "dominance") {
+        img.dataset.samDisplay = "neutral-valence-scaled";
+        img.style.setProperty("--sam-dominance-scale", dominanceManikinScale(score));
+      }
 
       const number = document.createElement("span");
       number.textContent = String(score);
@@ -1921,9 +1943,9 @@ function expandedPreviewSequence(order = activeOrder()) {
 }
 
 function samSvgAssetPaths() {
-  return SAM_MANIKIN_ROWS.flatMap((row) =>
-    (row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => samAssetPath(row.id, score))
-  );
+  return [...new Set(SAM_MANIKIN_ROWS.flatMap((row) =>
+    (row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => samManikinImagePath(row.id, score))
+  ))];
 }
 
 function audioInstructionAssetPaths() {

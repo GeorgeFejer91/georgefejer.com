@@ -108,15 +108,15 @@ induction content before the assessment block.
 The participant assessment sequence repeats after every condition as one
 three-page assessment block:
 
-1. `sam_pictographic`: how the participant felt during the condition, using SAM valence, arousal, and dominance/control on the 9-picture manikin with left/right anchors (`Very negative` to `Very positive`; `Very inactive` to `Very active`; `Very controlled` to `Very in control`).
+1. `sam_pictographic`: how the participant felt during the condition, using SAM valence, arousal, and dominance/control on the 9-picture manikin with compact left/right anchors (`Unpleasant` to `Pleasant`; `Inactive` to `Active`; `Not in control` to `In control`).
 2. `affect_vas`: how the participant felt during the condition, using independent 0-100 valence and arousal VAS sliders.
 3. `ekman_intensity`: to what degree the emotions were represented by the way the particles were moving, using independent 0-100 VAS sliders labeled with the emotion category names.
 
 The SAM manikin rows do not preselect any picture. Each row is a forced
 response: the selected marker appears only after the participant indicates a
-position on that 1-9 picture scale. The valence and arousal SAM rows use the
-same direct retrospective questions as the VAS page; the dominance/control row asks how
-controlled or in control the participant felt during the last session.
+position on that 1-9 picture scale. The row labels ask `How pleasant did this
+experience feel?`, `How active did you feel during this experience?`, and `How
+much control did you feel during your experience?`.
 
 The valence/arousal VAS sliders initialize at 50 and visibly mark the unlabeled
 center position. Each VAS row presents a direct participant question above the
@@ -176,6 +176,8 @@ Canonical ordered SAM files use zero-padded snake_case names:
 `arousal_01.svg` through `arousal_09.svg`, and
 `dominance_01.svg` through `dominance_09.svg`.
 
-The dominance/control SAM row uses custom vector redraws based on the original
-five-anchor SAM dominance figure, with interpolated in-between frames for the
-1-9 pictographic sequence.
+The browser preview renders the dominance/control row with the neutral
+`valence_05.svg` manikin scaled progressively from left to right, following the
+same neutral-manikin size cue used by `konbraphat51/SAM.vue`. The copied
+`dominance_01.svg` through `dominance_09.svg` assets remain in the shared
+catalog for reference and future native/runtime use.

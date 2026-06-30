@@ -19,10 +19,10 @@
       variable_name: "sam_valence_raw_1_9",
       label: "Retrospective SAM valence",
       scale_id: "valence",
-      axis_label: "Negative - positive",
-      question: "How positive or negative did you feel during the last session?",
-      low: "Very negative",
-      high: "Very positive",
+      axis_label: "Unpleasant - Pleasant",
+      question: "How pleasant did this experience feel?",
+      low: "Unpleasant",
+      high: "Pleasant",
       field: "valence_raw_1_9"
     },
     {
@@ -30,10 +30,10 @@
       variable_name: "sam_arousal_raw_1_9",
       label: "Retrospective SAM arousal",
       scale_id: "arousal",
-      axis_label: "Inactive - active",
-      question: "How active or inactive did you feel during the last session?",
-      low: "Very inactive",
-      high: "Very active",
+      axis_label: "Inactive - Active",
+      question: "How active did you feel during this experience?",
+      low: "Inactive",
+      high: "Active",
       field: "arousal_raw_1_9"
     },
     {
@@ -41,10 +41,10 @@
       variable_name: "sam_dominance_raw_1_9",
       label: "Retrospective SAM dominance/control",
       scale_id: "dominance",
-      axis_label: "Controlled - in control",
-      question: "How controlled or in control did you feel during the last session?",
-      low: "Very controlled",
-      high: "Very in control",
+      axis_label: "Not in control - In control",
+      question: "How much control did you feel during your experience?",
+      low: "Not in control",
+      high: "In control",
       field: "dominance_raw_1_9"
     }
   ].map((definition) => item({
@@ -62,8 +62,8 @@
       { value: 1, label: definition.low },
       { value: 9, label: definition.high }
     ],
-    asset_catalog_id: `sam.${definition.scale_id}`,
-    asset_name_pattern: `${definition.scale_id}_{score_2digit}`,
+    asset_catalog_id: definition.scale_id === "dominance" ? "sam.valence.neutral_scaled" : `sam.${definition.scale_id}`,
+    asset_name_pattern: definition.scale_id === "dominance" ? "valence_05_scaled_by_score" : `${definition.scale_id}_{score_2digit}`,
     editable: "editable",
     validation: "required integer 1..9",
     result_json_field: `answers.emotion_assessment.sam.${definition.field}`

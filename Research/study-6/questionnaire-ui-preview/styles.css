@@ -487,7 +487,7 @@ h2 {
 .sam-section {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  row-gap: 6px;
+  row-gap: 4px;
 }
 
 .sam-section .section-title {
@@ -495,7 +495,7 @@ h2 {
 }
 
 .sam-section .page-instruction {
-  margin-bottom: 2px;
+  margin-bottom: 0;
   font-size: 13px;
 }
 
@@ -538,7 +538,7 @@ h2 {
 
 .sam-scale-row {
   display: grid;
-  grid-template-columns: minmax(78px, 92px) minmax(0, 1fr) minmax(78px, 92px);
+  grid-template-columns: minmax(58px, 72px) minmax(0, 1fr) minmax(58px, 72px);
   gap: 6px;
   align-items: stretch;
   min-height: 0;
@@ -546,20 +546,23 @@ h2 {
 
 .sam-row-anchor {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   min-width: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
-  line-height: 1.18;
+  line-height: 1.04;
 }
 
 .sam-row-anchor-low {
-  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .sam-row-anchor-high {
-  justify-content: flex-end;
+  align-items: flex-end;
   text-align: right;
 }
 
@@ -571,9 +574,9 @@ h2 {
 }
 
 .sam-choice {
-  height: 88px;
+  height: 116px;
   min-width: 0;
-  padding: 4px 2px 2px;
+  padding: 6px 3px 3px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -583,18 +586,27 @@ h2 {
   align-items: center;
   justify-items: center;
   cursor: pointer;
+  overflow: visible;
 }
 
 .sam-choice img {
   display: block;
-  max-width: 46px;
-  max-height: 62px;
+  max-width: 68px;
+  max-height: 88px;
   width: auto;
   height: auto;
 }
 
+.sam-choice img[data-sam-display="neutral-valence-scaled"] {
+  max-width: none;
+  max-height: none;
+  width: calc(46px * var(--sam-dominance-scale, 1));
+  position: relative;
+  z-index: 1;
+}
+
 .sam-choice span {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
