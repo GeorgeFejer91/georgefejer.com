@@ -74,7 +74,7 @@ const ASSESSMENT_PAGES = [
   {
     id: "sam_pictographic",
     label: "1/4",
-    title: "How did the previous experience feel?",
+    title: "How did you feel while during the previous tasks?",
     summary: "Assessment block page 1 of 4",
     block_group: "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
   },
@@ -1321,11 +1321,8 @@ function inductionStoryboardMarkup(item) {
 
 function samStoryboardMarkup(assessment) {
   return `
-    <section class="assessment-page sam-section">
-      <div class="section-title">
-        <h2>Choose one picture for each row</h2>
-      </div>
-      <p class="page-instruction">Select the pictures that best match how the previous experience felt.</p>
+    <section class="assessment-page sam-section" aria-label="How did you feel while during the previous tasks?">
+      <p class="page-instruction">For each row, choose the picture that best matches how you felt during the previous session.</p>
       <div class="sam-rows">
         ${SAM_MANIKIN_ROWS.map((row) => `
           <div class="sam-row">
