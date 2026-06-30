@@ -87,7 +87,7 @@
       variable_name: "affect_vas_arousal_raw_0_100",
       label: "Retrospective arousal VAS",
       axis_label: "Low Energy - High Energy",
-      question: "How active did you feel in the previous experience?",
+      question: "How activated did you feel in the previous experience?",
       touchLabel: "arousal",
       low: "Low Energy",
       high: "High Energy",
