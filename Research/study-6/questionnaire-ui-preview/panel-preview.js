@@ -7,6 +7,7 @@ const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
 const AUDIO_ASSET_BASE_PATH = "../neutral-hand-audio/audio";
 const SAM_ASSET_BASE_PATH = "../questionnaire-assets/sam";
+const SAM_ASSET_VERSION = "20260630-valence05-armpits";
 const HAND_EMBODIMENT_PROMPT = "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?";
 const DOMINANCE_NEUTRAL_VALENCE_SCORE = 5;
 const DOMINANCE_SAM_SCALE_FACTORS = [0.75, 0.9, 1.05, 1.2, 1.4, 1.65, 1.95, 2.25, 2.55];
@@ -235,10 +236,20 @@ function samAssetPath(scaleId, score) {
   return `${SAM_ASSET_BASE_PATH}/${scaleId}/${scaleId}_${twoDigitScore(score)}.svg`;
 }
 
+function samAssetUrl(scaleId, score) {
+  return `${samAssetPath(scaleId, score)}?v=${SAM_ASSET_VERSION}`;
+}
+
 function samManikinImagePath(scaleId, score) {
   return scaleId === "dominance"
     ? samAssetPath("valence", DOMINANCE_NEUTRAL_VALENCE_SCORE)
     : samAssetPath(scaleId, score);
+}
+
+function samManikinImageUrl(scaleId, score) {
+  return scaleId === "dominance"
+    ? samAssetUrl("valence", DOMINANCE_NEUTRAL_VALENCE_SCORE)
+    : samAssetUrl(scaleId, score);
 }
 
 function dominanceManikinScale(score) {
@@ -1327,7 +1338,7 @@ function samStoryboardMarkup(assessment) {
                 ${(row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => {
                   return `
                     <button type="button" class="sam-choice" aria-label="${escapeHtml(`${row.question} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
-                      <img src="${samManikinImagePath(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}"${dominanceManikinStyleAttribute(row.id, score)}>
+                      <img src="${samManikinImageUrl(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}"${dominanceManikinStyleAttribute(row.id, score)}>
                       <span>${score}</span>
                     </button>
                   `;
@@ -1500,7 +1511,7 @@ function renderSamRows() {
       button.setAttribute("aria-pressed", String(assessment.sam[row.field] === score));
 
       const img = document.createElement("img");
-      img.src = samManikinImagePath(row.id, score);
+      img.src = samManikinImageUrl(row.id, score);
       img.alt = "";
       img.draggable = false;
       img.dataset.samScale = row.id;
