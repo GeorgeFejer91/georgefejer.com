@@ -30,10 +30,10 @@
       variable_name: "sam_arousal_raw_1_9",
       label: "Retrospective SAM arousal",
       scale_id: "arousal",
-      axis_label: "Inactive - Active",
-      question: "How active did you feel during this experience?",
-      low: "Inactive",
-      high: "Active",
+      axis_label: "Low Energy - High Energy",
+      question: "How activated did you feel?",
+      low: "Low Energy",
+      high: "High Energy",
       field: "arousal_raw_1_9"
     },
     {
