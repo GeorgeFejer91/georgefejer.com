@@ -1313,7 +1313,6 @@ function samStoryboardMarkup(assessment) {
     <section class="assessment-page sam-section">
       <div class="section-title">
         <h2>Choose one picture for each row</h2>
-        <span>Think back to the previous experience</span>
       </div>
       <p class="page-instruction">Select the pictures that best match how the previous experience felt.</p>
       <div class="sam-rows">
@@ -1350,7 +1349,7 @@ function vasStoryboardMarkup(assessment) {
         <h2>Rate the previous experience</h2>
         <span>Touch both sliders, even if neutral</span>
       </div>
-      <p class="page-instruction">Think back to the previous experience, then rate how pleasant and active it felt.</p>
+      <p class="page-instruction">Rate how pleasant and active it felt.</p>
       <div class="vas-slider-rows">
         ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">
