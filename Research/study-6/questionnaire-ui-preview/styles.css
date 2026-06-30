@@ -152,7 +152,7 @@ h2 {
   padding-top: 14px;
 }
 
-.onboarding-section {
+.demographics-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -227,11 +227,11 @@ h2 {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.onboarding-title {
+.demographics-title {
   margin-bottom: 0;
 }
 
-.onboarding-grid {
+.demographics-grid {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
@@ -239,7 +239,7 @@ h2 {
   gap: 18px;
 }
 
-.onboarding-column {
+.demographics-column {
   min-height: 0;
   display: grid;
   align-content: start;
@@ -644,7 +644,7 @@ canvas:focus-visible {
 }
 
 .slider-section,
-.ekman-section {
+.emotion-representation-section {
   min-height: 0;
 }
 
@@ -873,29 +873,29 @@ input[type="range"] {
   font-size: 15px;
 }
 
-.ekman-slider-grid {
+.emotion-representation-slider-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 16px;
 }
 
-.ekman-slider-row {
+.emotion-representation-slider-row {
   min-height: 102px;
   padding: 14px 16px;
 }
 
-.ekman-slider-row header {
+.emotion-representation-slider-row header {
   position: relative;
   display: block;
   text-align: center;
 }
 
-.ekman-slider-row strong {
+.emotion-representation-slider-row strong {
   display: block;
   padding: 0 42px;
 }
 
-.ekman-slider-row .slider-value {
+.emotion-representation-slider-row .slider-value {
   position: absolute;
   right: 0;
   top: 0;

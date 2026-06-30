@@ -1,5 +1,5 @@
 {
-  "panel_id": "emotion_induction_sam_preview",
+  "panel_id": "study6_questionnaire_panel_preview",
   "schema_version": 8,
   "quest_panel_frame": {
     "width_dp": 1080,
@@ -15,28 +15,28 @@
   },
   "native_contract_authority": {
     "protocol_version": "quest.questionnaire.v1",
-    "schema_id": "emotion-induction-sam-v8",
-    "open_stage": "onboarding",
+    "schema_id": "study6-questionnaire-v8",
+    "open_stage": "demographics",
     "screen_sequence": [
-      "onboarding",
-      "emotion_induction_placeholder",
-      "sam_pictographic",
+      "demographics",
+      "vr_task_instructions",
+      "self_assessment_manikin",
       "affect_vas",
-      "ekman_intensity",
+      "emotion_representation_vas",
       "hand_embodiment"
     ],
-    "onboarding_required_once": true,
+    "demographics_required_once": true,
     "condition_block_sequence": [
-      "emotion_induction_placeholder",
-      "sam_pictographic",
+      "vr_task_instructions",
+      "self_assessment_manikin",
       "affect_vas",
-      "ekman_intensity",
+      "emotion_representation_vas",
       "hand_embodiment"
     ],
     "condition_assessment_sequence": [
-      "sam_pictographic",
+      "self_assessment_manikin",
       "affect_vas",
-      "ekman_intensity",
+      "emotion_representation_vas",
       "hand_embodiment"
     ],
     "repeated_after_each_condition": true,
@@ -50,28 +50,28 @@
     "items": [
       {
         "item_library_version": 1,
-        "id": "onboarding.polar_validation.ready",
-        "variable_name": "onboarding_polar_validation_ready",
+        "id": "demographics.polar_validation.ready",
+        "variable_name": "demographics_polar_validation_ready",
         "label": "Polar H10 ECG validation",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "polar_validation",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "polar_validation.ready",
         "type": "readonly-status-strip",
         "default": true,
         "editable": "native-owned",
         "validation": "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
-        "native_state_field": "questionnaire_state.onboarding.polar_validation.ready",
-        "result_json_field": "answers.onboarding.polar_validation"
+        "native_state_field": "questionnaire_state.demographics.polar_validation.ready",
+        "result_json_field": "answers.demographics.polar_validation"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.language_code",
-        "variable_name": "onboarding_language_code",
+        "id": "demographics.language_code",
+        "variable_name": "demographics_language_code",
         "label": "Language",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "language",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "language_code",
         "type": "segmented",
         "default": "en",
@@ -81,61 +81,61 @@
         ],
         "editable": "editable",
         "validation": "required; must be en or de",
-        "result_json_field": "answers.onboarding.language_code"
+        "result_json_field": "answers.demographics.language_code"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.participant_first_name",
-        "variable_name": "onboarding_participant_first_name",
+        "id": "demographics.participant_first_name",
+        "variable_name": "demographics_participant_first_name",
         "label": "First name",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "participant_first_name",
         "type": "text",
         "default": "",
         "editable": "editable",
         "validation": "required non-empty text",
-        "result_json_field": "answers.onboarding.participant_first_name"
+        "result_json_field": "answers.demographics.participant_first_name"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.participant_last_name",
-        "variable_name": "onboarding_participant_last_name",
+        "id": "demographics.participant_last_name",
+        "variable_name": "demographics_participant_last_name",
         "label": "Last name",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "participant_last_name",
         "type": "text",
         "default": "",
         "editable": "editable",
         "validation": "required non-empty text",
-        "result_json_field": "answers.onboarding.participant_last_name"
+        "result_json_field": "answers.demographics.participant_last_name"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.participant_name",
-        "variable_name": "onboarding_participant_name",
+        "id": "demographics.participant_name",
+        "variable_name": "demographics_participant_name",
         "label": "Full name",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "participant_name",
         "type": "readonly-derived",
         "default": "",
         "editable": "derived",
         "validation": "derived from first and last name",
-        "result_json_field": "answers.onboarding.participant_name"
+        "result_json_field": "answers.demographics.participant_name"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.age_years",
-        "variable_name": "onboarding_age_years",
+        "id": "demographics.age_years",
+        "variable_name": "demographics_age_years",
         "label": "Age",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "age_years",
         "type": "number",
         "default": null,
@@ -144,16 +144,16 @@
         "step": 1,
         "editable": "editable",
         "validation": "required integer 0..120",
-        "result_json_field": "answers.onboarding.age_years"
+        "result_json_field": "answers.demographics.age_years"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.handedness",
-        "variable_name": "onboarding_handedness",
+        "id": "demographics.handedness",
+        "variable_name": "demographics_handedness",
         "label": "Handedness",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "handedness",
         "type": "segmented",
         "default": "",
@@ -165,16 +165,16 @@
         ],
         "editable": "editable",
         "validation": "required; must be one handedness option id",
-        "result_json_field": "answers.onboarding.handedness"
+        "result_json_field": "answers.demographics.handedness"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.gender",
-        "variable_name": "onboarding_gender",
+        "id": "demographics.gender",
+        "variable_name": "demographics_gender",
         "label": "Gender",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "demographics",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "gender",
         "type": "segmented",
         "default": "",
@@ -186,46 +186,46 @@
         ],
         "editable": "editable",
         "validation": "required; must be one gender option id",
-        "result_json_field": "answers.onboarding.gender"
+        "result_json_field": "answers.demographics.gender"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.consent_confirmed",
-        "variable_name": "onboarding_consent_confirmed",
+        "id": "demographics.consent_confirmed",
+        "variable_name": "demographics_consent_confirmed",
         "label": "Study consent",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "consent",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "consent_confirmed",
         "type": "checkbox",
         "default": false,
         "editable": "editable",
         "validation": "required; must be checked",
-        "result_json_field": "answers.onboarding.consent_confirmed"
+        "result_json_field": "answers.demographics.consent_confirmed"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.consent_text",
-        "variable_name": "onboarding_consent_text",
+        "id": "demographics.consent_text",
+        "variable_name": "demographics_consent_text",
         "label": "Consent text",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "consent",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "consent_text",
         "type": "readonly-text",
         "default": "I consent to participate in this study.",
         "editable": "fixed",
         "validation": "fixed consent wording shown to participant",
-        "result_json_field": "answers.onboarding.consent_text"
+        "result_json_field": "answers.demographics.consent_text"
       },
       {
         "item_library_version": 1,
-        "id": "onboarding.signature",
-        "variable_name": "onboarding_signature",
+        "id": "demographics.signature",
+        "variable_name": "demographics_signature",
         "label": "Consent signature",
-        "page": "onboarding",
+        "page": "demographics",
         "group": "consent",
-        "response_namespace": "onboarding",
+        "response_namespace": "demographics",
         "field": "signature",
         "type": "signature-pad",
         "default": {
@@ -234,7 +234,7 @@
         },
         "editable": "editable",
         "validation": "required signature stroke data",
-        "result_json_field": "answers.onboarding.signature"
+        "result_json_field": "answers.demographics.signature"
       },
       {
         "item_library_version": 1,
@@ -277,13 +277,13 @@
         "item_library_version": 1,
         "id": "condition.induction_placeholder",
         "variable_name": "condition_induction_placeholder",
-        "label": "Emotion induction placeholder",
-        "page": "emotion_induction_placeholder",
+        "label": "VR task instructions",
+        "page": "vr_task_instructions",
         "group": "condition_induction",
         "response_namespace": "condition_runtime",
         "field": "induction_placeholder",
         "type": "placeholder-stage",
-        "default": "condition-specific native induction",
+        "default": "condition-specific native VR task instructions",
         "editable": "caller-owned",
         "validation": "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
         "native_state_field": "questionnaire_state.condition_induction_stage"
@@ -297,11 +297,11 @@
         "response_namespace": "runtime_metadata",
         "field": "active_assessment_page_id",
         "type": "runtime-navigation-state",
-        "default": "sam_pictographic",
+        "default": "self_assessment_manikin",
         "options": [
-          "sam_pictographic",
+          "self_assessment_manikin",
           "affect_vas",
-          "ekman_intensity",
+          "emotion_representation_vas",
           "hand_embodiment"
         ],
         "editable": "runtime-owned",
@@ -312,14 +312,14 @@
         "item_library_version": 1,
         "id": "sam.valence_raw_1_9",
         "variable_name": "sam_valence_raw_1_9",
-        "label": "Retrospective SAM valence",
+        "label": "Retrospective Self-Assessment Manikin pictograph valence",
         "scale_id": "valence",
         "axis_label": "Unpleasant - Pleasant",
         "question": "How pleasant did this experience feel?",
         "low": "Unpleasant",
         "high": "Pleasant",
         "field": "valence_raw_1_9",
-        "page": "sam_pictographic",
+        "page": "self_assessment_manikin",
         "group": "sam",
         "response_namespace": "sam",
         "type": "pictographic-choice",
@@ -358,14 +358,14 @@
         "item_library_version": 1,
         "id": "sam.arousal_raw_1_9",
         "variable_name": "sam_arousal_raw_1_9",
-        "label": "Retrospective SAM arousal",
+        "label": "Retrospective Self-Assessment Manikin pictograph arousal",
         "scale_id": "arousal",
         "axis_label": "Low Energy - High Energy",
         "question": "How activated did you feel?",
         "low": "Low Energy",
         "high": "High Energy",
         "field": "arousal_raw_1_9",
-        "page": "sam_pictographic",
+        "page": "self_assessment_manikin",
         "group": "sam",
         "response_namespace": "sam",
         "type": "pictographic-choice",
@@ -404,14 +404,14 @@
         "item_library_version": 1,
         "id": "sam.dominance_raw_1_9",
         "variable_name": "sam_dominance_raw_1_9",
-        "label": "Retrospective SAM dominance/control",
+        "label": "Retrospective Self-Assessment Manikin pictograph dominance/control",
         "scale_id": "dominance",
         "axis_label": "Not in control - In control",
         "question": "How much control did you feel during your experience?",
         "low": "Not in control",
         "high": "In control",
         "field": "dominance_raw_1_9",
-        "page": "sam_pictographic",
+        "page": "self_assessment_manikin",
         "group": "sam",
         "response_namespace": "sam",
         "type": "pictographic-choice",
@@ -516,13 +516,13 @@
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.anger_raw_0_100",
-        "variable_name": "particle_ekman_anger_raw_0_100",
+        "id": "emotion_representation_vas.anger_raw_0_100",
+        "variable_name": "emotion_representation_vas_anger_raw_0_100",
         "label": "Anger",
         "emotion_id": "anger",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "anger_raw_0_100",
         "type": "range",
         "default": 0,
@@ -541,17 +541,17 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.anger_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.anger_raw_0_100"
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.disgust_raw_0_100",
-        "variable_name": "particle_ekman_disgust_raw_0_100",
+        "id": "emotion_representation_vas.disgust_raw_0_100",
+        "variable_name": "emotion_representation_vas_disgust_raw_0_100",
         "label": "Disgust",
         "emotion_id": "disgust",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "disgust_raw_0_100",
         "type": "range",
         "default": 0,
@@ -570,17 +570,17 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.disgust_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.disgust_raw_0_100"
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.fear_raw_0_100",
-        "variable_name": "particle_ekman_fear_raw_0_100",
+        "id": "emotion_representation_vas.fear_raw_0_100",
+        "variable_name": "emotion_representation_vas_fear_raw_0_100",
         "label": "Fear",
         "emotion_id": "fear",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "fear_raw_0_100",
         "type": "range",
         "default": 0,
@@ -599,17 +599,17 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.fear_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.fear_raw_0_100"
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.happiness_raw_0_100",
-        "variable_name": "particle_ekman_happiness_raw_0_100",
+        "id": "emotion_representation_vas.happiness_raw_0_100",
+        "variable_name": "emotion_representation_vas_happiness_raw_0_100",
         "label": "Happiness",
         "emotion_id": "happiness",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "happiness_raw_0_100",
         "type": "range",
         "default": 0,
@@ -628,17 +628,17 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.happiness_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.happiness_raw_0_100"
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.sadness_raw_0_100",
-        "variable_name": "particle_ekman_sadness_raw_0_100",
+        "id": "emotion_representation_vas.sadness_raw_0_100",
+        "variable_name": "emotion_representation_vas_sadness_raw_0_100",
         "label": "Sadness",
         "emotion_id": "sadness",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "sadness_raw_0_100",
         "type": "range",
         "default": 0,
@@ -657,17 +657,17 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.sadness_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.sadness_raw_0_100"
       },
       {
         "item_library_version": 1,
-        "id": "ekman_intensity.surprise_raw_0_100",
-        "variable_name": "particle_ekman_surprise_raw_0_100",
+        "id": "emotion_representation_vas.surprise_raw_0_100",
+        "variable_name": "emotion_representation_vas_surprise_raw_0_100",
         "label": "Surprise",
         "emotion_id": "surprise",
-        "page": "ekman_intensity",
-        "group": "ekman_intensity",
-        "response_namespace": "ekman_intensity",
+        "page": "emotion_representation_vas",
+        "group": "emotion_representation_vas",
+        "response_namespace": "emotion_representation_vas",
         "field": "surprise_raw_0_100",
         "type": "range",
         "default": 0,
@@ -686,7 +686,7 @@
         ],
         "editable": "editable",
         "validation": "required integer 0..100",
-        "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+        "result_json_field": "answers.emotion_assessment.emotion_representation_vas.surprise_raw_0_100"
       },
       {
         "item_library_version": 1,
@@ -891,45 +891,45 @@
     ],
     "pages": [
       {
-        "id": "onboarding",
-        "title": "Participant onboarding",
+        "id": "demographics",
+        "title": "Demographics",
         "groups": [
           {
             "id": "polar_validation",
             "fields": [
-              "onboarding.polar_validation.ready"
+              "demographics.polar_validation.ready"
             ]
           },
           {
             "id": "language",
             "fields": [
-              "onboarding.language_code"
+              "demographics.language_code"
             ]
           },
           {
             "id": "demographics",
             "fields": [
-              "onboarding.participant_first_name",
-              "onboarding.participant_last_name",
-              "onboarding.participant_name",
-              "onboarding.age_years",
-              "onboarding.handedness",
-              "onboarding.gender"
+              "demographics.participant_first_name",
+              "demographics.participant_last_name",
+              "demographics.participant_name",
+              "demographics.age_years",
+              "demographics.handedness",
+              "demographics.gender"
             ]
           },
           {
             "id": "consent",
             "fields": [
-              "onboarding.consent_confirmed",
-              "onboarding.consent_text",
-              "onboarding.signature"
+              "demographics.consent_confirmed",
+              "demographics.consent_text",
+              "demographics.signature"
             ]
           }
         ]
       },
       {
-        "id": "emotion_induction_placeholder",
-        "title": "Emotion induction placeholder",
+        "id": "vr_task_instructions",
+        "title": "VR task instructions",
         "groups": [
           {
             "id": "condition_induction",
@@ -940,8 +940,8 @@
         ]
       },
       {
-        "id": "sam_pictographic",
-        "title": "SAM: feelings during the condition",
+        "id": "self_assessment_manikin",
+        "title": "Self-Assessment Manikin pictographs",
         "groups": [
           {
             "id": "sam",
@@ -967,18 +967,18 @@
         ]
       },
       {
-        "id": "ekman_intensity",
-        "title": "Particle movement emotion VAS",
+        "id": "emotion_representation_vas",
+        "title": "Particle emotion representation VAS",
         "groups": [
           {
-            "id": "ekman_intensity",
+            "id": "emotion_representation_vas",
             "fields": [
-              "ekman_intensity.anger_raw_0_100",
-              "ekman_intensity.disgust_raw_0_100",
-              "ekman_intensity.fear_raw_0_100",
-              "ekman_intensity.happiness_raw_0_100",
-              "ekman_intensity.sadness_raw_0_100",
-              "ekman_intensity.surprise_raw_0_100"
+              "emotion_representation_vas.anger_raw_0_100",
+              "emotion_representation_vas.disgust_raw_0_100",
+              "emotion_representation_vas.fear_raw_0_100",
+              "emotion_representation_vas.happiness_raw_0_100",
+              "emotion_representation_vas.sadness_raw_0_100",
+              "emotion_representation_vas.surprise_raw_0_100"
             ]
           }
         ]
@@ -1001,28 +1001,28 @@
   "control_model": [
     {
       "item_library_version": 1,
-      "id": "onboarding.polar_validation.ready",
-      "variable_name": "onboarding_polar_validation_ready",
+      "id": "demographics.polar_validation.ready",
+      "variable_name": "demographics_polar_validation_ready",
       "label": "Polar H10 ECG validation",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "polar_validation",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "polar_validation.ready",
       "type": "readonly-status-strip",
       "default": true,
       "editable": "native-owned",
       "validation": "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
-      "native_state_field": "questionnaire_state.onboarding.polar_validation.ready",
-      "result_json_field": "answers.onboarding.polar_validation"
+      "native_state_field": "questionnaire_state.demographics.polar_validation.ready",
+      "result_json_field": "answers.demographics.polar_validation"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.language_code",
-      "variable_name": "onboarding_language_code",
+      "id": "demographics.language_code",
+      "variable_name": "demographics_language_code",
       "label": "Language",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "language",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "language_code",
       "type": "segmented",
       "default": "en",
@@ -1032,61 +1032,61 @@
       ],
       "editable": "editable",
       "validation": "required; must be en or de",
-      "result_json_field": "answers.onboarding.language_code"
+      "result_json_field": "answers.demographics.language_code"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.participant_first_name",
-      "variable_name": "onboarding_participant_first_name",
+      "id": "demographics.participant_first_name",
+      "variable_name": "demographics_participant_first_name",
       "label": "First name",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "participant_first_name",
       "type": "text",
       "default": "",
       "editable": "editable",
       "validation": "required non-empty text",
-      "result_json_field": "answers.onboarding.participant_first_name"
+      "result_json_field": "answers.demographics.participant_first_name"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.participant_last_name",
-      "variable_name": "onboarding_participant_last_name",
+      "id": "demographics.participant_last_name",
+      "variable_name": "demographics_participant_last_name",
       "label": "Last name",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "participant_last_name",
       "type": "text",
       "default": "",
       "editable": "editable",
       "validation": "required non-empty text",
-      "result_json_field": "answers.onboarding.participant_last_name"
+      "result_json_field": "answers.demographics.participant_last_name"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.participant_name",
-      "variable_name": "onboarding_participant_name",
+      "id": "demographics.participant_name",
+      "variable_name": "demographics_participant_name",
       "label": "Full name",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "participant_name",
       "type": "readonly-derived",
       "default": "",
       "editable": "derived",
       "validation": "derived from first and last name",
-      "result_json_field": "answers.onboarding.participant_name"
+      "result_json_field": "answers.demographics.participant_name"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.age_years",
-      "variable_name": "onboarding_age_years",
+      "id": "demographics.age_years",
+      "variable_name": "demographics_age_years",
       "label": "Age",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "age_years",
       "type": "number",
       "default": null,
@@ -1095,16 +1095,16 @@
       "step": 1,
       "editable": "editable",
       "validation": "required integer 0..120",
-      "result_json_field": "answers.onboarding.age_years"
+      "result_json_field": "answers.demographics.age_years"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.handedness",
-      "variable_name": "onboarding_handedness",
+      "id": "demographics.handedness",
+      "variable_name": "demographics_handedness",
       "label": "Handedness",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "handedness",
       "type": "segmented",
       "default": "",
@@ -1116,16 +1116,16 @@
       ],
       "editable": "editable",
       "validation": "required; must be one handedness option id",
-      "result_json_field": "answers.onboarding.handedness"
+      "result_json_field": "answers.demographics.handedness"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.gender",
-      "variable_name": "onboarding_gender",
+      "id": "demographics.gender",
+      "variable_name": "demographics_gender",
       "label": "Gender",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "demographics",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "gender",
       "type": "segmented",
       "default": "",
@@ -1137,46 +1137,46 @@
       ],
       "editable": "editable",
       "validation": "required; must be one gender option id",
-      "result_json_field": "answers.onboarding.gender"
+      "result_json_field": "answers.demographics.gender"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.consent_confirmed",
-      "variable_name": "onboarding_consent_confirmed",
+      "id": "demographics.consent_confirmed",
+      "variable_name": "demographics_consent_confirmed",
       "label": "Study consent",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "consent",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "consent_confirmed",
       "type": "checkbox",
       "default": false,
       "editable": "editable",
       "validation": "required; must be checked",
-      "result_json_field": "answers.onboarding.consent_confirmed"
+      "result_json_field": "answers.demographics.consent_confirmed"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.consent_text",
-      "variable_name": "onboarding_consent_text",
+      "id": "demographics.consent_text",
+      "variable_name": "demographics_consent_text",
       "label": "Consent text",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "consent",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "consent_text",
       "type": "readonly-text",
       "default": "I consent to participate in this study.",
       "editable": "fixed",
       "validation": "fixed consent wording shown to participant",
-      "result_json_field": "answers.onboarding.consent_text"
+      "result_json_field": "answers.demographics.consent_text"
     },
     {
       "item_library_version": 1,
-      "id": "onboarding.signature",
-      "variable_name": "onboarding_signature",
+      "id": "demographics.signature",
+      "variable_name": "demographics_signature",
       "label": "Consent signature",
-      "page": "onboarding",
+      "page": "demographics",
       "group": "consent",
-      "response_namespace": "onboarding",
+      "response_namespace": "demographics",
       "field": "signature",
       "type": "signature-pad",
       "default": {
@@ -1185,7 +1185,7 @@
       },
       "editable": "editable",
       "validation": "required signature stroke data",
-      "result_json_field": "answers.onboarding.signature"
+      "result_json_field": "answers.demographics.signature"
     },
     {
       "item_library_version": 1,
@@ -1228,13 +1228,13 @@
       "item_library_version": 1,
       "id": "condition.induction_placeholder",
       "variable_name": "condition_induction_placeholder",
-      "label": "Emotion induction placeholder",
-      "page": "emotion_induction_placeholder",
+      "label": "VR task instructions",
+      "page": "vr_task_instructions",
       "group": "condition_induction",
       "response_namespace": "condition_runtime",
       "field": "induction_placeholder",
       "type": "placeholder-stage",
-      "default": "condition-specific native induction",
+      "default": "condition-specific native VR task instructions",
       "editable": "caller-owned",
       "validation": "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
       "native_state_field": "questionnaire_state.condition_induction_stage"
@@ -1248,11 +1248,11 @@
       "response_namespace": "runtime_metadata",
       "field": "active_assessment_page_id",
       "type": "runtime-navigation-state",
-      "default": "sam_pictographic",
+      "default": "self_assessment_manikin",
       "options": [
-        "sam_pictographic",
+        "self_assessment_manikin",
         "affect_vas",
-        "ekman_intensity",
+        "emotion_representation_vas",
         "hand_embodiment"
       ],
       "editable": "runtime-owned",
@@ -1263,14 +1263,14 @@
       "item_library_version": 1,
       "id": "sam.valence_raw_1_9",
       "variable_name": "sam_valence_raw_1_9",
-      "label": "Retrospective SAM valence",
+      "label": "Retrospective Self-Assessment Manikin pictograph valence",
       "scale_id": "valence",
       "axis_label": "Unpleasant - Pleasant",
       "question": "How pleasant did this experience feel?",
       "low": "Unpleasant",
       "high": "Pleasant",
       "field": "valence_raw_1_9",
-      "page": "sam_pictographic",
+      "page": "self_assessment_manikin",
       "group": "sam",
       "response_namespace": "sam",
       "type": "pictographic-choice",
@@ -1309,14 +1309,14 @@
       "item_library_version": 1,
       "id": "sam.arousal_raw_1_9",
       "variable_name": "sam_arousal_raw_1_9",
-      "label": "Retrospective SAM arousal",
+      "label": "Retrospective Self-Assessment Manikin pictograph arousal",
       "scale_id": "arousal",
       "axis_label": "Low Energy - High Energy",
       "question": "How activated did you feel?",
       "low": "Low Energy",
       "high": "High Energy",
       "field": "arousal_raw_1_9",
-      "page": "sam_pictographic",
+      "page": "self_assessment_manikin",
       "group": "sam",
       "response_namespace": "sam",
       "type": "pictographic-choice",
@@ -1355,14 +1355,14 @@
       "item_library_version": 1,
       "id": "sam.dominance_raw_1_9",
       "variable_name": "sam_dominance_raw_1_9",
-      "label": "Retrospective SAM dominance/control",
+      "label": "Retrospective Self-Assessment Manikin pictograph dominance/control",
       "scale_id": "dominance",
       "axis_label": "Not in control - In control",
       "question": "How much control did you feel during your experience?",
       "low": "Not in control",
       "high": "In control",
       "field": "dominance_raw_1_9",
-      "page": "sam_pictographic",
+      "page": "self_assessment_manikin",
       "group": "sam",
       "response_namespace": "sam",
       "type": "pictographic-choice",
@@ -1467,13 +1467,13 @@
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.anger_raw_0_100",
-      "variable_name": "particle_ekman_anger_raw_0_100",
+      "id": "emotion_representation_vas.anger_raw_0_100",
+      "variable_name": "emotion_representation_vas_anger_raw_0_100",
       "label": "Anger",
       "emotion_id": "anger",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "anger_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1492,17 +1492,17 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.anger_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.anger_raw_0_100"
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.disgust_raw_0_100",
-      "variable_name": "particle_ekman_disgust_raw_0_100",
+      "id": "emotion_representation_vas.disgust_raw_0_100",
+      "variable_name": "emotion_representation_vas_disgust_raw_0_100",
       "label": "Disgust",
       "emotion_id": "disgust",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "disgust_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1521,17 +1521,17 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.disgust_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.disgust_raw_0_100"
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.fear_raw_0_100",
-      "variable_name": "particle_ekman_fear_raw_0_100",
+      "id": "emotion_representation_vas.fear_raw_0_100",
+      "variable_name": "emotion_representation_vas_fear_raw_0_100",
       "label": "Fear",
       "emotion_id": "fear",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "fear_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1550,17 +1550,17 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.fear_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.fear_raw_0_100"
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.happiness_raw_0_100",
-      "variable_name": "particle_ekman_happiness_raw_0_100",
+      "id": "emotion_representation_vas.happiness_raw_0_100",
+      "variable_name": "emotion_representation_vas_happiness_raw_0_100",
       "label": "Happiness",
       "emotion_id": "happiness",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "happiness_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1579,17 +1579,17 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.happiness_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.happiness_raw_0_100"
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.sadness_raw_0_100",
-      "variable_name": "particle_ekman_sadness_raw_0_100",
+      "id": "emotion_representation_vas.sadness_raw_0_100",
+      "variable_name": "emotion_representation_vas_sadness_raw_0_100",
       "label": "Sadness",
       "emotion_id": "sadness",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "sadness_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1608,17 +1608,17 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.sadness_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.sadness_raw_0_100"
     },
     {
       "item_library_version": 1,
-      "id": "ekman_intensity.surprise_raw_0_100",
-      "variable_name": "particle_ekman_surprise_raw_0_100",
+      "id": "emotion_representation_vas.surprise_raw_0_100",
+      "variable_name": "emotion_representation_vas_surprise_raw_0_100",
       "label": "Surprise",
       "emotion_id": "surprise",
-      "page": "ekman_intensity",
-      "group": "ekman_intensity",
-      "response_namespace": "ekman_intensity",
+      "page": "emotion_representation_vas",
+      "group": "emotion_representation_vas",
+      "response_namespace": "emotion_representation_vas",
       "field": "surprise_raw_0_100",
       "type": "range",
       "default": 0,
@@ -1637,7 +1637,7 @@
       ],
       "editable": "editable",
       "validation": "required integer 0..100",
-      "result_json_field": "answers.emotion_assessment.ekman_intensity.surprise_raw_0_100"
+      "result_json_field": "answers.emotion_assessment.emotion_representation_vas.surprise_raw_0_100"
     },
     {
       "item_library_version": 1,
@@ -1842,45 +1842,45 @@
   ],
   "pages": [
     {
-      "id": "onboarding",
-      "title": "Participant onboarding",
+      "id": "demographics",
+      "title": "Demographics",
       "groups": [
         {
           "id": "polar_validation",
           "fields": [
-            "onboarding.polar_validation.ready"
+            "demographics.polar_validation.ready"
           ]
         },
         {
           "id": "language",
           "fields": [
-            "onboarding.language_code"
+            "demographics.language_code"
           ]
         },
         {
           "id": "demographics",
           "fields": [
-            "onboarding.participant_first_name",
-            "onboarding.participant_last_name",
-            "onboarding.participant_name",
-            "onboarding.age_years",
-            "onboarding.handedness",
-            "onboarding.gender"
+            "demographics.participant_first_name",
+            "demographics.participant_last_name",
+            "demographics.participant_name",
+            "demographics.age_years",
+            "demographics.handedness",
+            "demographics.gender"
           ]
         },
         {
           "id": "consent",
           "fields": [
-            "onboarding.consent_confirmed",
-            "onboarding.consent_text",
-            "onboarding.signature"
+            "demographics.consent_confirmed",
+            "demographics.consent_text",
+            "demographics.signature"
           ]
         }
       ]
     },
     {
-      "id": "emotion_induction_placeholder",
-      "title": "Emotion induction placeholder",
+      "id": "vr_task_instructions",
+      "title": "VR task instructions",
       "groups": [
         {
           "id": "condition_induction",
@@ -1891,8 +1891,8 @@
       ]
     },
     {
-      "id": "sam_pictographic",
-      "title": "SAM: feelings during the condition",
+      "id": "self_assessment_manikin",
+      "title": "Self-Assessment Manikin pictographs",
       "groups": [
         {
           "id": "sam",
@@ -1918,18 +1918,18 @@
       ]
     },
     {
-      "id": "ekman_intensity",
-      "title": "Particle movement emotion VAS",
+      "id": "emotion_representation_vas",
+      "title": "Particle emotion representation VAS",
       "groups": [
         {
-          "id": "ekman_intensity",
+          "id": "emotion_representation_vas",
           "fields": [
-            "ekman_intensity.anger_raw_0_100",
-            "ekman_intensity.disgust_raw_0_100",
-            "ekman_intensity.fear_raw_0_100",
-            "ekman_intensity.happiness_raw_0_100",
-            "ekman_intensity.sadness_raw_0_100",
-            "ekman_intensity.surprise_raw_0_100"
+            "emotion_representation_vas.anger_raw_0_100",
+            "emotion_representation_vas.disgust_raw_0_100",
+            "emotion_representation_vas.fear_raw_0_100",
+            "emotion_representation_vas.happiness_raw_0_100",
+            "emotion_representation_vas.sadness_raw_0_100",
+            "emotion_representation_vas.surprise_raw_0_100"
           ]
         }
       ]
@@ -1948,7 +1948,7 @@
       ]
     }
   ],
-  "onboarding": {
+  "demographics": {
     "polar_validation": {
       "source": "browser_visual_preview",
       "state": "ecg_streaming",
@@ -2036,16 +2036,16 @@
       "segmented selections",
       "consent checkbox",
       "signature strokes",
-      "SAM pictographic choices",
+      "Self-Assessment Manikin pictograph choices",
       "VAS slider positions",
-      "Ekman slider positions",
+      "emotion representation VAS slider positions",
       "hand embodiment Likert selections",
       "footer navigation enabled/disabled states"
     ],
     "panels": [
       {
         "panel_index": 1,
-        "page_id": "onboarding",
+        "page_id": "demographics",
         "block_position": null,
         "condition_position": null,
         "counterbalanced_condition_id": null,
@@ -2056,11 +2056,11 @@
         "audio_instruction_id": null,
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Onboarding"
+        "title": "Demographics"
       },
       {
         "panel_index": 2,
-        "page_id": "emotion_induction_placeholder",
+        "page_id": "vr_task_instructions",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "HC_HE",
@@ -2071,11 +2071,11 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Instructions"
+        "title": "VR task instructions"
       },
       {
         "panel_index": 3,
-        "page_id": "sam_pictographic",
+        "page_id": "self_assessment_manikin",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "HC_HE",
@@ -2086,7 +2086,7 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did you feel while during the previous tasks?"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 4,
@@ -2101,11 +2101,11 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
-        "title": "Rate the previous experience"
+        "title": "Valence and arousal VAS"
       },
       {
         "panel_index": 5,
-        "page_id": "ekman_intensity",
+        "page_id": "emotion_representation_vas",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "HC_HE",
@@ -2116,7 +2116,7 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
-        "title": "To what degree were the emotions represented by the way the particles were moving?"
+        "title": "Particle emotion representation VAS"
       },
       {
         "panel_index": 6,
@@ -2131,11 +2131,11 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
+        "title": "Virtual hand embodiment"
       },
       {
         "panel_index": 7,
-        "page_id": "emotion_induction_placeholder",
+        "page_id": "vr_task_instructions",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_LE",
@@ -2146,11 +2146,11 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Instructions"
+        "title": "VR task instructions"
       },
       {
         "panel_index": 8,
-        "page_id": "sam_pictographic",
+        "page_id": "self_assessment_manikin",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_LE",
@@ -2161,7 +2161,7 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did you feel while during the previous tasks?"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 9,
@@ -2176,11 +2176,11 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
-        "title": "Rate the previous experience"
+        "title": "Valence and arousal VAS"
       },
       {
         "panel_index": 10,
-        "page_id": "ekman_intensity",
+        "page_id": "emotion_representation_vas",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_LE",
@@ -2191,7 +2191,7 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
-        "title": "To what degree were the emotions represented by the way the particles were moving?"
+        "title": "Particle emotion representation VAS"
       },
       {
         "panel_index": 11,
@@ -2206,11 +2206,11 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
+        "title": "Virtual hand embodiment"
       },
       {
         "panel_index": 12,
-        "page_id": "emotion_induction_placeholder",
+        "page_id": "vr_task_instructions",
         "block_position": 3,
         "condition_position": 3,
         "counterbalanced_condition_id": "HC_LE",
@@ -2221,11 +2221,11 @@
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Instructions"
+        "title": "VR task instructions"
       },
       {
         "panel_index": 13,
-        "page_id": "sam_pictographic",
+        "page_id": "self_assessment_manikin",
         "block_position": 3,
         "condition_position": 3,
         "counterbalanced_condition_id": "HC_LE",
@@ -2236,7 +2236,7 @@
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did you feel while during the previous tasks?"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 14,
@@ -2251,11 +2251,11 @@
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
-        "title": "Rate the previous experience"
+        "title": "Valence and arousal VAS"
       },
       {
         "panel_index": 15,
-        "page_id": "ekman_intensity",
+        "page_id": "emotion_representation_vas",
         "block_position": 3,
         "condition_position": 3,
         "counterbalanced_condition_id": "HC_LE",
@@ -2266,7 +2266,7 @@
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
-        "title": "To what degree were the emotions represented by the way the particles were moving?"
+        "title": "Particle emotion representation VAS"
       },
       {
         "panel_index": 16,
@@ -2281,11 +2281,11 @@
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
+        "title": "Virtual hand embodiment"
       },
       {
         "panel_index": 17,
-        "page_id": "emotion_induction_placeholder",
+        "page_id": "vr_task_instructions",
         "block_position": 4,
         "condition_position": 4,
         "counterbalanced_condition_id": "LC_HE",
@@ -2296,11 +2296,11 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "Instructions"
+        "title": "VR task instructions"
       },
       {
         "panel_index": 18,
-        "page_id": "sam_pictographic",
+        "page_id": "self_assessment_manikin",
         "block_position": 4,
         "condition_position": 4,
         "counterbalanced_condition_id": "LC_HE",
@@ -2311,7 +2311,7 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did you feel while during the previous tasks?"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 19,
@@ -2326,11 +2326,11 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
-        "title": "Rate the previous experience"
+        "title": "Valence and arousal VAS"
       },
       {
         "panel_index": 20,
-        "page_id": "ekman_intensity",
+        "page_id": "emotion_representation_vas",
         "block_position": 4,
         "condition_position": 4,
         "counterbalanced_condition_id": "LC_HE",
@@ -2341,7 +2341,7 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
-        "title": "To what degree were the emotions represented by the way the particles were moving?"
+        "title": "Particle emotion representation VAS"
       },
       {
         "panel_index": 21,
@@ -2356,7 +2356,7 @@
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
+        "title": "Virtual hand embodiment"
       }
     ]
   },
@@ -2398,8 +2398,8 @@
   },
   "expanded_preview_sequence": [
     {
-      "stage": "onboarding",
-      "page_id": "onboarding",
+      "stage": "demographics",
+      "page_id": "demographics",
       "assessment_block_id": null,
       "assessment_block_page": null,
       "assessment_block_page_count": null,
@@ -2414,7 +2414,7 @@
       "coherence_level": "high",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "emotion_induction_placeholder",
+      "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
       "assessment_block_page_count": null,
@@ -2429,11 +2429,11 @@
       "coherence_level": "high",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "sam_pictographic",
+      "page_id": "self_assessment_manikin",
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 1,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+      "assessment_block_group": "Self-Assessment Manikin pictograph valence, arousal, and dominance/control"
     },
     {
       "block_position": 1,
@@ -2448,7 +2448,7 @@
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 2,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+      "assessment_block_group": "Retrospective valence and arousal VAS 0-100"
     },
     {
       "block_position": 1,
@@ -2459,11 +2459,11 @@
       "coherence_level": "high",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
-      "page_id": "ekman_intensity",
+      "page_id": "emotion_representation_vas",
       "assessment_block_id": "block_1_assessment_block",
       "assessment_block_page": 3,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+      "assessment_block_group": "Particle emotion representation VAS 0-100"
     },
     {
       "block_position": 1,
@@ -2489,7 +2489,7 @@
       "coherence_level": "low",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "emotion_induction_placeholder",
+      "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
       "assessment_block_page_count": null,
@@ -2504,11 +2504,11 @@
       "coherence_level": "low",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "sam_pictographic",
+      "page_id": "self_assessment_manikin",
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 1,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+      "assessment_block_group": "Self-Assessment Manikin pictograph valence, arousal, and dominance/control"
     },
     {
       "block_position": 2,
@@ -2523,7 +2523,7 @@
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 2,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+      "assessment_block_group": "Retrospective valence and arousal VAS 0-100"
     },
     {
       "block_position": 2,
@@ -2534,11 +2534,11 @@
       "coherence_level": "low",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
-      "page_id": "ekman_intensity",
+      "page_id": "emotion_representation_vas",
       "assessment_block_id": "block_2_assessment_block",
       "assessment_block_page": 3,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+      "assessment_block_group": "Particle emotion representation VAS 0-100"
     },
     {
       "block_position": 2,
@@ -2564,7 +2564,7 @@
       "coherence_level": "high",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "emotion_induction_placeholder",
+      "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
       "assessment_block_page_count": null,
@@ -2579,11 +2579,11 @@
       "coherence_level": "high",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "sam_pictographic",
+      "page_id": "self_assessment_manikin",
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 1,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+      "assessment_block_group": "Self-Assessment Manikin pictograph valence, arousal, and dominance/control"
     },
     {
       "block_position": 3,
@@ -2598,7 +2598,7 @@
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 2,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+      "assessment_block_group": "Retrospective valence and arousal VAS 0-100"
     },
     {
       "block_position": 3,
@@ -2609,11 +2609,11 @@
       "coherence_level": "high",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
-      "page_id": "ekman_intensity",
+      "page_id": "emotion_representation_vas",
       "assessment_block_id": "block_3_assessment_block",
       "assessment_block_page": 3,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+      "assessment_block_group": "Particle emotion representation VAS 0-100"
     },
     {
       "block_position": 3,
@@ -2639,7 +2639,7 @@
       "coherence_level": "low",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "emotion_induction_placeholder",
+      "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
       "assessment_block_page_count": null,
@@ -2654,11 +2654,11 @@
       "coherence_level": "low",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "sam_pictographic",
+      "page_id": "self_assessment_manikin",
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 1,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+      "assessment_block_group": "Self-Assessment Manikin pictograph valence, arousal, and dominance/control"
     },
     {
       "block_position": 4,
@@ -2673,7 +2673,7 @@
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 2,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Retrospective valence and arousal visual analog scales 0-100"
+      "assessment_block_group": "Retrospective valence and arousal VAS 0-100"
     },
     {
       "block_position": 4,
@@ -2684,11 +2684,11 @@
       "coherence_level": "low",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
-      "page_id": "ekman_intensity",
+      "page_id": "emotion_representation_vas",
       "assessment_block_id": "block_4_assessment_block",
       "assessment_block_page": 3,
       "assessment_block_page_count": 4,
-      "assessment_block_group": "Perceived Ekman emotion represented by particle movement 0-100"
+      "assessment_block_group": "Particle emotion representation VAS 0-100"
     },
     {
       "block_position": 4,
@@ -2855,14 +2855,14 @@
       }
     ]
   },
-  "active_panel_page_id": "onboarding",
+  "active_panel_page_id": "demographics",
   "active_block_position": 4,
   "active_condition_position": 4,
   "active_condition_id": "LC_HE",
   "active_vr_condition_id": "LC_HE",
   "active_coherence_level": "low",
   "active_energy_noise_level": "high",
-  "active_assessment_page_id": "ekman_intensity",
+  "active_assessment_page_id": "emotion_representation_vas",
   "responses_by_condition": [
     {
       "block_position": 1,
@@ -2881,7 +2881,7 @@
           "valence_raw_0_100": 0,
           "arousal_raw_0_100": 100
         },
-        "ekman_intensity": {
+        "emotion_representation_vas": {
           "anger_raw_0_100": 0,
           "disgust_raw_0_100": 20,
           "fear_raw_0_100": 40,
@@ -2894,9 +2894,9 @@
           "agency_raw_1_7": 3
         },
         "page_complete": {
-          "sam_pictographic": true,
+          "self_assessment_manikin": true,
           "affect_vas": true,
-          "ekman_intensity": true,
+          "emotion_representation_vas": true,
           "hand_embodiment": false
         },
         "complete": false
@@ -2919,7 +2919,7 @@
           "valence_raw_0_100": 100,
           "arousal_raw_0_100": 0
         },
-        "ekman_intensity": {
+        "emotion_representation_vas": {
           "anger_raw_0_100": 100,
           "disgust_raw_0_100": 88,
           "fear_raw_0_100": 76,
@@ -2932,9 +2932,9 @@
           "agency_raw_1_7": 7
         },
         "page_complete": {
-          "sam_pictographic": true,
+          "self_assessment_manikin": true,
           "affect_vas": true,
-          "ekman_intensity": true,
+          "emotion_representation_vas": true,
           "hand_embodiment": true
         },
         "complete": true
@@ -2957,7 +2957,7 @@
           "valence_raw_0_100": 100,
           "arousal_raw_0_100": 0
         },
-        "ekman_intensity": {
+        "emotion_representation_vas": {
           "anger_raw_0_100": 100,
           "disgust_raw_0_100": 88,
           "fear_raw_0_100": 76,
@@ -2970,9 +2970,9 @@
           "agency_raw_1_7": 7
         },
         "page_complete": {
-          "sam_pictographic": true,
+          "self_assessment_manikin": true,
           "affect_vas": true,
-          "ekman_intensity": true,
+          "emotion_representation_vas": true,
           "hand_embodiment": true
         },
         "complete": true
@@ -2995,7 +2995,7 @@
           "valence_raw_0_100": 100,
           "arousal_raw_0_100": 0
         },
-        "ekman_intensity": {
+        "emotion_representation_vas": {
           "anger_raw_0_100": 100,
           "disgust_raw_0_100": 88,
           "fear_raw_0_100": 76,
@@ -3008,9 +3008,9 @@
           "agency_raw_1_7": 7
         },
         "page_complete": {
-          "sam_pictographic": true,
+          "self_assessment_manikin": true,
           "affect_vas": true,
-          "ekman_intensity": true,
+          "emotion_representation_vas": true,
           "hand_embodiment": true
         },
         "complete": true

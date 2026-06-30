@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Study 6 Questionnaire UI Preview</title>
-  <link rel="stylesheet" href="styles.css?v=20260630-factor-coded-conditions">
+  <link rel="stylesheet" href="styles.css?v=20260630-panel-names">
 </head>
 <body>
   <main class="workspace">
@@ -13,15 +13,15 @@
         <header class="panel-header">
           <div>
             <p class="eyebrow" id="conditionStatus" hidden></p>
-            <h1 id="pageTitle">Before we begin</h1>
+            <h1 id="pageTitle">Demographics</h1>
           </div>
           <div class="header-chips" hidden aria-hidden="true">
-            <div class="stage-chip" id="conditionLabel">Setup</div>
-            <div class="page-chip" id="pageLabel">Setup</div>
+            <div class="stage-chip" id="conditionLabel">Demographics</div>
+            <div class="page-chip" id="pageLabel">Demographics</div>
           </div>
         </header>
 
-      <section id="onboardingPage" class="assessment-page onboarding-section" aria-labelledby="onboardingHeading">
+      <section id="demographicsPage" class="assessment-page demographics-section" aria-labelledby="demographicsHeading">
         <div id="polarStatusCard" class="polar-status ready">
           <div class="polar-status-main">
             <span class="status-lamp" aria-hidden="true"></span>
@@ -34,13 +34,13 @@
           <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="ECG waveform preview"></canvas>
         </div>
 
-        <div class="section-title onboarding-title">
-          <h2 id="onboardingHeading">Before we begin</h2>
-          <span>Required before we begin</span>
+        <div class="section-title demographics-title">
+          <h2 id="demographicsHeading">Demographics</h2>
+          <span>Participant details, consent, and Polar H10 check</span>
         </div>
 
-        <div class="onboarding-grid">
-          <div class="onboarding-column">
+        <div class="demographics-grid">
+          <div class="demographics-column">
             <div class="field-group">
               <label>Language</label>
               <div id="languageOptions" class="option-group two-options"></div>
@@ -74,7 +74,7 @@
             </div>
           </div>
 
-          <div class="onboarding-column consent-column">
+          <div class="demographics-column consent-column">
             <label class="consent-check">
               <input id="consentCheckbox" type="checkbox">
               <span id="consentText">I consent to participate in this study.</span>
@@ -92,36 +92,36 @@
       <section id="inductionPage" class="assessment-page induction-section" aria-labelledby="inductionHeading" hidden>
         <div class="induction-shell">
           <p class="induction-kicker" id="inductionKicker" hidden></p>
-          <h2 id="inductionHeading">Instructions</h2>
+          <h2 id="inductionHeading">VR task instructions</h2>
           <div class="induction-placeholder">
-            <span id="inductionConditionLabel">Instructions</span>
-            <strong>Instruction placeholder</strong>
+            <span id="inductionConditionLabel">VR task</span>
+            <strong>Five-minute task instructions</strong>
             <div class="induction-audio">
-              <small>Instructions</small>
+              <small>Audio guide</small>
               <b id="inductionAudioLabel">Audio ready</b>
               <em id="inductionAudioSummary">Please follow the instructions.</em>
               <p id="inductionRandomizationNote" class="induction-randomization-note" hidden aria-hidden="true"></p>
               <div id="inductionAudioLinks" class="audio-asset-links" aria-label="Audio instruction assets" hidden aria-hidden="true"></div>
             </div>
           </div>
-          <p id="inductionSummary" class="induction-summary">A short response section follows.</p>
+          <p id="inductionSummary" class="induction-summary">The assessment pages follow this task.</p>
         </div>
       </section>
 
-      <section id="samPage" class="assessment-page sam-section" aria-label="How did you feel while during the previous tasks?" hidden>
+      <section id="samPage" class="assessment-page sam-section" aria-label="Self-Assessment Manikin pictographs" hidden>
         <p class="page-instruction">For each row, choose the picture that best matches how you felt during the previous session.</p>
         <div id="samRows" class="sam-rows"></div>
       </section>
 
-      <section id="vasPage" class="assessment-page slider-section" aria-label="Rate the previous experience" hidden>
+      <section id="vasPage" class="assessment-page slider-section" aria-label="Valence and arousal VAS" hidden>
         <div id="sliderRows" class="vas-slider-rows"></div>
       </section>
 
-      <section id="ekmanPage" class="assessment-page ekman-section" aria-labelledby="ekmanHeading" hidden>
+      <section id="emotionRepresentationPage" class="assessment-page emotion-representation-section" aria-labelledby="emotionRepresentationHeading" hidden>
         <div class="section-title">
-          <h2 id="ekmanHeading">Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.</h2>
+          <h2 id="emotionRepresentationHeading">Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.</h2>
         </div>
-        <div id="ekmanSliderRows" class="ekman-slider-grid"></div>
+        <div id="emotionRepresentationSliderRows" class="emotion-representation-slider-grid"></div>
       </section>
 
       <section id="handEmbodimentPage" class="assessment-page hand-embodiment-section" aria-label="During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement." hidden>
@@ -151,7 +151,7 @@
     <div id="storyboardPanels" class="storyboard-panels"></div>
   </section>
 
-  <script src="questionnaire-item-library.js?v=20260630-factor-coded-conditions"></script>
-  <script src="panel-preview.js?v=20260630-factor-coded-conditions"></script>
+  <script src="questionnaire-item-library.js?v=20260630-panel-names"></script>
+  <script src="panel-preview.js?v=20260630-panel-names"></script>
 </body>
 </html>

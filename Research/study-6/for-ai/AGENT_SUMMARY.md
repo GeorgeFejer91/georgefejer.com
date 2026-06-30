@@ -35,46 +35,62 @@ AI/operator material kept in the nearest relevant `for-ai/` folder.
 
 ## Working Scientific Framing
 
-Study 6 currently frames affective particle motion as a 2 x 2 manipulation of
-movement coherence and movement energy/noise in immersive 3D particle
-environments. These four conditions correspond to four intended
-valence-arousal states. The goal is to test whether emotion-relevant motion
-features can be mapped into a valence-arousal state space in VR particle fields
-while manipulating particle motion alone and holding other visual/environmental
-parameters constant where possible.
+Study 6 currently uses a 2 x 2 VR particle-condition structure crossing
+movement coherence with movement energy/noise in immersive 3D particle
+environments. Operationally, the four VR condition IDs should be neutral and
+factor-coded: `LC_LE`, `LC_HE`, `HC_LE`, and `HC_HE`. Valence and arousal are
+measured outcomes and preregistered scientific hypotheses, not condition names.
 
 The two movement dimensions should be described succinctly:
 
-- Coherence maps desynchronized versus synchronized movement onto valence:
-  desynchrony is expected to feel lower in valence, synchrony higher in valence.
-- Energy/noise maps low versus high movement energy onto arousal: low energy is
-  expected to feel lower in arousal, high energy/noise higher in arousal.
+- Coherence: desynchronized versus synchronized movement.
+- Energy/noise: low versus high movement energy/noise.
 
-Subjective valence/arousal are measured using SAM and valence/arousal sliders.
-Arousal is additionally measured with ECG/HRV. Ekman emotion ratings are used
-for comparability with other affect-motion studies and to cross-validate whether
-the perceived emotion represented by particle motion matches the intended
-valence-arousal mapping of Ekman emotions.
+Subjective valence/arousal are measured using Self-Assessment Manikin
+pictograph rows and valence/arousal sliders. Arousal is additionally measured
+with ECG/HRV. Ekman emotion ratings are used for comparability with other
+affect-motion studies and possible cross-validation analyses.
 
 This extends prior lines of work on abstract affect representations, swarm
 behavior in planar tabletop robots, and single-dot motion kinematics for emotion
 perception into immersive 3D particle environments.
 
-The same motion mappings are expected to be studied in two mapping/embodiment
-conditions: ambient environmental mapping and hand-avatar texture/material
-mapping. Across these two conditions, higher reported valence and arousal are
+The same motion mappings are expected to be studied in two matched Quest APK
+variants. The APKs should be identical in questionnaire flow, audio behavior,
+counterbalancing, data-writing contract, and VR particle-condition logic. The
+only intended implementation difference is the particle mapping target:
+`BG_ENV` maps particles to the background/surrounding environment; `HAND_AV`
+maps the same particles onto the virtual hand avatar texture/material. Across
+these APK mapping variants, higher reported valence and arousal are
 hypothesized to be associated with higher virtual-hand embodiment scores.
 
-Current design target: 20 participants complete both scenarios. Part 1 is the
-environmental/background particle mapping. Part 2 maps the same particle-motion
-profiles to the hand avatar. Within each scenario, participants experience all
-four coherence x energy conditions in randomized, counterbalanced order, giving
-eight condition exposures per participant if both scenario parts are completed.
+Current design target: 20 participants complete both APK variants if the final
+protocol keeps both variants within participant. Within each APK run,
+participants experience all four coherence x energy/noise conditions in
+randomized, counterbalanced order, giving eight condition exposures per
+participant if both APK variants are completed.
 
 ## What It Is Doing
 
 The folder currently contains three main Study 6 components:
 
+- `STUDY_RUNBOOK.md`: the root-level end-to-end operator runbook for how Study
+  6 should be run. It describes preparation, participant/session flow,
+  counterbalancing, audio assignment, private data write points, repeated
+  assessment pages, block metadata, QC/exclusion logging, and the intended
+  block-level analysis export.
+- `for-ai/QUESTIONNAIRE_BACKEND_OPERATIONS.md`: the backend companion to the
+  questionnaire HTML preview. It specifies what the native Quest app,
+  study-runner, or caller-owned backend must own: participant/session IDs,
+  persisted counterbalance assignment, audio randomization, result URI writing,
+  private storage, physiology synchronization, validation, atomic writes, QC
+  flags, and analysis export constraints.
+- `for-ai/study6_apk_permutation_lookup.json`: central lookup template for the
+  two matched APKs. It contains the 24 VR-condition permutations, 24 matched
+  audio permutations, questionnaire item IDs, APK data folder names, and 100
+  participant allocation rows.
+- `for-ai/generate_study6_apk_permutation_lookup.js`: reproducible generator
+  for the lookup JSON.
 - `neutral-hand-audio/`: final English and German guided hand-task MP3s for
   integration as audio instructions inside the questionnaire/workflow. There
   are four variants of essentially the same instruction in different movement
@@ -85,7 +101,7 @@ The folder currently contains three main Study 6 components:
   exact wording libraries, protocol notes, cached ElevenLabs prompt audio,
   validation reports, and rebuild scripts.
 - `questionnaire-assets/`: shared questionnaire materials and source assets,
-  including SAM pictographs, participation-confirmation files, and the future
+  including Self-Assessment Manikin pictographs, participation-confirmation files, and the future
   home for questionnaire labels/tools in English and German.
 - `questionnaire-ui-preview/`: the browser-facing representation of what the VR
   questionnaire should look and feel like. This is a development surface for

@@ -1,0 +1,5 @@
+vr_condition_id,label,coherence_level,energy_noise_level
+HC_HE,High coherence / high energy,high,high
+LC_HE,Low coherence / high energy,low,high
+HC_LE,High coherence / low energy,high,low
+LC_LE,Low coherence / low energy,low,low

@@ -1,6 +1,6 @@
 "use strict";
 
-const PANEL_ID = "emotion_induction_sam_preview";
+const PANEL_ID = "study6_questionnaire_panel_preview";
 const SCHEMA_VERSION = 8;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
@@ -107,48 +107,48 @@ const AUDIO_INSTRUCTION_SETS = [
 
 const ASSESSMENT_PAGES = [
   {
-    id: "sam_pictographic",
+    id: "self_assessment_manikin",
     label: "1/4",
-    title: "How did you feel while during the previous tasks?",
-    summary: "Assessment block page 1 of 4",
-    block_group: "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
+    title: "Self-Assessment Manikin pictographs",
+    summary: "Assessment page 1 of 4: Self-Assessment Manikin pictographs",
+    block_group: "Self-Assessment Manikin pictograph valence, arousal, and dominance/control"
   },
   {
     id: "affect_vas",
     label: "2/4",
-    title: "Rate the previous experience",
-    summary: "Assessment block page 2 of 4",
-    block_group: "Retrospective valence and arousal visual analog scales 0-100"
+    title: "Valence and arousal VAS",
+    summary: "Assessment page 2 of 4: valence and arousal visual analog scales",
+    block_group: "Retrospective valence and arousal VAS 0-100"
   },
   {
-    id: "ekman_intensity",
+    id: "emotion_representation_vas",
     label: "3/4",
-    title: "To what degree were the emotions represented by the way the particles were moving?",
-    summary: "Assessment block page 3 of 4",
-    block_group: "Perceived Ekman emotion represented by particle movement 0-100"
+    title: "Particle emotion representation VAS",
+    summary: "Assessment page 3 of 4: emotion representation visual analog scales",
+    block_group: "Particle emotion representation VAS 0-100"
   },
   {
     id: "hand_embodiment",
     label: "4/4",
-    title: HAND_EMBODIMENT_PROMPT,
-    summary: "Assessment block page 4 of 4",
+    title: "Virtual hand embodiment",
+    summary: "Assessment page 4 of 4: virtual hand ownership and agency",
     block_group: "Adapted VEQ virtual hand ownership and agency ratings"
   }
 ];
 
 const INDUCTION_PAGE = {
-  id: "emotion_induction_placeholder",
+  id: "vr_task_instructions",
   label: "Instructions",
-  title: "Instructions",
-  summary: "Instructions"
+  title: "VR task instructions",
+  summary: "Five-minute VR task instructions and audio"
 };
 
 const WORKFLOW_PAGES = [
   {
-    id: "onboarding",
-    label: "Setup",
-    title: "Participant onboarding",
-    summary: "Onboarding"
+    id: "demographics",
+    label: "Demographics",
+    title: "Demographics",
+    summary: "Demographics, language, consent, and Polar H10 readiness"
   },
   INDUCTION_PAGE,
   ...ASSESSMENT_PAGES
@@ -189,12 +189,12 @@ function assertCompleteSamManikinRows(rows) {
       missing.length > 0 ? `missing ${missing.join(", ")}` : "",
       duplicates.length > 0 ? `duplicate ${duplicates.join(", ")}` : ""
     ].filter(Boolean).join("; ");
-    throw new Error(`SAM pictographic assessments must include valence, arousal, and dominance rows: ${details}.`);
+    throw new Error(`Self-Assessment Manikin pictograph rows must include valence, arousal, and dominance rows: ${details}.`);
   }
 }
 
 const SAM_MANIKIN_ROWS = QUESTIONNAIRE_ITEMS
-  .filter((item) => item.page === "sam_pictographic" && item.type === "pictographic-choice")
+  .filter((item) => item.page === "self_assessment_manikin" && item.type === "pictographic-choice")
   .map((item) => ({
     item_id: item.id,
     variable_name: item.variable_name,
@@ -235,8 +235,8 @@ const VAS_INTERACTION_KEYS = new Set([
   "PageDown"
 ]);
 
-const EKMAN_EMOTIONS = QUESTIONNAIRE_ITEMS
-  .filter((item) => item.page === "ekman_intensity" && item.response_namespace === "ekman_intensity")
+const EMOTION_REPRESENTATION_ITEMS = QUESTIONNAIRE_ITEMS
+  .filter((item) => item.page === "emotion_representation_vas" && item.response_namespace === "emotion_representation_vas")
   .map((item) => ({
     item_id: item.id,
     variable_name: item.variable_name,
@@ -258,8 +258,8 @@ const HAND_EMBODIMENT_ITEMS = QUESTIONNAIRE_ITEMS
     option_labels: item.option_labels
   }));
 
-function ekmanFieldId(emotionId) {
-  const item = EKMAN_EMOTIONS.find((emotion) => emotion.id === emotionId);
+function emotionRepresentationFieldId(emotionId) {
+  const item = EMOTION_REPRESENTATION_ITEMS.find((emotion) => emotion.id === emotionId);
   return item ? item.field : `${emotionId}_raw_0_100`;
 }
 
@@ -333,7 +333,7 @@ function defaultSignature() {
   };
 }
 
-function defaultOnboarding() {
+function defaultDemographics() {
   return {
     polar_validation: defaultPolarValidation(),
     language_code: "en",
@@ -379,9 +379,9 @@ function normalizeSignature(rawSignature) {
   };
 }
 
-function normalizeOnboarding(rawOnboarding) {
-  const base = defaultOnboarding();
-  const raw = rawOnboarding || {};
+function normalizeDemographics(rawDemographics) {
+  const base = defaultDemographics();
+  const raw = rawDemographics || {};
   const polar = {
     ...base.polar_validation,
     ...(raw.polar_validation || {})
@@ -416,8 +416,8 @@ function defaultPageCompletion() {
   return Object.fromEntries(ASSESSMENT_PAGES.map((page) => [page.id, false]));
 }
 
-function defaultEkmanIntensity() {
-  return Object.fromEntries(EKMAN_EMOTIONS.map((emotion) => [ekmanFieldId(emotion.id), 0]));
+function defaultEmotionRepresentationVas() {
+  return Object.fromEntries(EMOTION_REPRESENTATION_ITEMS.map((emotion) => [emotionRepresentationFieldId(emotion.id), 0]));
 }
 
 function defaultHandEmbodiment() {
@@ -440,7 +440,7 @@ function defaultAssessment() {
       arousal_raw_0_100: 50
     },
     affect_vas_touched: defaultAffectVasTouched(),
-    ekman_intensity: defaultEkmanIntensity(),
+    emotion_representation_vas: defaultEmotionRepresentationVas(),
     hand_embodiment: defaultHandEmbodiment(),
     page_complete: defaultPageCompletion(),
     complete: false
@@ -466,9 +466,9 @@ function normalizeAssessment(rawAssessment) {
       slider.field,
       completedAffectVas || Boolean(rawTouched[slider.field])
     ])),
-    ekman_intensity: {
-      ...base.ekman_intensity,
-      ...(raw.ekman_intensity || {})
+    emotion_representation_vas: {
+      ...base.emotion_representation_vas,
+      ...(raw.emotion_representation_vas || {})
     },
     hand_embodiment: {
       ...base.hand_embodiment,
@@ -487,7 +487,7 @@ function exportAssessment(assessment) {
   return {
     sam: normalized.sam,
     affect_vas: normalized.affect_vas,
-    ekman_intensity: normalized.ekman_intensity,
+    emotion_representation_vas: normalized.emotion_representation_vas,
     hand_embodiment: normalized.hand_embodiment,
     page_complete: normalized.page_complete,
     complete: normalized.complete
@@ -498,11 +498,11 @@ function makeState() {
   return {
     panel_id: PANEL_ID,
     schema_version: SCHEMA_VERSION,
-    onboarding: defaultOnboarding(),
+    demographics: defaultDemographics(),
     counterbalance_order_id: "order_01",
-    active_panel_page_id: "onboarding",
+    active_panel_page_id: "demographics",
     active_condition_position: 1,
-    active_assessment_page_id: "sam_pictographic",
+    active_assessment_page_id: "self_assessment_manikin",
     responses_by_condition: CONDITIONS.map((condition, index) => ({
       condition_id: condition.id,
       vr_condition_id: condition.id,
@@ -519,9 +519,9 @@ function makeEdgeState() {
   const state = makeState();
   state.counterbalance_order_id = "order_04";
   state.active_condition_position = 4;
-  state.active_panel_page_id = "onboarding";
-  state.active_assessment_page_id = "ekman_intensity";
-  state.onboarding = normalizeOnboarding({
+  state.active_panel_page_id = "demographics";
+  state.active_assessment_page_id = "emotion_representation_vas";
+  state.demographics = normalizeDemographics({
     polar_validation: {
       ...defaultPolarValidation(),
       ready: false,
@@ -562,14 +562,14 @@ function makeEdgeState() {
     assessment.sam.dominance_raw_1_9 = index === 3 ? 1 : 9;
     assessment.affect_vas.valence_raw_0_100 = index === 3 ? 0 : 100;
     assessment.affect_vas.arousal_raw_0_100 = index === 3 ? 100 : 0;
-    EKMAN_EMOTIONS.forEach((emotion, emotionIndex) => {
-      assessment.ekman_intensity[ekmanFieldId(emotion.id)] = index === 3 ? emotionIndex * 20 : 100 - emotionIndex * 12;
+    EMOTION_REPRESENTATION_ITEMS.forEach((emotion, emotionIndex) => {
+      assessment.emotion_representation_vas[emotionRepresentationFieldId(emotion.id)] = index === 3 ? emotionIndex * 20 : 100 - emotionIndex * 12;
     });
     assessment.hand_embodiment.ownership_raw_1_7 = index === 3 ? 2 : 6;
     assessment.hand_embodiment.agency_raw_1_7 = index === 3 ? 3 : 7;
-    assessment.page_complete.sam_pictographic = true;
+    assessment.page_complete.self_assessment_manikin = true;
     assessment.page_complete.affect_vas = true;
-    assessment.page_complete.ekman_intensity = true;
+    assessment.page_complete.emotion_representation_vas = true;
     assessment.page_complete.hand_embodiment = index < 3;
     assessment.complete = index < 3;
   });
@@ -588,7 +588,7 @@ const elements = {
   conditionLabel: document.getElementById("conditionLabel"),
   pageLabel: document.getElementById("pageLabel"),
   pageTitle: document.getElementById("pageTitle"),
-  onboardingPage: document.getElementById("onboardingPage"),
+  demographicsPage: document.getElementById("demographicsPage"),
   polarStatusCard: document.getElementById("polarStatusCard"),
   polarStatusTitle: document.getElementById("polarStatusTitle"),
   polarSignalDetail: document.getElementById("polarSignalDetail"),
@@ -616,12 +616,12 @@ const elements = {
   inductionSummary: document.getElementById("inductionSummary"),
   samPage: document.getElementById("samPage"),
   vasPage: document.getElementById("vasPage"),
-  ekmanPage: document.getElementById("ekmanPage"),
+  emotionRepresentationPage: document.getElementById("emotionRepresentationPage"),
   handEmbodimentPage: document.getElementById("handEmbodimentPage"),
   samRows: document.getElementById("samRows"),
   samCompletion: document.getElementById("samCompletion"),
   sliderRows: document.getElementById("sliderRows"),
-  ekmanSliderRows: document.getElementById("ekmanSliderRows"),
+  emotionRepresentationSliderRows: document.getElementById("emotionRepresentationSliderRows"),
   handEmbodimentRows: document.getElementById("handEmbodimentRows"),
   pageCounter: document.getElementById("pageCounter"),
   validationSummary: document.getElementById("validationSummary"),
@@ -658,8 +658,8 @@ function activePanelPageId() {
     : state.active_assessment_page_id;
 }
 
-function isOnboardingActive() {
-  return activePanelPageId() === "onboarding";
+function isDemographicsActive() {
+  return activePanelPageId() === "demographics";
 }
 
 function isInductionActive() {
@@ -688,19 +688,19 @@ function audioInstructionFor(conditionPosition) {
   return AUDIO_INSTRUCTION_SETS[(conditionPosition - 1) % AUDIO_INSTRUCTION_SETS.length];
 }
 
-function audioAssetPath(audio, languageCode = state.onboarding.language_code) {
+function audioAssetPath(audio, languageCode = state.demographics.language_code) {
   const language = languageCode === "de" ? "de" : "en";
   return audio.asset_paths[language] || audio.asset_paths.en;
 }
 
-function audioAssetLinksMarkup(languageCode = state.onboarding.language_code) {
+function audioAssetLinksMarkup(languageCode = state.demographics.language_code) {
   return AUDIO_INSTRUCTION_SETS.map((audio, index) => {
     const label = `V${String(index + 1).padStart(2, "0")}`;
     return `<a href="${escapeHtml(audioAssetPath(audio, languageCode))}" target="_blank" rel="noopener">${label}</a>`;
   }).join("");
 }
 
-function renderAudioAssetLinks(container, languageCode = state.onboarding.language_code) {
+function renderAudioAssetLinks(container, languageCode = state.demographics.language_code) {
   container.replaceChildren();
   AUDIO_INSTRUCTION_SETS.forEach((audio, index) => {
     const link = document.createElement("a");
@@ -739,14 +739,14 @@ function setState(nextState) {
   const copy = JSON.parse(JSON.stringify(nextState));
   const assessmentPageId = ASSESSMENT_PAGES.some((page) => page.id === copy.active_assessment_page_id)
     ? copy.active_assessment_page_id
-    : "sam_pictographic";
+    : "self_assessment_manikin";
   const panelPageId = WORKFLOW_PAGES.some((page) => page.id === copy.active_panel_page_id)
     ? copy.active_panel_page_id
-    : "onboarding";
+    : "demographics";
   state = {
     ...makeState(),
     ...copy,
-    onboarding: normalizeOnboarding(copy.onboarding),
+    demographics: normalizeDemographics(copy.demographics),
     active_panel_page_id: panelPageId,
     active_assessment_page_id: assessmentPageId
   };
@@ -761,11 +761,11 @@ function setState(nextState) {
 function render() {
   renderHeader();
   renderVisiblePage();
-  renderOnboarding();
+  renderDemographics();
   renderInductionPlaceholder();
   renderSamRows();
   renderVasSliders();
-  renderEkmanSliders();
+  renderEmotionRepresentationSliders();
   renderHandEmbodimentItems();
   renderValidation();
   renderExport();
@@ -800,7 +800,7 @@ function renderConditionButtons() {
     button.addEventListener("click", () => {
       state.active_condition_position = index + 1;
       state.active_panel_page_id = INDUCTION_PAGE.id;
-      state.active_assessment_page_id = "sam_pictographic";
+      state.active_assessment_page_id = "self_assessment_manikin";
       render();
     });
     elements.conditionButtons.appendChild(button);
@@ -815,7 +815,7 @@ function renderPageButtons() {
   WORKFLOW_PAGES.forEach((page, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = page.id === "onboarding" ? page.label : `${index}. ${page.label}`;
+    button.textContent = page.id === "demographics" ? page.label : `${index}. ${page.label}`;
     button.setAttribute("aria-pressed", String(page.id === activePanelPageId()));
     button.addEventListener("click", () => {
       state.active_panel_page_id = page.id;
@@ -831,10 +831,10 @@ function renderPageButtons() {
 function renderHeader() {
   elements.conditionStatus.textContent = "";
   elements.conditionStatus.hidden = true;
-  if (isOnboardingActive()) {
-    elements.conditionLabel.textContent = "Setup";
-    elements.pageLabel.textContent = "Setup";
-    elements.pageTitle.textContent = "Before we begin";
+  if (isDemographicsActive()) {
+    elements.conditionLabel.textContent = "Demographics";
+    elements.pageLabel.textContent = "Demographics";
+    elements.pageTitle.textContent = "Demographics";
     elements.pageCounter.textContent = "";
     elements.pageCounter.hidden = true;
     return;
@@ -842,7 +842,7 @@ function renderHeader() {
   if (isInductionActive()) {
     elements.conditionLabel.textContent = "";
     elements.pageLabel.textContent = "Instructions";
-    elements.pageTitle.textContent = "Instructions";
+    elements.pageTitle.textContent = "VR task instructions";
     elements.pageCounter.textContent = "";
     elements.pageCounter.hidden = true;
     return;
@@ -861,15 +861,15 @@ function renderHeader() {
 
 function renderVisiblePage() {
   const pageId = activePanelPageId();
-  elements.onboardingPage.hidden = pageId !== "onboarding";
+  elements.demographicsPage.hidden = pageId !== "demographics";
   elements.inductionPage.hidden = pageId !== INDUCTION_PAGE.id;
-  elements.samPage.hidden = pageId !== "sam_pictographic";
+  elements.samPage.hidden = pageId !== "self_assessment_manikin";
   elements.vasPage.hidden = pageId !== "affect_vas";
-  elements.ekmanPage.hidden = pageId !== "ekman_intensity";
+  elements.emotionRepresentationPage.hidden = pageId !== "emotion_representation_vas";
   elements.handEmbodimentPage.hidden = pageId !== "hand_embodiment";
 }
 
-function polarIsReady(polar = state.onboarding.polar_validation) {
+function polarIsReady(polar = state.demographics.polar_validation) {
   return Boolean(
     polar.ready &&
       polar.streaming &&
@@ -882,10 +882,10 @@ function polarIsReady(polar = state.onboarding.polar_validation) {
   );
 }
 
-function renderOnboarding() {
-  state.onboarding = normalizeOnboarding(state.onboarding);
-  const onboarding = state.onboarding;
-  const polar = onboarding.polar_validation;
+function renderDemographics() {
+  state.demographics = normalizeDemographics(state.demographics);
+  const demographics = state.demographics;
+  const polar = demographics.polar_validation;
   const ready = polarIsReady(polar);
 
   elements.polarStatusCard.classList.toggle("ready", ready);
@@ -897,34 +897,34 @@ function renderOnboarding() {
     ? polar.diagnostic
     : (polar.diagnostic || polar.state || "Waiting for Polar H10 signal");
 
-  renderOptionGroup(elements.languageOptions, LANGUAGE_OPTIONS, onboarding.language_code, "onboarding.language", (value) => {
-    onboarding.language_code = value;
-    onboarding.complete = false;
+  renderOptionGroup(elements.languageOptions, LANGUAGE_OPTIONS, demographics.language_code, "demographics.language", (value) => {
+    demographics.language_code = value;
+    demographics.complete = false;
   });
-  renderOptionGroup(elements.handednessOptions, HANDEDNESS_OPTIONS, onboarding.handedness, "onboarding.handedness", (value) => {
-    onboarding.handedness = value;
-    onboarding.complete = false;
+  renderOptionGroup(elements.handednessOptions, HANDEDNESS_OPTIONS, demographics.handedness, "demographics.handedness", (value) => {
+    demographics.handedness = value;
+    demographics.complete = false;
   });
-  renderOptionGroup(elements.genderOptions, GENDER_OPTIONS, onboarding.gender, "onboarding.gender", (value) => {
-    onboarding.gender = value;
-    onboarding.complete = false;
+  renderOptionGroup(elements.genderOptions, GENDER_OPTIONS, demographics.gender, "demographics.gender", (value) => {
+    demographics.gender = value;
+    demographics.complete = false;
   });
 
   if (document.activeElement !== elements.participantFirstName) {
-    elements.participantFirstName.value = onboarding.participant_first_name;
+    elements.participantFirstName.value = demographics.participant_first_name;
   }
   if (document.activeElement !== elements.participantLastName) {
-    elements.participantLastName.value = onboarding.participant_last_name;
+    elements.participantLastName.value = demographics.participant_last_name;
   }
   if (document.activeElement !== elements.participantAge) {
-    elements.participantAge.value = onboarding.age_years === null || Number.isNaN(onboarding.age_years)
+    elements.participantAge.value = demographics.age_years === null || Number.isNaN(demographics.age_years)
       ? ""
-      : String(onboarding.age_years);
+      : String(demographics.age_years);
   }
-  elements.consentCheckbox.checked = onboarding.consent_confirmed;
-  elements.consentText.textContent = onboarding.consent_text;
-  elements.signatureSummary.textContent = onboarding.signature.has_signature
-    ? `${onboarding.signature.stroke_count} signature stroke${onboarding.signature.stroke_count === 1 ? "" : "s"} captured`
+  elements.consentCheckbox.checked = demographics.consent_confirmed;
+  elements.consentText.textContent = demographics.consent_text;
+  elements.signatureSummary.textContent = demographics.signature.has_signature
+    ? `${demographics.signature.stroke_count} signature stroke${demographics.signature.stroke_count === 1 ? "" : "s"} captured`
     : "No signature captured";
 
   window.requestAnimationFrame(() => {
@@ -952,21 +952,21 @@ function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect
 function renderInductionPlaceholder() {
   elements.inductionKicker.textContent = "";
   elements.inductionKicker.hidden = true;
-  elements.inductionHeading.textContent = "Instructions";
-  elements.inductionConditionLabel.textContent = "Instructions";
+  elements.inductionHeading.textContent = "VR task instructions";
+  elements.inductionConditionLabel.textContent = "VR task";
   elements.inductionAudioLabel.textContent = "Audio ready";
   elements.inductionAudioSummary.textContent = "Please follow the instructions.";
   elements.inductionRandomizationNote.textContent = "";
   elements.inductionAudioLinks.replaceChildren();
-  elements.inductionSummary.textContent = "A short response section follows.";
+  elements.inductionSummary.textContent = "The assessment pages follow this task.";
 }
 
 function storyboardItems(order = activeOrder()) {
   return [
     {
-      page_id: "onboarding",
-      storyboard_title: "Onboarding",
-      storyboard_subtitle: "Before we begin"
+      page_id: "demographics",
+      storyboard_title: "Demographics",
+      storyboard_subtitle: "Participant details, consent, and Polar H10 check"
     },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
@@ -975,8 +975,8 @@ function storyboardItems(order = activeOrder()) {
           page_id: INDUCTION_PAGE.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: "Instructions",
-          storyboard_subtitle: "Instructions before the response pages"
+          storyboard_title: "VR task instructions",
+          storyboard_subtitle: "Five-minute task instructions and audio"
         },
         ...ASSESSMENT_PAGES.map((page, pageIndex) => ({
           page_id: page.id,
@@ -990,8 +990,8 @@ function storyboardItems(order = activeOrder()) {
   ];
 }
 
-function storyboardOnboardingState() {
-  return normalizeOnboarding({
+function storyboardDemographicsState() {
+  return normalizeDemographics({
     polar_validation: defaultPolarValidation(),
     language_code: "en",
     participant_first_name: "Preview",
@@ -1027,7 +1027,7 @@ function storyboardAssessmentFor(conditionPosition) {
       sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 52, arousal_raw_0_100: 48 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
-      ekman_intensity: {
+      emotion_representation_vas: {
         anger_raw_0_100: 12,
         disgust_raw_0_100: 8,
         fear_raw_0_100: 18,
@@ -1044,7 +1044,7 @@ function storyboardAssessmentFor(conditionPosition) {
       sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 72, arousal_raw_0_100: 64 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
-      ekman_intensity: {
+      emotion_representation_vas: {
         anger_raw_0_100: 10,
         disgust_raw_0_100: 14,
         fear_raw_0_100: 26,
@@ -1061,7 +1061,7 @@ function storyboardAssessmentFor(conditionPosition) {
       sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 24, arousal_raw_0_100: 82 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
-      ekman_intensity: {
+      emotion_representation_vas: {
         anger_raw_0_100: 34,
         disgust_raw_0_100: 28,
         fear_raw_0_100: 74,
@@ -1078,7 +1078,7 @@ function storyboardAssessmentFor(conditionPosition) {
       sam: { valence_raw_1_9: null, arousal_raw_1_9: null, dominance_raw_1_9: null },
       affect_vas: { valence_raw_0_100: 84, arousal_raw_0_100: 28 },
       affect_vas_touched: { valence_raw_0_100: true, arousal_raw_0_100: true },
-      ekman_intensity: {
+      emotion_representation_vas: {
         anger_raw_0_100: 6,
         disgust_raw_0_100: 10,
         fear_raw_0_100: 12,
@@ -1127,14 +1127,14 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-function localizedText(value, languageCode = state.onboarding.language_code) {
+function localizedText(value, languageCode = state.demographics.language_code) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value[languageCode] || value.en || Object.values(value).find(Boolean) || "";
   }
   return String(value ?? "");
 }
 
-function likertLabelFor(item, score, languageCode = state.onboarding.language_code) {
+function likertLabelFor(item, score, languageCode = state.demographics.language_code) {
   const option = (item.option_labels || []).find((candidate) => candidate.value === score);
   return localizedText(option ? option.label : "", languageCode);
 }
@@ -1195,14 +1195,14 @@ function createStoryboardPanel(item) {
 }
 
 function storyboardPanelMeta(item) {
-  if (item.page_id === "onboarding") {
-    const onboarding = storyboardOnboardingState();
-    const errors = onboardingValidationErrors(onboarding);
+  if (item.page_id === "demographics") {
+    const demographics = storyboardDemographicsState();
+    const errors = demographicsValidationErrors(demographics);
     return {
       conditionStatus: "",
-      conditionLabel: "Setup",
-      pageLabel: "Setup",
-      pageTitle: "Before we begin",
+      conditionLabel: "Demographics",
+      pageLabel: "Demographics",
+      pageTitle: "Demographics",
       pageCounter: "",
       footerStatus: errors.length > 0 ? errors[0] : "Ready to begin",
       footerError: errors.length > 0,
@@ -1217,7 +1217,7 @@ function storyboardPanelMeta(item) {
       conditionStatus: "",
       conditionLabel: "",
       pageLabel: "Instructions",
-      pageTitle: "Instructions",
+      pageTitle: "VR task instructions",
       pageCounter: "",
       footerStatus: "Ready to continue",
       footerError: false,
@@ -1250,32 +1250,32 @@ function storyboardPanelMeta(item) {
 }
 
 function storyboardContentMarkup(item) {
-  if (item.page_id === "onboarding") {
-    return onboardingStoryboardMarkup();
+  if (item.page_id === "demographics") {
+    return demographicsStoryboardMarkup();
   }
   if (item.page_id === INDUCTION_PAGE.id) {
     return inductionStoryboardMarkup(item);
   }
   const assessment = storyboardAssessmentFor(item.condition_position);
-  if (item.page_id === "sam_pictographic") {
+  if (item.page_id === "self_assessment_manikin") {
     return samStoryboardMarkup(assessment);
   }
   if (item.page_id === "affect_vas") {
     return vasStoryboardMarkup(assessment);
   }
-  if (item.page_id === "ekman_intensity") {
-    return ekmanStoryboardMarkup(assessment);
+  if (item.page_id === "emotion_representation_vas") {
+    return emotionRepresentationStoryboardMarkup(assessment);
   }
   return handEmbodimentStoryboardMarkup(assessment);
 }
 
-function onboardingStoryboardMarkup() {
-  const onboarding = storyboardOnboardingState();
-  const polar = onboarding.polar_validation;
+function demographicsStoryboardMarkup() {
+  const demographics = storyboardDemographicsState();
+  const polar = demographics.polar_validation;
   const ready = polarIsReady(polar);
-  const age = onboarding.age_years === null || Number.isNaN(onboarding.age_years) ? "" : String(onboarding.age_years);
+  const age = demographics.age_years === null || Number.isNaN(demographics.age_years) ? "" : String(demographics.age_years);
   return `
-    <section class="assessment-page onboarding-section storyboard-onboarding-page">
+    <section class="assessment-page demographics-section storyboard-demographics-page">
       <div class="polar-status ${ready ? "ready" : "waiting"}">
         <div class="polar-status-main">
           <span class="status-lamp" aria-hidden="true"></span>
@@ -1288,25 +1288,25 @@ function onboardingStoryboardMarkup() {
         <canvas class="polar-waveform storyboard-polar-waveform" width="300" height="48" data-ready="${ready ? "true" : "false"}" aria-label="ECG waveform preview"></canvas>
       </div>
 
-      <div class="section-title onboarding-title">
-        <h2>Before we begin</h2>
-        <span>Required before we begin</span>
+      <div class="section-title demographics-title">
+        <h2>Demographics</h2>
+        <span>Participant details, consent, and Polar H10 check</span>
       </div>
 
-      <div class="onboarding-grid">
-        <div class="onboarding-column">
+      <div class="demographics-grid">
+        <div class="demographics-column">
           <div class="field-group">
             <label>Language</label>
-            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, onboarding.language_code)}</div>
+            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, demographics.language_code)}</div>
           </div>
           <div class="split-field-row">
             <div class="field-row">
               <label>First name</label>
-              <input type="text" autocomplete="given-name" inputmode="text" value="${escapeHtml(onboarding.participant_first_name)}" readonly>
+              <input type="text" autocomplete="given-name" inputmode="text" value="${escapeHtml(demographics.participant_first_name)}" readonly>
             </div>
             <div class="field-row">
               <label>Last name</label>
-              <input type="text" autocomplete="family-name" inputmode="text" value="${escapeHtml(onboarding.participant_last_name)}" readonly>
+              <input type="text" autocomplete="family-name" inputmode="text" value="${escapeHtml(demographics.participant_last_name)}" readonly>
             </div>
           </div>
           <div class="field-row compact">
@@ -1315,25 +1315,25 @@ function onboardingStoryboardMarkup() {
           </div>
           <div class="field-group">
             <label>Handedness</label>
-            <div class="option-group four-options">${optionButtonsMarkup(HANDEDNESS_OPTIONS, onboarding.handedness)}</div>
+            <div class="option-group four-options">${optionButtonsMarkup(HANDEDNESS_OPTIONS, demographics.handedness)}</div>
           </div>
           <div class="field-group">
             <label>Gender</label>
-            <div class="option-group four-options">${optionButtonsMarkup(GENDER_OPTIONS, onboarding.gender)}</div>
+            <div class="option-group four-options">${optionButtonsMarkup(GENDER_OPTIONS, demographics.gender)}</div>
           </div>
         </div>
 
-        <div class="onboarding-column consent-column">
+        <div class="demographics-column consent-column">
           <label class="consent-check">
-            <input type="checkbox" ${onboarding.consent_confirmed ? "checked" : ""} aria-label="Study consent">
-            <span>${escapeHtml(onboarding.consent_text)}</span>
+            <input type="checkbox" ${demographics.consent_confirmed ? "checked" : ""} aria-label="Study consent">
+            <span>${escapeHtml(demographics.consent_text)}</span>
           </label>
           <div class="signature-header">
             <label>Signature</label>
             <button class="secondary-button small-button" type="button">Clear</button>
           </div>
           <canvas class="signature-pad storyboard-signature-pad" width="440" height="160" aria-label="Consent signature pad"></canvas>
-          <p class="signature-summary">${onboarding.signature.has_signature ? `${onboarding.signature.stroke_count} signature stroke${onboarding.signature.stroke_count === 1 ? "" : "s"} captured` : "No signature captured"}</p>
+          <p class="signature-summary">${demographics.signature.has_signature ? `${demographics.signature.stroke_count} signature stroke${demographics.signature.stroke_count === 1 ? "" : "s"} captured` : "No signature captured"}</p>
         </div>
       </div>
     </section>
@@ -1345,17 +1345,17 @@ function inductionStoryboardMarkup(item) {
     <section class="assessment-page induction-section">
       <div class="induction-shell">
         <p class="induction-kicker" hidden></p>
-        <h2>Instructions</h2>
+        <h2>VR task instructions</h2>
         <div class="induction-placeholder">
-          <span>Instructions</span>
-          <strong>Instruction placeholder</strong>
+          <span>VR task</span>
+          <strong>Five-minute task instructions</strong>
           <div class="induction-audio">
-            <small>Instructions</small>
+            <small>Audio guide</small>
             <b>Audio ready</b>
             <em>Please follow the instructions.</em>
           </div>
         </div>
-        <p class="induction-summary">A short response section follows.</p>
+        <p class="induction-summary">The assessment pages follow this task.</p>
       </div>
     </section>
   `;
@@ -1417,22 +1417,22 @@ function vasStoryboardMarkup(assessment) {
   `;
 }
 
-function ekmanStoryboardMarkup(assessment) {
+function emotionRepresentationStoryboardMarkup(assessment) {
   return `
-    <section class="assessment-page ekman-section">
+    <section class="assessment-page emotion-representation-section">
       <div class="section-title">
         <h2>Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.</h2>
       </div>
-      <div class="ekman-slider-grid">
-        ${EKMAN_EMOTIONS.map((emotion) => {
-          const field = ekmanFieldId(emotion.id);
+      <div class="emotion-representation-slider-grid">
+        ${EMOTION_REPRESENTATION_ITEMS.map((emotion) => {
+          const field = emotionRepresentationFieldId(emotion.id);
           return `
-            <div class="slider-row ekman-slider-row">
+            <div class="slider-row emotion-representation-slider-row">
               <header>
                 <strong>${emotion.label}</strong>
-                <span class="slider-value">${assessment.ekman_intensity[field]}</span>
+                <span class="slider-value">${assessment.emotion_representation_vas[field]}</span>
               </header>
-              <input type="range" min="0" max="100" step="1" value="${assessment.ekman_intensity[field]}" tabindex="-1">
+              <input type="range" min="0" max="100" step="1" value="${assessment.emotion_representation_vas[field]}" tabindex="-1">
               <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
             </div>
           `;
@@ -1443,7 +1443,7 @@ function ekmanStoryboardMarkup(assessment) {
 }
 
 function handEmbodimentStoryboardMarkup(assessment) {
-  const languageCode = state.onboarding.language_code;
+  const languageCode = state.demographics.language_code;
   return `
     <section class="assessment-page hand-embodiment-section" aria-label="${escapeHtml(HAND_EMBODIMENT_PROMPT)}">
       <div class="hand-likert-rows">
@@ -1476,7 +1476,7 @@ function drawStoryboardCanvases() {
     drawPolarWaveformCanvas(canvas, canvas.dataset.ready === "true");
   });
   document.querySelectorAll(".storyboard-signature-pad").forEach((canvas) => {
-    drawSignatureCanvas(canvas, normalizeOnboarding(state.onboarding).signature.strokes || []);
+    drawSignatureCanvas(canvas, normalizeDemographics(state.demographics).signature.strokes || []);
   });
 }
 
@@ -1526,7 +1526,7 @@ function rangeValuePercent(input) {
 }
 
 function vasDisplayValue(value) {
-  return Math.round(Number(value || 0) * 2 - 100);
+  return Math.round(Math.min(Math.max(Number(value || 0), 0), 100));
 }
 
 function vasReadoutStyle(value) {
@@ -1697,39 +1697,39 @@ function renderVasSliders() {
   });
 }
 
-function renderEkmanSliders() {
+function renderEmotionRepresentationSliders() {
   const assessment = activeAssessment();
-  elements.ekmanSliderRows.replaceChildren();
-  EKMAN_EMOTIONS.forEach((emotion) => {
-    const field = ekmanFieldId(emotion.id);
+  elements.emotionRepresentationSliderRows.replaceChildren();
+  EMOTION_REPRESENTATION_ITEMS.forEach((emotion) => {
+    const field = emotionRepresentationFieldId(emotion.id);
     const row = document.createElement("div");
-    row.className = "slider-row ekman-slider-row";
+    row.className = "slider-row emotion-representation-slider-row";
     row.innerHTML = `
       <header>
         <strong>${emotion.label}</strong>
-        <span class="slider-value" id="ekman_intensity.${field}.value">${assessment.ekman_intensity[field]}</span>
+        <span class="slider-value" id="emotion_representation_vas.${field}.value">${assessment.emotion_representation_vas[field]}</span>
       </header>
-      <input id="ekman_intensity.${field}" type="range" min="0" max="100" step="1" value="${assessment.ekman_intensity[field]}" aria-label="${emotion.label}">
+      <input id="emotion_representation_vas.${field}" type="range" min="0" max="100" step="1" value="${assessment.emotion_representation_vas[field]}" aria-label="${emotion.label}">
       <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
     `;
     const input = row.querySelector("input");
     const applyValue = () => {
       const currentAssessment = activeAssessment();
-      currentAssessment.ekman_intensity[field] = Number(input.value);
+      currentAssessment.emotion_representation_vas[field] = Number(input.value);
       updateSliderValueDisplay(input);
-      markPageDirty("ekman_intensity");
+      markPageDirty("emotion_representation_vas");
       renderValidation();
       renderExport();
     };
     bindSmoothRangeDrag(input, applyValue);
     input.addEventListener("input", applyValue);
-    elements.ekmanSliderRows.appendChild(row);
+    elements.emotionRepresentationSliderRows.appendChild(row);
   });
 }
 
 function renderHandEmbodimentItems() {
   const assessment = activeAssessment();
-  const languageCode = state.onboarding.language_code;
+  const languageCode = state.demographics.language_code;
   elements.handEmbodimentRows.replaceChildren();
   HAND_EMBODIMENT_ITEMS.forEach((item) => {
     const row = document.createElement("div");
@@ -1790,7 +1790,7 @@ function prepareCanvas(canvas) {
 }
 
 function drawPolarWaveform() {
-  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(state.onboarding.polar_validation));
+  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(state.demographics.polar_validation));
 }
 
 function drawPolarWaveformCanvas(canvas, ready) {
@@ -1840,7 +1840,7 @@ function drawPolarWaveformCanvas(canvas, ready) {
 
 function drawSignaturePad() {
   drawSignatureCanvas(elements.signaturePad, [
-    ...(state.onboarding.signature.strokes || []),
+    ...(state.demographics.signature.strokes || []),
     ...(signatureDrawing.currentStroke.length > 0 ? [signatureDrawing.currentStroke] : [])
   ]);
 }
@@ -1896,12 +1896,12 @@ function commitSignatureStroke() {
   if (signatureDrawing.currentStroke.length === 0) {
     return;
   }
-  const signature = normalizeSignature(state.onboarding.signature);
+  const signature = normalizeSignature(state.demographics.signature);
   signature.strokes.push(signatureDrawing.currentStroke);
   signature.stroke_count = signature.strokes.length;
   signature.has_signature = signature.stroke_count > 0;
-  state.onboarding.signature = signature;
-  state.onboarding.complete = false;
+  state.demographics.signature = signature;
+  state.demographics.complete = false;
   signatureDrawing.currentStroke = [];
   render();
 }
@@ -1910,8 +1910,8 @@ function isIntegerInRange(value, min, max) {
   return Number.isInteger(value) && value >= min && value <= max;
 }
 
-function onboardingValidationErrors(onboarding = state.onboarding) {
-  const normalized = normalizeOnboarding(onboarding);
+function demographicsValidationErrors(demographics = state.demographics) {
+  const normalized = normalizeDemographics(demographics);
   const errors = [];
   if (!polarIsReady(normalized.polar_validation)) {
     errors.push("Polar H10 ECG is not ready.");
@@ -1946,7 +1946,7 @@ function onboardingValidationErrors(onboarding = state.onboarding) {
 function validationErrors(assessment = activeAssessment(), pageId = activePage().id) {
   const normalized = normalizeAssessment(assessment);
   const errors = [];
-  if (pageId === "sam_pictographic") {
+  if (pageId === "self_assessment_manikin") {
     SAM_MANIKIN_ROWS.forEach((row) => {
       if (!isIntegerInRange(normalized.sam[row.field], 1, 9)) {
         errors.push(`Select a picture for ${row.id}.`);
@@ -1962,10 +1962,10 @@ function validationErrors(assessment = activeAssessment(), pageId = activePage()
       }
     });
   }
-  if (pageId === "ekman_intensity") {
-    EKMAN_EMOTIONS.forEach((emotion) => {
-      const field = ekmanFieldId(emotion.id);
-      if (!isIntegerInRange(normalized.ekman_intensity[field], 0, 100)) {
+  if (pageId === "emotion_representation_vas") {
+    EMOTION_REPRESENTATION_ITEMS.forEach((emotion) => {
+      const field = emotionRepresentationFieldId(emotion.id);
+      if (!isIntegerInRange(normalized.emotion_representation_vas[field], 0, 100)) {
         errors.push(`${emotion.label} representation rating must be 0..100.`);
       }
     });
@@ -1986,15 +1986,15 @@ function conditionValidationErrors(assessment = activeAssessment()) {
 
 function renderValidation() {
   const skipRequired = previewSkipRequiredEnabled();
-  if (isOnboardingActive()) {
-    const errors = onboardingValidationErrors();
+  if (isDemographicsActive()) {
+    const errors = demographicsValidationErrors();
     const hasBlockingErrors = errors.length > 0 && !skipRequired;
     elements.validationSummary.hidden = false;
     elements.validationSummary.classList.toggle("error", hasBlockingErrors);
     elements.validationSummary.textContent = hasBlockingErrors
       ? errors[0]
-      : state.onboarding.complete
-        ? "Onboarding marked complete"
+      : state.demographics.complete
+        ? "Demographics marked complete"
         : "Ready to begin";
     elements.previousPage.disabled = true;
     elements.nextPage.disabled = hasBlockingErrors;
@@ -2042,8 +2042,8 @@ function conditionBlockSequence() {
 function expandedPreviewSequence(order = activeOrder()) {
   return [
     {
-      stage: "onboarding",
-      page_id: "onboarding",
+      stage: "demographics",
+      page_id: "demographics",
       assessment_block_id: null,
       assessment_block_page: null,
       assessment_block_page_count: null,
@@ -2091,9 +2091,9 @@ function visualStoryboardExport(order = activeOrder()) {
       "segmented selections",
       "consent checkbox",
       "signature strokes",
-      "SAM pictographic choices",
+      "Self-Assessment Manikin pictograph choices",
       "VAS slider positions",
-      "Ekman slider positions",
+      "emotion representation VAS slider positions",
       "hand embodiment Likert selections",
       "footer navigation enabled/disabled states"
     ],
@@ -2187,10 +2187,10 @@ function exportObject() {
     },
     native_contract_authority: {
       protocol_version: "quest.questionnaire.v1",
-      schema_id: `emotion-induction-sam-v${SCHEMA_VERSION}`,
+      schema_id: `study6-questionnaire-v${SCHEMA_VERSION}`,
       open_stage: activePanelPageId(),
       screen_sequence: WORKFLOW_PAGES.map((page) => page.id),
-      onboarding_required_once: true,
+      demographics_required_once: true,
       condition_block_sequence: conditionBlockSequence(),
       condition_assessment_sequence: ASSESSMENT_PAGES.map((page) => page.id),
       repeated_after_each_condition: true,
@@ -2200,7 +2200,7 @@ function exportObject() {
     questionnaire_item_library: QUESTIONNAIRE_ITEM_LIBRARY,
     control_model: CONTROL_MODEL,
     pages: pageGroups(),
-    onboarding: normalizeOnboarding(state.onboarding),
+    demographics: normalizeDemographics(state.demographics),
     visual_storyboard: visualStoryboardExport(order),
     asset_manifest: {
       questionnaire_asset_catalog_path: "../questionnaire-assets/asset-catalog.json",
@@ -2275,14 +2275,14 @@ if (elements.orderSelect) {
   elements.orderSelect.addEventListener("change", () => {
     state.counterbalance_order_id = elements.orderSelect.value;
     state.active_condition_position = 1;
-    state.active_panel_page_id = "onboarding";
-    state.active_assessment_page_id = "sam_pictographic";
+    state.active_panel_page_id = "demographics";
+    state.active_assessment_page_id = "self_assessment_manikin";
     render();
   });
 }
 
 elements.previousPage.addEventListener("click", () => {
-  if (isOnboardingActive()) {
+  if (isDemographicsActive()) {
     return;
   }
   if (isInductionActive()) {
@@ -2292,7 +2292,7 @@ elements.previousPage.addEventListener("click", () => {
       state.active_panel_page_id = previousAssessmentPageId;
       state.active_assessment_page_id = previousAssessmentPageId;
     } else {
-      state.active_panel_page_id = "onboarding";
+      state.active_panel_page_id = "demographics";
     }
     render();
     return;
@@ -2303,26 +2303,26 @@ elements.previousPage.addEventListener("click", () => {
     state.active_assessment_page_id = ASSESSMENT_PAGES[index - 1].id;
     render();
   } else {
-    state.active_panel_page_id = "onboarding";
+    state.active_panel_page_id = "demographics";
     render();
   }
 });
 
 elements.nextPage.addEventListener("click", () => {
   const skipRequired = previewSkipRequiredEnabled();
-  if (isOnboardingActive()) {
-    if (!skipRequired && onboardingValidationErrors().length > 0) {
+  if (isDemographicsActive()) {
+    if (!skipRequired && demographicsValidationErrors().length > 0) {
       return;
     }
-    state.onboarding.complete = true;
+    state.demographics.complete = true;
     state.active_panel_page_id = INDUCTION_PAGE.id;
-    state.active_assessment_page_id = "sam_pictographic";
+    state.active_assessment_page_id = "self_assessment_manikin";
     render();
     return;
   }
   if (isInductionActive()) {
-    state.active_panel_page_id = "sam_pictographic";
-    state.active_assessment_page_id = "sam_pictographic";
+    state.active_panel_page_id = "self_assessment_manikin";
+    state.active_assessment_page_id = "self_assessment_manikin";
     render();
     return;
   }
@@ -2342,19 +2342,19 @@ elements.nextPage.addEventListener("click", () => {
     if (assessment.complete && state.active_condition_position < CONDITIONS.length) {
       state.active_condition_position += 1;
       state.active_panel_page_id = INDUCTION_PAGE.id;
-      state.active_assessment_page_id = "sam_pictographic";
+      state.active_assessment_page_id = "self_assessment_manikin";
     }
   }
   render();
 });
 
 function updateParticipantNameField(field, value) {
-  state.onboarding[field] = value;
-  state.onboarding.participant_name = combinedParticipantName(
-    state.onboarding.participant_first_name,
-    state.onboarding.participant_last_name
+  state.demographics[field] = value;
+  state.demographics.participant_name = combinedParticipantName(
+    state.demographics.participant_first_name,
+    state.demographics.participant_last_name
   );
-  state.onboarding.complete = false;
+  state.demographics.complete = false;
   renderValidation();
   renderExport();
 }
@@ -2369,15 +2369,15 @@ elements.participantLastName.addEventListener("input", () => {
 
 elements.participantAge.addEventListener("input", () => {
   const value = elements.participantAge.value.trim();
-  state.onboarding.age_years = value === "" ? null : Number(value);
-  state.onboarding.complete = false;
+  state.demographics.age_years = value === "" ? null : Number(value);
+  state.demographics.complete = false;
   renderValidation();
   renderExport();
 });
 
 elements.consentCheckbox.addEventListener("change", () => {
-  state.onboarding.consent_confirmed = elements.consentCheckbox.checked;
-  state.onboarding.complete = false;
+  state.demographics.consent_confirmed = elements.consentCheckbox.checked;
+  state.demographics.complete = false;
   renderValidation();
   renderExport();
 });
@@ -2394,7 +2394,7 @@ elements.samRows.addEventListener("click", (event) => {
   }
   const assessment = activeAssessment();
   assessment.sam[field] = score;
-  markPageDirty("sam_pictographic");
+  markPageDirty("self_assessment_manikin");
   render();
 });
 
@@ -2444,8 +2444,8 @@ elements.signaturePad.addEventListener("pointerup", finishSignaturePointer);
 elements.signaturePad.addEventListener("pointercancel", finishSignaturePointer);
 
 elements.clearSignature.addEventListener("click", () => {
-  state.onboarding.signature = defaultSignature();
-  state.onboarding.complete = false;
+  state.demographics.signature = defaultSignature();
+  state.demographics.complete = false;
   signatureDrawing.currentStroke = [];
   render();
 });

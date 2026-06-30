@@ -18,7 +18,7 @@
     {
       id: "sam.valence_raw_1_9",
       variable_name: "sam_valence_raw_1_9",
-      label: "Retrospective SAM valence",
+      label: "Retrospective Self-Assessment Manikin pictograph valence",
       scale_id: "valence",
       axis_label: "Unpleasant - Pleasant",
       question: "How pleasant did this experience feel?",
@@ -29,7 +29,7 @@
     {
       id: "sam.arousal_raw_1_9",
       variable_name: "sam_arousal_raw_1_9",
-      label: "Retrospective SAM arousal",
+      label: "Retrospective Self-Assessment Manikin pictograph arousal",
       scale_id: "arousal",
       axis_label: "Low Energy - High Energy",
       question: "How activated did you feel?",
@@ -40,7 +40,7 @@
     {
       id: "sam.dominance_raw_1_9",
       variable_name: "sam_dominance_raw_1_9",
-      label: "Retrospective SAM dominance/control",
+      label: "Retrospective Self-Assessment Manikin pictograph dominance/control",
       scale_id: "dominance",
       axis_label: "Not in control - In control",
       question: "How much control did you feel during your experience?",
@@ -50,7 +50,7 @@
     }
   ].map((definition) => item({
     ...definition,
-    page: "sam_pictographic",
+    page: "self_assessment_manikin",
     group: "sam",
     response_namespace: "sam",
     type: "pictographic-choice",
@@ -113,7 +113,7 @@
     result_json_field: `answers.emotion_assessment.affect_vas.${definition.field}`
   }));
 
-  const ekmanItems = [
+  const emotionRepresentationItems = [
     { emotion_id: "anger", label: "Anger" },
     { emotion_id: "disgust", label: "Disgust" },
     { emotion_id: "fear", label: "Fear" },
@@ -123,13 +123,13 @@
   ].map((definition) => {
     const field = `${definition.emotion_id}_raw_0_100`;
     return item({
-      id: `ekman_intensity.${field}`,
-      variable_name: `particle_ekman_${field}`,
+      id: `emotion_representation_vas.${field}`,
+      variable_name: `emotion_representation_vas_${field}`,
       label: definition.label,
       emotion_id: definition.emotion_id,
-      page: "ekman_intensity",
-      group: "ekman_intensity",
-      response_namespace: "ekman_intensity",
+      page: "emotion_representation_vas",
+      group: "emotion_representation_vas",
+      response_namespace: "emotion_representation_vas",
       field,
       type: "range",
       default: 0,
@@ -142,7 +142,7 @@
       ],
       editable: "editable",
       validation: "required integer 0..100",
-      result_json_field: `answers.emotion_assessment.ekman_intensity.${field}`
+      result_json_field: `answers.emotion_assessment.emotion_representation_vas.${field}`
     });
   });
 
@@ -245,84 +245,84 @@
 
   const items = [
     item({
-      id: "onboarding.polar_validation.ready",
-      variable_name: "onboarding_polar_validation_ready",
+      id: "demographics.polar_validation.ready",
+      variable_name: "demographics_polar_validation_ready",
       label: "Polar H10 ECG validation",
-      page: "onboarding",
+      page: "demographics",
       group: "polar_validation",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "polar_validation.ready",
       type: "readonly-status-strip",
       default: true,
       editable: "native-owned",
       validation: "native ready only when HR/RR stream, PMD, ECG stream, samples, and 130 Hz are present",
-      native_state_field: "questionnaire_state.onboarding.polar_validation.ready",
-      result_json_field: "answers.onboarding.polar_validation"
+      native_state_field: "questionnaire_state.demographics.polar_validation.ready",
+      result_json_field: "answers.demographics.polar_validation"
     }),
     item({
-      id: "onboarding.language_code",
-      variable_name: "onboarding_language_code",
+      id: "demographics.language_code",
+      variable_name: "demographics_language_code",
       label: "Language",
-      page: "onboarding",
+      page: "demographics",
       group: "language",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "language_code",
       type: "segmented",
       default: "en",
       options: ["en", "de"],
       editable: "editable",
       validation: "required; must be en or de",
-      result_json_field: "answers.onboarding.language_code"
+      result_json_field: "answers.demographics.language_code"
     }),
     item({
-      id: "onboarding.participant_first_name",
-      variable_name: "onboarding_participant_first_name",
+      id: "demographics.participant_first_name",
+      variable_name: "demographics_participant_first_name",
       label: "First name",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "participant_first_name",
       type: "text",
       default: "",
       editable: "editable",
       validation: "required non-empty text",
-      result_json_field: "answers.onboarding.participant_first_name"
+      result_json_field: "answers.demographics.participant_first_name"
     }),
     item({
-      id: "onboarding.participant_last_name",
-      variable_name: "onboarding_participant_last_name",
+      id: "demographics.participant_last_name",
+      variable_name: "demographics_participant_last_name",
       label: "Last name",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "participant_last_name",
       type: "text",
       default: "",
       editable: "editable",
       validation: "required non-empty text",
-      result_json_field: "answers.onboarding.participant_last_name"
+      result_json_field: "answers.demographics.participant_last_name"
     }),
     item({
-      id: "onboarding.participant_name",
-      variable_name: "onboarding_participant_name",
+      id: "demographics.participant_name",
+      variable_name: "demographics_participant_name",
       label: "Full name",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "participant_name",
       type: "readonly-derived",
       default: "",
       editable: "derived",
       validation: "derived from first and last name",
-      result_json_field: "answers.onboarding.participant_name"
+      result_json_field: "answers.demographics.participant_name"
     }),
     item({
-      id: "onboarding.age_years",
-      variable_name: "onboarding_age_years",
+      id: "demographics.age_years",
+      variable_name: "demographics_age_years",
       label: "Age",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "age_years",
       type: "number",
       default: null,
@@ -331,79 +331,79 @@
       step: 1,
       editable: "editable",
       validation: "required integer 0..120",
-      result_json_field: "answers.onboarding.age_years"
+      result_json_field: "answers.demographics.age_years"
     }),
     item({
-      id: "onboarding.handedness",
-      variable_name: "onboarding_handedness",
+      id: "demographics.handedness",
+      variable_name: "demographics_handedness",
       label: "Handedness",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "handedness",
       type: "segmented",
       default: "",
       options: ["right", "left", "ambidextrous", "prefer_not_to_say"],
       editable: "editable",
       validation: "required; must be one handedness option id",
-      result_json_field: "answers.onboarding.handedness"
+      result_json_field: "answers.demographics.handedness"
     }),
     item({
-      id: "onboarding.gender",
-      variable_name: "onboarding_gender",
+      id: "demographics.gender",
+      variable_name: "demographics_gender",
       label: "Gender",
-      page: "onboarding",
+      page: "demographics",
       group: "demographics",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "gender",
       type: "segmented",
       default: "",
       options: ["male", "female", "other", "prefer_not_to_say"],
       editable: "editable",
       validation: "required; must be one gender option id",
-      result_json_field: "answers.onboarding.gender"
+      result_json_field: "answers.demographics.gender"
     }),
     item({
-      id: "onboarding.consent_confirmed",
-      variable_name: "onboarding_consent_confirmed",
+      id: "demographics.consent_confirmed",
+      variable_name: "demographics_consent_confirmed",
       label: "Study consent",
-      page: "onboarding",
+      page: "demographics",
       group: "consent",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "consent_confirmed",
       type: "checkbox",
       default: false,
       editable: "editable",
       validation: "required; must be checked",
-      result_json_field: "answers.onboarding.consent_confirmed"
+      result_json_field: "answers.demographics.consent_confirmed"
     }),
     item({
-      id: "onboarding.consent_text",
-      variable_name: "onboarding_consent_text",
+      id: "demographics.consent_text",
+      variable_name: "demographics_consent_text",
       label: "Consent text",
-      page: "onboarding",
+      page: "demographics",
       group: "consent",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "consent_text",
       type: "readonly-text",
       default: "I consent to participate in this study.",
       editable: "fixed",
       validation: "fixed consent wording shown to participant",
-      result_json_field: "answers.onboarding.consent_text"
+      result_json_field: "answers.demographics.consent_text"
     }),
     item({
-      id: "onboarding.signature",
-      variable_name: "onboarding_signature",
+      id: "demographics.signature",
+      variable_name: "demographics_signature",
       label: "Consent signature",
-      page: "onboarding",
+      page: "demographics",
       group: "consent",
-      response_namespace: "onboarding",
+      response_namespace: "demographics",
       field: "signature",
       type: "signature-pad",
       default: { has_signature: false, stroke_count: 0 },
       editable: "editable",
       validation: "required signature stroke data",
-      result_json_field: "answers.onboarding.signature"
+      result_json_field: "answers.demographics.signature"
     }),
     item({
       id: "counterbalance.order_id",
@@ -438,13 +438,13 @@
     item({
       id: "condition.induction_placeholder",
       variable_name: "condition_induction_placeholder",
-      label: "Emotion induction placeholder",
-      page: "emotion_induction_placeholder",
+      label: "VR task instructions",
+      page: "vr_task_instructions",
       group: "condition_induction",
       response_namespace: "condition_runtime",
       field: "induction_placeholder",
       type: "placeholder-stage",
-      default: "condition-specific native induction",
+      default: "condition-specific native VR task instructions",
       editable: "caller-owned",
       validation: "native app/caller owns induction timing, media, task state, completion, counterbalanced condition order, and randomized audio variant",
       native_state_field: "questionnaire_state.condition_induction_stage"
@@ -457,56 +457,56 @@
       response_namespace: "runtime_metadata",
       field: "active_assessment_page_id",
       type: "runtime-navigation-state",
-      default: "sam_pictographic",
-      options: ["sam_pictographic", "affect_vas", "ekman_intensity", "hand_embodiment"],
+      default: "self_assessment_manikin",
+      options: ["self_assessment_manikin", "affect_vas", "emotion_representation_vas", "hand_embodiment"],
       editable: "runtime-owned",
       validation: "derived from questionnaire workflow navigation; must be one of assessment page ids",
       native_state_field: "questionnaire_state.open_stage"
     }),
     ...samItems,
     ...affectVasItems,
-    ...ekmanItems,
+    ...emotionRepresentationItems,
     ...handEmbodimentItems
   ];
 
   const pages = [
     {
-      id: "onboarding",
-      title: "Participant onboarding",
+      id: "demographics",
+      title: "Demographics",
       groups: [
-        { id: "polar_validation", fields: ["onboarding.polar_validation.ready"] },
-        { id: "language", fields: ["onboarding.language_code"] },
+        { id: "polar_validation", fields: ["demographics.polar_validation.ready"] },
+        { id: "language", fields: ["demographics.language_code"] },
         {
           id: "demographics",
           fields: [
-            "onboarding.participant_first_name",
-            "onboarding.participant_last_name",
-            "onboarding.participant_name",
-            "onboarding.age_years",
-            "onboarding.handedness",
-            "onboarding.gender"
+            "demographics.participant_first_name",
+            "demographics.participant_last_name",
+            "demographics.participant_name",
+            "demographics.age_years",
+            "demographics.handedness",
+            "demographics.gender"
           ]
         },
         {
           id: "consent",
           fields: [
-            "onboarding.consent_confirmed",
-            "onboarding.consent_text",
-            "onboarding.signature"
+            "demographics.consent_confirmed",
+            "demographics.consent_text",
+            "demographics.signature"
           ]
         }
       ]
     },
     {
-      id: "emotion_induction_placeholder",
-      title: "Emotion induction placeholder",
+      id: "vr_task_instructions",
+      title: "VR task instructions",
       groups: [
         { id: "condition_induction", fields: ["condition.induction_placeholder"] }
       ]
     },
     {
-      id: "sam_pictographic",
-      title: "SAM: feelings during the condition",
+      id: "self_assessment_manikin",
+      title: "Self-Assessment Manikin pictographs",
       groups: [
         { id: "sam", fields: samItems.map((definition) => definition.id) }
       ]
@@ -519,10 +519,10 @@
       ]
     },
     {
-      id: "ekman_intensity",
-      title: "Particle movement emotion VAS",
+      id: "emotion_representation_vas",
+      title: "Particle emotion representation VAS",
       groups: [
-        { id: "ekman_intensity", fields: ekmanItems.map((definition) => definition.id) }
+        { id: "emotion_representation_vas", fields: emotionRepresentationItems.map((definition) => definition.id) }
       ]
     },
     {

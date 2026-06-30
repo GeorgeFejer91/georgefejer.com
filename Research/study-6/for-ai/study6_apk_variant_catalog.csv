@@ -1,0 +1,3 @@
+apk_variant_id,apk_file_code,data_folder,mapping_target
+BG_ENV,BG_ENV,Study_particle_env_data,background_environment
+HAND_AV,HAND_AV,Study_particle_hands_data,hand_avatar
