@@ -7,6 +7,7 @@
   );
 
   const scale01To09 = range(1, 9);
+  const scale01To07 = range(1, 7);
 
   const item = (definition) => ({
     item_library_version: 1,
@@ -144,6 +145,103 @@
       result_json_field: `answers.emotion_assessment.ekman_intensity.${field}`
     });
   });
+
+  const likertAgreementOptions = [
+    {
+      value: 1,
+      label: {
+        en: "Strongly disagree",
+        de: "Stimme \u00fcberhaupt nicht zu"
+      }
+    },
+    {
+      value: 2,
+      label: {
+        en: "Disagree",
+        de: "Stimme nicht zu"
+      }
+    },
+    {
+      value: 3,
+      label: {
+        en: "Somewhat disagree",
+        de: "Stimme eher nicht zu"
+      }
+    },
+    {
+      value: 4,
+      label: {
+        en: "Neither agree nor disagree",
+        de: "Weder Zustimmung noch Ablehnung"
+      }
+    },
+    {
+      value: 5,
+      label: {
+        en: "Somewhat agree",
+        de: "Stimme eher zu"
+      }
+    },
+    {
+      value: 6,
+      label: {
+        en: "Agree",
+        de: "Stimme zu"
+      }
+    },
+    {
+      value: 7,
+      label: {
+        en: "Strongly agree",
+        de: "Stimme voll und ganz zu"
+      }
+    }
+  ];
+
+  const handEmbodimentItems = [
+    {
+      id: "hand_embodiment.ownership_raw_1_7",
+      variable_name: "hand_embodiment_ownership_raw_1_7",
+      label: "Adapted VEQ hand ownership",
+      construct_id: "ownership",
+      field: "ownership_raw_1_7",
+      question: {
+        en: "It felt like the virtual hands were my own hands.",
+        de: "Es f\u00fchlte sich so an, als w\u00e4ren die virtuellen H\u00e4nde meine eigenen H\u00e4nde."
+      }
+    },
+    {
+      id: "hand_embodiment.agency_raw_1_7",
+      variable_name: "hand_embodiment_agency_raw_1_7",
+      label: "Adapted VEQ hand agency",
+      construct_id: "agency",
+      field: "agency_raw_1_7",
+      question: {
+        en: "It felt like I was controlling the movements of the virtual hands.",
+        de: "Es f\u00fchlte sich so an, als w\u00fcrde ich die Bewegungen der virtuellen H\u00e4nde kontrollieren."
+      }
+    }
+  ].map((definition) => item({
+    ...definition,
+    page: "hand_embodiment",
+    group: "hand_embodiment",
+    response_namespace: "hand_embodiment",
+    type: "likert-choice",
+    default: null,
+    min: 1,
+    max: 7,
+    step: 1,
+    options: scale01To07,
+    option_labels: likertAgreementOptions,
+    anchors: [
+      { value: 1, label: likertAgreementOptions[0].label },
+      { value: 7, label: likertAgreementOptions[6].label }
+    ],
+    source_scale: "Adapted single-item Virtual Embodiment Questionnaire (VEQ) ownership/agency measures for virtual hands",
+    editable: "editable",
+    validation: "required integer 1..7",
+    result_json_field: `answers.emotion_assessment.hand_embodiment.${definition.field}`
+  }));
 
   const items = [
     item({
@@ -360,14 +458,15 @@
       field: "active_assessment_page_id",
       type: "runtime-navigation-state",
       default: "sam_pictographic",
-      options: ["sam_pictographic", "affect_vas", "ekman_intensity"],
+      options: ["sam_pictographic", "affect_vas", "ekman_intensity", "hand_embodiment"],
       editable: "runtime-owned",
       validation: "derived from questionnaire workflow navigation; must be one of assessment page ids",
       native_state_field: "questionnaire_state.open_stage"
     }),
     ...samItems,
     ...affectVasItems,
-    ...ekmanItems
+    ...ekmanItems,
+    ...handEmbodimentItems
   ];
 
   const pages = [
@@ -424,6 +523,13 @@
       title: "Particle movement emotion VAS",
       groups: [
         { id: "ekman_intensity", fields: ekmanItems.map((definition) => definition.id) }
+      ]
+    },
+    {
+      id: "hand_embodiment",
+      title: "Virtual hand embodiment",
+      groups: [
+        { id: "hand_embodiment", fields: handEmbodimentItems.map((definition) => definition.id) }
       ]
     }
   ];

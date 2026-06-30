@@ -1407,10 +1407,7 @@ function ekmanStoryboardMarkup(assessment) {
 function handEmbodimentStoryboardMarkup(assessment) {
   const languageCode = state.onboarding.language_code;
   return `
-    <section class="assessment-page hand-embodiment-section">
-      <div class="section-title">
-        <h2>${HAND_EMBODIMENT_PROMPT}</h2>
-      </div>
+    <section class="assessment-page hand-embodiment-section" aria-label="${escapeHtml(HAND_EMBODIMENT_PROMPT)}">
       <div class="hand-likert-rows">
         ${HAND_EMBODIMENT_ITEMS.map((item) => `
           <div class="hand-likert-row">
