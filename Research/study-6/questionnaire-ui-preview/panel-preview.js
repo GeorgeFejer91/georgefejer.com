@@ -1,7 +1,7 @@
 "use strict";
 
 const PANEL_ID = "emotion_induction_sam_preview";
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const CONSENT_TEXT = "I consent to participate in this study.";
@@ -69,31 +69,38 @@ const AUDIO_INSTRUCTION_SETS = [
 const ASSESSMENT_PAGES = [
   {
     id: "sam_pictographic",
-    label: "1/3",
-    title: "How did you feel during the block?",
-    summary: "Assessment block page 1 of 3",
+    label: "1/4",
+    title: "How did the previous experience feel?",
+    summary: "Assessment block page 1 of 4",
     block_group: "Retrospective SAM valence, arousal, and dominance/control pictographic rating"
   },
   {
     id: "affect_vas",
-    label: "2/3",
-    title: "Rate how you felt during the block",
-    summary: "Assessment block page 2 of 3",
+    label: "2/4",
+    title: "Rate the previous experience",
+    summary: "Assessment block page 2 of 4",
     block_group: "Retrospective valence and arousal visual analog scales 0-100"
   },
   {
     id: "ekman_intensity",
-    label: "3/3",
+    label: "3/4",
     title: "To what degree were the emotions represented by the way the particles were moving?",
-    summary: "Assessment block page 3 of 3",
+    summary: "Assessment block page 3 of 4",
     block_group: "Perceived Ekman emotion represented by particle movement 0-100"
+  },
+  {
+    id: "hand_embodiment",
+    label: "4/4",
+    title: "Rate the virtual hands",
+    summary: "Assessment block page 4 of 4",
+    block_group: "Adapted VEQ virtual hand ownership and agency ratings"
   }
 ];
 
 const INDUCTION_PAGE = {
   id: "emotion_induction_placeholder",
   label: "Instructions",
-  title: "Block instructions",
+  title: "Instructions",
   summary: "Instructions"
 };
 
@@ -197,6 +204,19 @@ const EKMAN_EMOTIONS = QUESTIONNAIRE_ITEMS
     id: item.emotion_id,
     label: item.label,
     field: item.field
+  }));
+
+const HAND_EMBODIMENT_ITEMS = QUESTIONNAIRE_ITEMS
+  .filter((item) => item.page === "hand_embodiment" && item.response_namespace === "hand_embodiment")
+  .map((item) => ({
+    item_id: item.id,
+    variable_name: item.variable_name,
+    id: item.construct_id,
+    label: item.label,
+    question: item.question,
+    field: item.field,
+    options: item.options,
+    option_labels: item.option_labels
   }));
 
 function ekmanFieldId(emotionId) {
@@ -334,6 +354,10 @@ function defaultEkmanIntensity() {
   return Object.fromEntries(EKMAN_EMOTIONS.map((emotion) => [ekmanFieldId(emotion.id), 0]));
 }
 
+function defaultHandEmbodiment() {
+  return Object.fromEntries(HAND_EMBODIMENT_ITEMS.map((item) => [item.field, null]));
+}
+
 function defaultAffectVasTouched() {
   return Object.fromEntries(AFFECT_VAS_SLIDERS.map((slider) => [slider.field, false]));
 }
@@ -351,6 +375,7 @@ function defaultAssessment() {
     },
     affect_vas_touched: defaultAffectVasTouched(),
     ekman_intensity: defaultEkmanIntensity(),
+    hand_embodiment: defaultHandEmbodiment(),
     page_complete: defaultPageCompletion(),
     complete: false
   };
@@ -379,6 +404,10 @@ function normalizeAssessment(rawAssessment) {
       ...base.ekman_intensity,
       ...(raw.ekman_intensity || {})
     },
+    hand_embodiment: {
+      ...base.hand_embodiment,
+      ...(raw.hand_embodiment || {})
+    },
     page_complete: {
       ...base.page_complete,
       ...(raw.page_complete || {})
@@ -393,6 +422,7 @@ function exportAssessment(assessment) {
     sam: normalized.sam,
     affect_vas: normalized.affect_vas,
     ekman_intensity: normalized.ekman_intensity,
+    hand_embodiment: normalized.hand_embodiment,
     page_complete: normalized.page_complete,
     complete: normalized.complete
   };
@@ -466,9 +496,12 @@ function makeEdgeState() {
     EKMAN_EMOTIONS.forEach((emotion, emotionIndex) => {
       assessment.ekman_intensity[ekmanFieldId(emotion.id)] = index === 3 ? emotionIndex * 20 : 100 - emotionIndex * 12;
     });
+    assessment.hand_embodiment.ownership_raw_1_7 = index === 3 ? 2 : 6;
+    assessment.hand_embodiment.agency_raw_1_7 = index === 3 ? 3 : 7;
     assessment.page_complete.sam_pictographic = true;
     assessment.page_complete.affect_vas = true;
-    assessment.page_complete.ekman_intensity = index < 3;
+    assessment.page_complete.ekman_intensity = true;
+    assessment.page_complete.hand_embodiment = index < 3;
     assessment.complete = index < 3;
   });
   return state;
@@ -515,10 +548,12 @@ const elements = {
   samPage: document.getElementById("samPage"),
   vasPage: document.getElementById("vasPage"),
   ekmanPage: document.getElementById("ekmanPage"),
+  handEmbodimentPage: document.getElementById("handEmbodimentPage"),
   samRows: document.getElementById("samRows"),
   samCompletion: document.getElementById("samCompletion"),
   sliderRows: document.getElementById("sliderRows"),
   ekmanSliderRows: document.getElementById("ekmanSliderRows"),
+  handEmbodimentRows: document.getElementById("handEmbodimentRows"),
   pageCounter: document.getElementById("pageCounter"),
   validationSummary: document.getElementById("validationSummary"),
   previousPage: document.getElementById("previousPage"),
@@ -658,6 +693,7 @@ function render() {
   renderSamRows();
   renderVasSliders();
   renderEkmanSliders();
+  renderHandEmbodimentItems();
   renderValidation();
   renderExport();
   renderStoryboard();
@@ -720,20 +756,22 @@ function renderPageButtons() {
 }
 
 function renderHeader() {
+  elements.conditionStatus.textContent = "";
+  elements.conditionStatus.hidden = true;
   if (isOnboardingActive()) {
-    elements.conditionStatus.textContent = "Before block 1";
     elements.conditionLabel.textContent = "Setup";
     elements.pageLabel.textContent = "Setup";
     elements.pageTitle.textContent = "Before we begin";
-    elements.pageCounter.textContent = "Onboarding";
+    elements.pageCounter.textContent = "";
+    elements.pageCounter.hidden = true;
     return;
   }
   if (isInductionActive()) {
-    elements.conditionStatus.textContent = `Block ${state.active_condition_position} of 4`;
-    elements.conditionLabel.textContent = `Block ${state.active_condition_position}`;
+    elements.conditionLabel.textContent = "";
     elements.pageLabel.textContent = "Instructions";
-    elements.pageTitle.textContent = `Block ${state.active_condition_position} instructions`;
-    elements.pageCounter.textContent = `Block ${state.active_condition_position}`;
+    elements.pageTitle.textContent = "Instructions";
+    elements.pageCounter.textContent = "";
+    elements.pageCounter.hidden = true;
     return;
   }
   const conditionId = activeConditionId();
@@ -741,11 +779,11 @@ function renderHeader() {
   const page = activePage();
   response.assigned_position = state.active_condition_position;
   response.preview_condition_label = conditionLabelFor(conditionId);
-  elements.conditionStatus.textContent = `Block ${state.active_condition_position} of 4 - ${page.summary}`;
-  elements.conditionLabel.textContent = `Block ${state.active_condition_position}`;
-  elements.pageLabel.textContent = page.label;
+  elements.conditionLabel.textContent = "";
+  elements.pageLabel.textContent = "";
   elements.pageTitle.textContent = page.title;
-  elements.pageCounter.textContent = page.summary;
+  elements.pageCounter.textContent = "";
+  elements.pageCounter.hidden = true;
 }
 
 function renderVisiblePage() {
@@ -755,6 +793,7 @@ function renderVisiblePage() {
   elements.samPage.hidden = pageId !== "sam_pictographic";
   elements.vasPage.hidden = pageId !== "affect_vas";
   elements.ekmanPage.hidden = pageId !== "ekman_intensity";
+  elements.handEmbodimentPage.hidden = pageId !== "hand_embodiment";
 }
 
 function polarIsReady(polar = state.onboarding.polar_validation) {
@@ -838,9 +877,10 @@ function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect
 }
 
 function renderInductionPlaceholder() {
-  elements.inductionKicker.textContent = `Block ${state.active_condition_position} of 4`;
-  elements.inductionHeading.textContent = `Block ${state.active_condition_position} instructions`;
-  elements.inductionConditionLabel.textContent = `Block ${state.active_condition_position}`;
+  elements.inductionKicker.textContent = "";
+  elements.inductionKicker.hidden = true;
+  elements.inductionHeading.textContent = "Instructions";
+  elements.inductionConditionLabel.textContent = "Instructions";
   elements.inductionAudioLabel.textContent = "Audio ready";
   elements.inductionAudioSummary.textContent = "Please follow the instructions.";
   elements.inductionRandomizationNote.textContent = "";
@@ -853,7 +893,7 @@ function storyboardItems(order = activeOrder()) {
     {
       page_id: "onboarding",
       storyboard_title: "Onboarding",
-      storyboard_subtitle: "Before block 1"
+      storyboard_subtitle: "Before we begin"
     },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
@@ -862,15 +902,15 @@ function storyboardItems(order = activeOrder()) {
           page_id: INDUCTION_PAGE.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: `Block ${conditionPosition}: instructions`,
+          storyboard_title: "Instructions",
           storyboard_subtitle: "Instructions before the response pages"
         },
         ...ASSESSMENT_PAGES.map((page, pageIndex) => ({
           page_id: page.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: `Block ${conditionPosition}: page ${pageIndex + 1} of 3`,
-          storyboard_subtitle: `Response section page ${pageIndex + 1} of 3`
+          storyboard_title: page.title,
+          storyboard_subtitle: "Response section"
         }))
       ];
     })
@@ -921,6 +961,10 @@ function storyboardAssessmentFor(conditionPosition) {
         happiness_raw_0_100: 38,
         sadness_raw_0_100: 16,
         surprise_raw_0_100: 24
+      },
+      hand_embodiment: {
+        ownership_raw_1_7: 5,
+        agency_raw_1_7: 6
       }
     },
     {
@@ -934,6 +978,10 @@ function storyboardAssessmentFor(conditionPosition) {
         happiness_raw_0_100: 68,
         sadness_raw_0_100: 12,
         surprise_raw_0_100: 46
+      },
+      hand_embodiment: {
+        ownership_raw_1_7: 6,
+        agency_raw_1_7: 7
       }
     },
     {
@@ -947,6 +995,10 @@ function storyboardAssessmentFor(conditionPosition) {
         happiness_raw_0_100: 8,
         sadness_raw_0_100: 42,
         surprise_raw_0_100: 58
+      },
+      hand_embodiment: {
+        ownership_raw_1_7: 3,
+        agency_raw_1_7: 5
       }
     },
     {
@@ -960,6 +1012,10 @@ function storyboardAssessmentFor(conditionPosition) {
         happiness_raw_0_100: 78,
         sadness_raw_0_100: 8,
         surprise_raw_0_100: 36
+      },
+      hand_embodiment: {
+        ownership_raw_1_7: 7,
+        agency_raw_1_7: 6
       }
     }
   ];
@@ -998,6 +1054,38 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function localizedText(value, languageCode = state.onboarding.language_code) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value[languageCode] || value.en || Object.values(value).find(Boolean) || "";
+  }
+  return String(value ?? "");
+}
+
+function likertLabelFor(item, score, languageCode = state.onboarding.language_code) {
+  const option = (item.option_labels || []).find((candidate) => candidate.value === score);
+  return localizedText(option ? option.label : "", languageCode);
+}
+
+function stackedLabelMarkup(label) {
+  return String(label)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => `<span>${escapeHtml(word)}</span>`)
+    .join("");
+}
+
+function appendStackedLabel(element, label) {
+  element.replaceChildren();
+  String(label)
+    .split(/\s+/)
+    .filter(Boolean)
+    .forEach((word) => {
+      const span = document.createElement("span");
+      span.textContent = word;
+      element.appendChild(span);
+    });
+}
+
 function createStoryboardPanel(item) {
   const meta = storyboardPanelMeta(item);
   const panel = document.createElement("section");
@@ -1006,10 +1094,10 @@ function createStoryboardPanel(item) {
   panel.innerHTML = `
     <header class="panel-header">
       <div>
-        <p class="eyebrow">${escapeHtml(meta.conditionStatus)}</p>
+        ${meta.conditionStatus ? `<p class="eyebrow">${escapeHtml(meta.conditionStatus)}</p>` : ""}
         <h1>${escapeHtml(meta.pageTitle)}</h1>
       </div>
-      <div class="header-chips">
+      <div class="header-chips" hidden aria-hidden="true">
         <div class="stage-chip">${escapeHtml(meta.conditionLabel)}</div>
         <div class="page-chip">${escapeHtml(meta.pageLabel)}</div>
       </div>
@@ -1017,8 +1105,8 @@ function createStoryboardPanel(item) {
     ${storyboardContentMarkup(item)}
     <footer class="panel-footer">
       <div>
-        <p class="footer-label">${escapeHtml(meta.pageCounter)}</p>
-        <p class="footer-status${meta.footerError ? " error" : ""}">${escapeHtml(meta.footerStatus)}</p>
+        ${meta.pageCounter ? `<p class="footer-label">${escapeHtml(meta.pageCounter)}</p>` : ""}
+        ${meta.footerStatus ? `<p class="footer-status${meta.footerError ? " error" : ""}">${escapeHtml(meta.footerStatus)}</p>` : ""}
       </div>
       <div class="footer-actions">
         <button class="secondary-button" type="button"${meta.backDisabled ? " disabled" : ""}>Back</button>
@@ -1037,26 +1125,26 @@ function storyboardPanelMeta(item) {
     const onboarding = storyboardOnboardingState();
     const errors = onboardingValidationErrors(onboarding);
     return {
-      conditionStatus: "Before block 1",
+      conditionStatus: "",
       conditionLabel: "Setup",
       pageLabel: "Setup",
       pageTitle: "Before we begin",
-      pageCounter: "Onboarding",
+      pageCounter: "",
       footerStatus: errors.length > 0 ? errors[0] : "Ready to begin",
       footerError: errors.length > 0,
       backDisabled: true,
       nextDisabled: errors.length > 0,
-      nextText: "Begin condition 1"
+      nextText: "Begin"
     };
   }
 
   if (item.page_id === INDUCTION_PAGE.id) {
     return {
-      conditionStatus: `Block ${item.condition_position} of 4`,
-      conditionLabel: `Block ${item.condition_position}`,
+      conditionStatus: "",
+      conditionLabel: "",
       pageLabel: "Instructions",
-      pageTitle: `Block ${item.condition_position} instructions`,
-      pageCounter: `Block ${item.condition_position}`,
+      pageTitle: "Instructions",
+      pageCounter: "",
       footerStatus: "Ready to continue",
       footerError: false,
       backDisabled: false,
@@ -1068,25 +1156,20 @@ function storyboardPanelMeta(item) {
   const page = ASSESSMENT_PAGES.find((candidate) => candidate.id === item.page_id) || ASSESSMENT_PAGES[0];
   const assessment = storyboardAssessmentFor(item.condition_position);
   const errors = validationErrors(assessment, page.id);
-  const pageIsComplete = assessment.page_complete[page.id];
-  const isFinalAssessmentPage = page.id === "ekman_intensity";
+  const isFinalAssessmentPage = page.id === ASSESSMENT_PAGES[ASSESSMENT_PAGES.length - 1].id;
   return {
-    conditionStatus: `Block ${item.condition_position} of 4 - ${page.summary}`,
-    conditionLabel: `Block ${item.condition_position}`,
+    conditionStatus: "",
+    conditionLabel: "",
     pageLabel: page.label,
     pageTitle: page.title,
-    pageCounter: page.summary,
-    footerStatus: errors.length > 0
-      ? errors[0]
-      : pageIsComplete
-        ? "Page marked complete"
-        : "Ready to continue",
-    footerError: errors.length > 0,
+    pageCounter: "",
+    footerStatus: "",
+    footerError: false,
     backDisabled: false,
     nextDisabled: errors.length > 0,
     nextText: isFinalAssessmentPage
       ? item.condition_position < CONDITIONS.length
-        ? `Continue to condition ${item.condition_position + 1}`
+        ? "Continue"
         : (assessment.complete ? "Workflow marked complete" : "Mark workflow complete")
       : "Continue"
   };
@@ -1106,7 +1189,10 @@ function storyboardContentMarkup(item) {
   if (item.page_id === "affect_vas") {
     return vasStoryboardMarkup(assessment);
   }
-  return ekmanStoryboardMarkup(assessment);
+  if (item.page_id === "ekman_intensity") {
+    return ekmanStoryboardMarkup(assessment);
+  }
+  return handEmbodimentStoryboardMarkup(assessment);
 }
 
 function onboardingStoryboardMarkup() {
@@ -1130,7 +1216,7 @@ function onboardingStoryboardMarkup() {
 
       <div class="section-title onboarding-title">
         <h2>Before we begin</h2>
-        <span>Required before block 1</span>
+        <span>Required before we begin</span>
       </div>
 
       <div class="onboarding-grid">
@@ -1184,10 +1270,10 @@ function inductionStoryboardMarkup(item) {
   return `
     <section class="assessment-page induction-section">
       <div class="induction-shell">
-        <p class="induction-kicker">Block ${item.condition_position} of 4</p>
-        <h2>Block ${item.condition_position} instructions</h2>
+        <p class="induction-kicker" hidden></p>
+        <h2>Instructions</h2>
         <div class="induction-placeholder">
-          <span>Block ${item.condition_position}</span>
+          <span>Instructions</span>
           <strong>Instruction placeholder</strong>
           <div class="induction-audio">
             <small>Instructions</small>
@@ -1205,30 +1291,29 @@ function samStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page sam-section">
       <div class="section-title">
-        <h2>Choose the pictures for how you felt</h2>
-        <span>Think back to the condition just completed</span>
+        <h2>Choose one picture for each row</h2>
+        <span>Think back to the previous experience</span>
       </div>
-      <p class="page-instruction">Select the SAM pictures that best match how you felt during the condition you just experienced.</p>
+      <p class="page-instruction">Select the pictures that best match how the previous experience felt.</p>
       <div class="sam-rows">
         ${SAM_MANIKIN_ROWS.map((row) => `
           <div class="sam-row">
             <div class="row-label">
               <strong class="sam-row-question">${escapeHtml(row.question)}</strong>
-              <span class="sam-row-axis">${escapeHtml(row.label)}</span>
             </div>
             <div class="sam-scale-row">
-              <span class="sam-row-anchor sam-row-anchor-low">${escapeHtml(row.low)}</span>
+              <span class="sam-row-anchor sam-row-anchor-low">${stackedLabelMarkup(row.low)}</span>
               <div class="sam-options">
                 ${(row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => {
                   return `
                     <button type="button" class="sam-choice" aria-label="${escapeHtml(`${row.question} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
-                      <img src="${samAssetPath(row.id, score)}" alt="" draggable="false">
+                      <img src="${samAssetPath(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}">
                       <span>${score}</span>
                     </button>
                   `;
                 }).join("")}
               </div>
-              <span class="sam-row-anchor sam-row-anchor-high">${escapeHtml(row.high)}</span>
+              <span class="sam-row-anchor sam-row-anchor-high">${stackedLabelMarkup(row.high)}</span>
             </div>
           </div>
         `).join("")}
@@ -1241,10 +1326,10 @@ function vasStoryboardMarkup(assessment) {
   return `
     <section class="assessment-page slider-section">
       <div class="section-title">
-        <h2>Rate how you felt during the condition</h2>
+        <h2>Rate the previous experience</h2>
         <span>Touch both sliders, even if neutral</span>
       </div>
-      <p class="page-instruction">Think back to the session you just completed, then answer both questions.</p>
+      <p class="page-instruction">Think back to the previous experience, then rate how pleasant and active it felt.</p>
       <div class="vas-slider-rows">
         ${AFFECT_VAS_SLIDERS.map((slider) => `
           <div class="slider-row vas-slider-row">
@@ -1292,6 +1377,33 @@ function ekmanStoryboardMarkup(assessment) {
             </div>
           `;
         }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function handEmbodimentStoryboardMarkup(assessment) {
+  const languageCode = state.onboarding.language_code;
+  return `
+    <section class="assessment-page hand-embodiment-section">
+      <div class="section-title">
+        <h2>Rate the virtual hands</h2>
+        <span>Choose one response per question</span>
+      </div>
+      <div class="hand-likert-rows">
+        ${HAND_EMBODIMENT_ITEMS.map((item) => `
+          <div class="hand-likert-row">
+            <strong class="hand-likert-question">${escapeHtml(localizedText(item.question, languageCode))}</strong>
+            <div class="hand-likert-options">
+              ${(item.options || Array.from({ length: 7 }, (_, index) => index + 1)).map((score) => `
+                <button type="button" class="hand-likert-choice" aria-label="${escapeHtml(`${localizedText(item.question, languageCode)} ${score}`)}" aria-pressed="${assessment.hand_embodiment[item.field] === score ? "true" : "false"}">
+                  <span class="likert-number">${score}</span>
+                  <span class="likert-label">${escapeHtml(likertLabelFor(item, score, languageCode))}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `).join("")}
       </div>
     </section>
   `;
@@ -1345,11 +1457,7 @@ function renderSamRows() {
     const question = document.createElement("strong");
     question.className = "sam-row-question";
     question.textContent = row.question;
-    const axis = document.createElement("span");
-    axis.className = "sam-row-axis";
-    axis.textContent = row.label;
     label.appendChild(question);
-    label.appendChild(axis);
     container.appendChild(label);
 
     const scaleRow = document.createElement("div");
@@ -1357,7 +1465,7 @@ function renderSamRows() {
 
     const lowAnchor = document.createElement("span");
     lowAnchor.className = "sam-row-anchor sam-row-anchor-low";
-    lowAnchor.textContent = row.low;
+    appendStackedLabel(lowAnchor, row.low);
     scaleRow.appendChild(lowAnchor);
 
     const options = document.createElement("div");
@@ -1378,6 +1486,7 @@ function renderSamRows() {
       img.src = samAssetPath(row.id, score);
       img.alt = "";
       img.draggable = false;
+      img.dataset.samScale = row.id;
 
       const number = document.createElement("span");
       number.textContent = String(score);
@@ -1390,7 +1499,7 @@ function renderSamRows() {
 
     const highAnchor = document.createElement("span");
     highAnchor.className = "sam-row-anchor sam-row-anchor-high";
-    highAnchor.textContent = row.high;
+    appendStackedLabel(highAnchor, row.high);
     scaleRow.appendChild(highAnchor);
 
     container.appendChild(scaleRow);
@@ -1464,6 +1573,50 @@ function renderEkmanSliders() {
       render();
     });
     elements.ekmanSliderRows.appendChild(row);
+  });
+}
+
+function renderHandEmbodimentItems() {
+  const assessment = activeAssessment();
+  const languageCode = state.onboarding.language_code;
+  elements.handEmbodimentRows.replaceChildren();
+  HAND_EMBODIMENT_ITEMS.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "hand-likert-row";
+
+    const question = document.createElement("strong");
+    question.className = "hand-likert-question";
+    question.textContent = localizedText(item.question, languageCode);
+    row.appendChild(question);
+
+    const options = document.createElement("div");
+    options.className = "hand-likert-options";
+    (item.options || Array.from({ length: 7 }, (_, index) => index + 1)).forEach((score) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "hand-likert-choice";
+      button.id = `${item.item_id}_${score}`;
+      button.dataset.itemId = item.item_id;
+      button.dataset.variableName = item.variable_name;
+      button.dataset.handEmbodimentField = item.field;
+      button.dataset.handEmbodimentScore = String(score);
+      button.setAttribute("aria-label", `${localizedText(item.question, languageCode)} ${score}`);
+      button.setAttribute("aria-pressed", String(assessment.hand_embodiment[item.field] === score));
+
+      const number = document.createElement("span");
+      number.className = "likert-number";
+      number.textContent = String(score);
+
+      const label = document.createElement("span");
+      label.className = "likert-label";
+      label.textContent = likertLabelFor(item, score, languageCode);
+
+      button.appendChild(number);
+      button.appendChild(label);
+      options.appendChild(button);
+    });
+    row.appendChild(options);
+    elements.handEmbodimentRows.appendChild(row);
   });
 }
 
@@ -1645,7 +1798,7 @@ function validationErrors(assessment = activeAssessment(), pageId = activePage()
   if (pageId === "sam_pictographic") {
     SAM_MANIKIN_ROWS.forEach((row) => {
       if (!isIntegerInRange(normalized.sam[row.field], 1, 9)) {
-        errors.push(`Select SAM ${row.id}.`);
+        errors.push(`Select a picture for ${row.id}.`);
       }
     });
   }
@@ -1666,6 +1819,13 @@ function validationErrors(assessment = activeAssessment(), pageId = activePage()
       }
     });
   }
+  if (pageId === "hand_embodiment") {
+    HAND_EMBODIMENT_ITEMS.forEach((item) => {
+      if (!isIntegerInRange(normalized.hand_embodiment[item.field], 1, 7)) {
+        errors.push(`Select a response for ${item.id}.`);
+      }
+    });
+  }
   return errors;
 }
 
@@ -1674,42 +1834,42 @@ function conditionValidationErrors(assessment = activeAssessment()) {
 }
 
 function renderValidation() {
+  const skipRequired = previewSkipRequiredEnabled();
   if (isOnboardingActive()) {
     const errors = onboardingValidationErrors();
-    elements.validationSummary.classList.toggle("error", errors.length > 0);
-    elements.validationSummary.textContent = errors.length > 0
+    const hasBlockingErrors = errors.length > 0 && !skipRequired;
+    elements.validationSummary.hidden = false;
+    elements.validationSummary.classList.toggle("error", hasBlockingErrors);
+    elements.validationSummary.textContent = hasBlockingErrors
       ? errors[0]
       : state.onboarding.complete
         ? "Onboarding marked complete"
         : "Ready to begin";
     elements.previousPage.disabled = true;
-    elements.nextPage.disabled = errors.length > 0;
-    elements.nextPage.textContent = "Begin condition 1";
+    elements.nextPage.disabled = hasBlockingErrors;
+    elements.nextPage.textContent = "Begin";
     return;
   }
   if (isInductionActive()) {
+    elements.validationSummary.hidden = false;
     elements.validationSummary.classList.remove("error");
-    elements.validationSummary.textContent = "Ready to begin assessment block";
+    elements.validationSummary.textContent = "Ready to continue";
     elements.previousPage.disabled = false;
     elements.nextPage.disabled = false;
-    elements.nextPage.textContent = "Begin assessment block";
+    elements.nextPage.textContent = "Continue";
     return;
   }
   const page = activePage();
   const assessment = activeAssessment();
   const errors = validationErrors(assessment, page.id);
-  const pageIsComplete = assessment.page_complete[page.id];
-  elements.validationSummary.classList.toggle("error", errors.length > 0);
-  elements.validationSummary.textContent = errors.length > 0
-    ? errors[0]
-    : pageIsComplete
-      ? "Page marked complete"
-      : "Ready to continue";
+  elements.validationSummary.hidden = true;
+  elements.validationSummary.classList.remove("error");
+  elements.validationSummary.textContent = "";
   elements.previousPage.disabled = false;
-  elements.nextPage.disabled = errors.length > 0;
+  elements.nextPage.disabled = errors.length > 0 && !skipRequired;
   elements.nextPage.textContent = activePageIndex() === ASSESSMENT_PAGES.length - 1
     ? state.active_condition_position < CONDITIONS.length
-      ? `Continue to condition ${state.active_condition_position + 1}`
+      ? "Continue"
       : (assessment.complete ? "Workflow marked complete" : "Mark workflow complete")
     : "Continue";
 }
@@ -1782,6 +1942,7 @@ function visualStoryboardExport(order = activeOrder()) {
       "SAM pictographic choices",
       "VAS slider positions",
       "Ekman slider positions",
+      "hand embodiment Likert selections",
       "footer navigation enabled/disabled states"
     ],
     panels: items.map((item, index) => ({
@@ -1830,9 +1991,18 @@ function updateResponsivePreviewScale() {
   rootStyle.setProperty("--scaled-panel-height", `${Math.round(QUEST_PANEL_FRAME.height_dp * scale)}px`);
 }
 
-function previewControlsEnabled() {
+function urlFlagEnabled(name) {
   const params = new URLSearchParams(window.location.search);
-  return params.get("previewControls") === "1";
+  const value = params.get(name);
+  return value === "1" || value === "true";
+}
+
+function previewControlsEnabled() {
+  return urlFlagEnabled("previewControls");
+}
+
+function previewSkipRequiredEnabled() {
+  return urlFlagEnabled("previewSkipRequired");
 }
 
 function applyPreviewControlsVisibility() {
@@ -1959,9 +2129,10 @@ elements.previousPage.addEventListener("click", () => {
   }
   if (isInductionActive()) {
     if (state.active_condition_position > 1) {
+      const previousAssessmentPageId = ASSESSMENT_PAGES[ASSESSMENT_PAGES.length - 1].id;
       state.active_condition_position -= 1;
-      state.active_panel_page_id = "ekman_intensity";
-      state.active_assessment_page_id = "ekman_intensity";
+      state.active_panel_page_id = previousAssessmentPageId;
+      state.active_assessment_page_id = previousAssessmentPageId;
     } else {
       state.active_panel_page_id = "onboarding";
     }
@@ -1980,8 +2151,9 @@ elements.previousPage.addEventListener("click", () => {
 });
 
 elements.nextPage.addEventListener("click", () => {
+  const skipRequired = previewSkipRequiredEnabled();
   if (isOnboardingActive()) {
-    if (onboardingValidationErrors().length > 0) {
+    if (!skipRequired && onboardingValidationErrors().length > 0) {
       return;
     }
     state.onboarding.complete = true;
@@ -1998,7 +2170,7 @@ elements.nextPage.addEventListener("click", () => {
   }
   const assessment = activeAssessment();
   const page = activePage();
-  if (validationErrors(assessment, page.id).length > 0) {
+  if (!skipRequired && validationErrors(assessment, page.id).length > 0) {
     return;
   }
   assessment.page_complete[page.id] = true;
@@ -2007,7 +2179,7 @@ elements.nextPage.addEventListener("click", () => {
     state.active_panel_page_id = ASSESSMENT_PAGES[index + 1].id;
     state.active_assessment_page_id = ASSESSMENT_PAGES[index + 1].id;
   } else {
-    assessment.complete = conditionValidationErrors(assessment).length === 0 &&
+    assessment.complete = skipRequired || conditionValidationErrors(assessment).length === 0 &&
       ASSESSMENT_PAGES.every((item) => assessment.page_complete[item.id]);
     if (assessment.complete && state.active_condition_position < CONDITIONS.length) {
       state.active_condition_position += 1;
@@ -2065,6 +2237,22 @@ elements.samRows.addEventListener("click", (event) => {
   const assessment = activeAssessment();
   assessment.sam[field] = score;
   markPageDirty("sam_pictographic");
+  render();
+});
+
+elements.handEmbodimentRows.addEventListener("click", (event) => {
+  const button = event.target.closest(".hand-likert-choice");
+  if (!button || !elements.handEmbodimentRows.contains(button)) {
+    return;
+  }
+  const field = button.dataset.handEmbodimentField;
+  const score = Number.parseInt(button.dataset.handEmbodimentScore || "", 10);
+  if (!field || !isIntegerInRange(score, 1, 7)) {
+    return;
+  }
+  const assessment = activeAssessment();
+  assessment.hand_embodiment[field] = score;
+  markPageDirty("hand_embodiment");
   render();
 });
 

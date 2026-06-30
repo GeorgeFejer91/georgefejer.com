@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Emotion SAM Panel Preview</title>
-  <link rel="stylesheet" href="styles.css?v=20260629-study6-item-library-v1">
+  <link rel="stylesheet" href="styles.css?v=20260629-study6-item-library-v2">
 </head>
 <body>
   <main class="workspace">
@@ -12,10 +12,10 @@
       <section class="panel-frame" aria-label="Quest questionnaire panel preview">
         <header class="panel-header">
           <div>
-            <p class="eyebrow" id="conditionStatus">Before block 1</p>
+            <p class="eyebrow" id="conditionStatus" hidden></p>
             <h1 id="pageTitle">Before we begin</h1>
           </div>
-          <div class="header-chips">
+          <div class="header-chips" hidden aria-hidden="true">
             <div class="stage-chip" id="conditionLabel">Setup</div>
             <div class="page-chip" id="pageLabel">Setup</div>
           </div>
@@ -36,7 +36,7 @@
 
         <div class="section-title onboarding-title">
           <h2 id="onboardingHeading">Before we begin</h2>
-          <span>Required before block 1</span>
+          <span>Required before we begin</span>
         </div>
 
         <div class="onboarding-grid">
@@ -91,10 +91,10 @@
 
       <section id="inductionPage" class="assessment-page induction-section" aria-labelledby="inductionHeading" hidden>
         <div class="induction-shell">
-          <p class="induction-kicker" id="inductionKicker">Block 1 of 4</p>
-          <h2 id="inductionHeading">Block 1 instructions</h2>
+          <p class="induction-kicker" id="inductionKicker" hidden></p>
+          <h2 id="inductionHeading">Instructions</h2>
           <div class="induction-placeholder">
-            <span id="inductionConditionLabel">Block 1</span>
+            <span id="inductionConditionLabel">Instructions</span>
             <strong>Instruction placeholder</strong>
             <div class="induction-audio">
               <small>Instructions</small>
@@ -110,19 +110,19 @@
 
       <section id="samPage" class="assessment-page sam-section" aria-labelledby="samHeading" hidden>
         <div class="section-title">
-          <h2 id="samHeading">Choose the pictures for how you felt</h2>
-          <span id="samCompletion">Think back to the condition just completed</span>
+          <h2 id="samHeading">Choose one picture for each row</h2>
+          <span id="samCompletion">Think back to the previous experience</span>
         </div>
-        <p class="page-instruction">Select the SAM pictures that best match how you felt during the condition you just experienced.</p>
+        <p class="page-instruction">Select the pictures that best match how the previous experience felt.</p>
         <div id="samRows" class="sam-rows"></div>
       </section>
 
       <section id="vasPage" class="assessment-page slider-section" aria-labelledby="sliderHeading" hidden>
         <div class="section-title">
-          <h2 id="sliderHeading">Rate how you felt during the condition</h2>
+          <h2 id="sliderHeading">Rate the previous experience</h2>
           <span>Touch both sliders, even if neutral</span>
         </div>
-        <p class="page-instruction">Think back to the condition you just completed, then rate your negative-positive and inactive-active feeling.</p>
+        <p class="page-instruction">Think back to the previous experience, then rate how pleasant and active it felt.</p>
         <div id="sliderRows" class="vas-slider-rows"></div>
       </section>
 
@@ -135,9 +135,17 @@
         <div id="ekmanSliderRows" class="ekman-slider-grid"></div>
       </section>
 
+      <section id="handEmbodimentPage" class="assessment-page hand-embodiment-section" aria-labelledby="handEmbodimentHeading" hidden>
+        <div class="section-title">
+          <h2 id="handEmbodimentHeading">Rate the virtual hands</h2>
+          <span>Choose one response per question</span>
+        </div>
+        <div id="handEmbodimentRows" class="hand-likert-rows"></div>
+      </section>
+
         <footer class="panel-footer">
           <div>
-            <p class="footer-label" id="pageCounter">Page 1 of 3</p>
+            <p class="footer-label" id="pageCounter" hidden></p>
             <p id="validationSummary" class="footer-status">Complete</p>
           </div>
           <div class="footer-actions">
@@ -158,7 +166,7 @@
     <div id="storyboardPanels" class="storyboard-panels"></div>
   </section>
 
-  <script src="questionnaire-item-library.js?v=20260629-study6-item-library-v1"></script>
-  <script src="panel-preview.js?v=20260629-study6-item-library-v1"></script>
+  <script src="questionnaire-item-library.js?v=20260629-study6-item-library-v2"></script>
+  <script src="panel-preview.js?v=20260630-preview-skip-required"></script>
 </body>
 </html>
