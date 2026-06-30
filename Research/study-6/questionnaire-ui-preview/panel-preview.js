@@ -10,7 +10,7 @@ const SAM_ASSET_BASE_PATH = "../questionnaire-assets/sam";
 const SAM_ASSET_VERSION = "20260630-valence05-armpits";
 const HAND_EMBODIMENT_PROMPT = "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?";
 const DOMINANCE_NEUTRAL_VALENCE_SCORE = 5;
-const DOMINANCE_SAM_SCALE_FACTORS = [0.75, 0.9, 1.05, 1.2, 1.4, 1.65, 1.95, 2.25, 2.55];
+const DOMINANCE_SAM_SCALE_FACTORS = [0.825, 0.99, 1.155, 1.32, 1.54, 1.815, 2.145, 2.475, 2.805];
 const QUESTIONNAIRE_ITEM_LIBRARY = window.STUDY6_QUESTIONNAIRE_ITEM_LIBRARY;
 
 if (!QUESTIONNAIRE_ITEM_LIBRARY || !Array.isArray(QUESTIONNAIRE_ITEM_LIBRARY.items)) {

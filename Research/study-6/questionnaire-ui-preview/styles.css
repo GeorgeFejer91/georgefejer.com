@@ -586,7 +586,7 @@ h2 {
   overflow: visible;
   --sam-number-strip: 18px;
   --sam-picture-center-y: calc((100% - var(--sam-number-strip)) / 2);
-  --sam-standard-manikin-width: calc(46px * 1.4);
+  --sam-standard-manikin-width: calc(46px * 1.54);
 }
 
 .sam-choice img {
