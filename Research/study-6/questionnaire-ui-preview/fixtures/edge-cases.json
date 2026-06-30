@@ -7,7 +7,10 @@
   },
   "terminology": {
     "block_position": "presentation order position shown to the participant",
-    "condition_id": "counterbalanced condition assigned to a block",
+    "condition_id": "runtime condition assigned to a block; this preview uses the locked factor-coded VR condition ID",
+    "vr_condition_id": "locked factor-coded VR particle condition ID",
+    "coherence_level": "low or high movement coherence factor level",
+    "energy_noise_level": "low or high movement energy/noise factor level",
     "counterbalance_order_id": "mapping from block positions to counterbalanced conditions"
   },
   "native_contract_authority": {
@@ -311,10 +314,10 @@
         "variable_name": "sam_valence_raw_1_9",
         "label": "Retrospective SAM valence",
         "scale_id": "valence",
-        "axis_label": "Unpleasant - pleasant",
+        "axis_label": "Unpleasant - Pleasant",
         "question": "How pleasant did this experience feel?",
-        "low": "Very unpleasant",
-        "high": "Very pleasant",
+        "low": "Unpleasant",
+        "high": "Pleasant",
         "field": "valence_raw_1_9",
         "page": "sam_pictographic",
         "group": "sam",
@@ -338,11 +341,11 @@
         "anchors": [
           {
             "value": 1,
-            "label": "Very unpleasant"
+            "label": "Unpleasant"
           },
           {
             "value": 9,
-            "label": "Very pleasant"
+            "label": "Pleasant"
           }
         ],
         "asset_catalog_id": "sam.valence",
@@ -357,10 +360,10 @@
         "variable_name": "sam_arousal_raw_1_9",
         "label": "Retrospective SAM arousal",
         "scale_id": "arousal",
-        "axis_label": "Inactive - active",
-        "question": "How active did you feel during this experience?",
-        "low": "Very inactive",
-        "high": "Very active",
+        "axis_label": "Low Energy - High Energy",
+        "question": "How activated did you feel?",
+        "low": "Low Energy",
+        "high": "High Energy",
         "field": "arousal_raw_1_9",
         "page": "sam_pictographic",
         "group": "sam",
@@ -384,11 +387,11 @@
         "anchors": [
           {
             "value": 1,
-            "label": "Very inactive"
+            "label": "Low Energy"
           },
           {
             "value": 9,
-            "label": "Very active"
+            "label": "High Energy"
           }
         ],
         "asset_catalog_id": "sam.arousal",
@@ -403,10 +406,10 @@
         "variable_name": "sam_dominance_raw_1_9",
         "label": "Retrospective SAM dominance/control",
         "scale_id": "dominance",
-        "axis_label": "Little control - much control",
+        "axis_label": "Not in control - In control",
         "question": "How much control did you feel during your experience?",
-        "low": "Very little control",
-        "high": "Very much control",
+        "low": "Not in control",
+        "high": "In control",
         "field": "dominance_raw_1_9",
         "page": "sam_pictographic",
         "group": "sam",
@@ -430,15 +433,15 @@
         "anchors": [
           {
             "value": 1,
-            "label": "Very little control"
+            "label": "Not in control"
           },
           {
             "value": 9,
-            "label": "Very much control"
+            "label": "In control"
           }
         ],
-        "asset_catalog_id": "sam.dominance",
-        "asset_name_pattern": "dominance_{score_2digit}",
+        "asset_catalog_id": "sam.valence.neutral_scaled",
+        "asset_name_pattern": "valence_05_scaled_by_score",
         "editable": "editable",
         "validation": "required integer 1..9",
         "result_json_field": "answers.emotion_assessment.sam.dominance_raw_1_9"
@@ -448,11 +451,11 @@
         "id": "vas.valence_raw_0_100",
         "variable_name": "affect_vas_valence_raw_0_100",
         "label": "Retrospective valence VAS",
-        "axis_label": "Unpleasant - pleasant",
+        "axis_label": "Unpleasant - Pleasant",
         "question": "How pleasant did the previous experience feel?",
         "touchLabel": "valence",
-        "low": "Very unpleasant",
-        "high": "Very pleasant",
+        "low": "Unpleasant",
+        "high": "Pleasant",
         "field": "valence_raw_0_100",
         "page": "affect_vas",
         "group": "affect_vas",
@@ -466,11 +469,11 @@
         "anchors": [
           {
             "value": 0,
-            "label": "Very unpleasant"
+            "label": "Unpleasant"
           },
           {
             "value": 100,
-            "label": "Very pleasant"
+            "label": "Pleasant"
           }
         ],
         "editable": "editable",
@@ -482,11 +485,11 @@
         "id": "vas.arousal_raw_0_100",
         "variable_name": "affect_vas_arousal_raw_0_100",
         "label": "Retrospective arousal VAS",
-        "axis_label": "Inactive - active",
-        "question": "How active did you feel in the previous experience?",
+        "axis_label": "Low Energy - High Energy",
+        "question": "How activated did you feel in the previous experience?",
         "touchLabel": "arousal",
-        "low": "Very inactive",
-        "high": "Very active",
+        "low": "Low Energy",
+        "high": "High Energy",
         "field": "arousal_raw_0_100",
         "page": "affect_vas",
         "group": "affect_vas",
@@ -500,11 +503,11 @@
         "anchors": [
           {
             "value": 0,
-            "label": "Very inactive"
+            "label": "Low Energy"
           },
           {
             "value": 100,
-            "label": "Very active"
+            "label": "High Energy"
           }
         ],
         "editable": "editable",
@@ -1262,10 +1265,10 @@
       "variable_name": "sam_valence_raw_1_9",
       "label": "Retrospective SAM valence",
       "scale_id": "valence",
-      "axis_label": "Unpleasant - pleasant",
+      "axis_label": "Unpleasant - Pleasant",
       "question": "How pleasant did this experience feel?",
-      "low": "Very unpleasant",
-      "high": "Very pleasant",
+      "low": "Unpleasant",
+      "high": "Pleasant",
       "field": "valence_raw_1_9",
       "page": "sam_pictographic",
       "group": "sam",
@@ -1289,11 +1292,11 @@
       "anchors": [
         {
           "value": 1,
-          "label": "Very unpleasant"
+          "label": "Unpleasant"
         },
         {
           "value": 9,
-          "label": "Very pleasant"
+          "label": "Pleasant"
         }
       ],
       "asset_catalog_id": "sam.valence",
@@ -1308,10 +1311,10 @@
       "variable_name": "sam_arousal_raw_1_9",
       "label": "Retrospective SAM arousal",
       "scale_id": "arousal",
-      "axis_label": "Inactive - active",
-      "question": "How active did you feel during this experience?",
-      "low": "Very inactive",
-      "high": "Very active",
+      "axis_label": "Low Energy - High Energy",
+      "question": "How activated did you feel?",
+      "low": "Low Energy",
+      "high": "High Energy",
       "field": "arousal_raw_1_9",
       "page": "sam_pictographic",
       "group": "sam",
@@ -1335,11 +1338,11 @@
       "anchors": [
         {
           "value": 1,
-          "label": "Very inactive"
+          "label": "Low Energy"
         },
         {
           "value": 9,
-          "label": "Very active"
+          "label": "High Energy"
         }
       ],
       "asset_catalog_id": "sam.arousal",
@@ -1354,10 +1357,10 @@
       "variable_name": "sam_dominance_raw_1_9",
       "label": "Retrospective SAM dominance/control",
       "scale_id": "dominance",
-      "axis_label": "Little control - much control",
+      "axis_label": "Not in control - In control",
       "question": "How much control did you feel during your experience?",
-      "low": "Very little control",
-      "high": "Very much control",
+      "low": "Not in control",
+      "high": "In control",
       "field": "dominance_raw_1_9",
       "page": "sam_pictographic",
       "group": "sam",
@@ -1381,15 +1384,15 @@
       "anchors": [
         {
           "value": 1,
-          "label": "Very little control"
+          "label": "Not in control"
         },
         {
           "value": 9,
-          "label": "Very much control"
+          "label": "In control"
         }
       ],
-      "asset_catalog_id": "sam.dominance",
-      "asset_name_pattern": "dominance_{score_2digit}",
+      "asset_catalog_id": "sam.valence.neutral_scaled",
+      "asset_name_pattern": "valence_05_scaled_by_score",
       "editable": "editable",
       "validation": "required integer 1..9",
       "result_json_field": "answers.emotion_assessment.sam.dominance_raw_1_9"
@@ -1399,11 +1402,11 @@
       "id": "vas.valence_raw_0_100",
       "variable_name": "affect_vas_valence_raw_0_100",
       "label": "Retrospective valence VAS",
-      "axis_label": "Unpleasant - pleasant",
+      "axis_label": "Unpleasant - Pleasant",
       "question": "How pleasant did the previous experience feel?",
       "touchLabel": "valence",
-      "low": "Very unpleasant",
-      "high": "Very pleasant",
+      "low": "Unpleasant",
+      "high": "Pleasant",
       "field": "valence_raw_0_100",
       "page": "affect_vas",
       "group": "affect_vas",
@@ -1417,11 +1420,11 @@
       "anchors": [
         {
           "value": 0,
-          "label": "Very unpleasant"
+          "label": "Unpleasant"
         },
         {
           "value": 100,
-          "label": "Very pleasant"
+          "label": "Pleasant"
         }
       ],
       "editable": "editable",
@@ -1433,11 +1436,11 @@
       "id": "vas.arousal_raw_0_100",
       "variable_name": "affect_vas_arousal_raw_0_100",
       "label": "Retrospective arousal VAS",
-      "axis_label": "Inactive - active",
-      "question": "How active did you feel in the previous experience?",
+      "axis_label": "Low Energy - High Energy",
+      "question": "How activated did you feel in the previous experience?",
       "touchLabel": "arousal",
-      "low": "Very inactive",
-      "high": "Very active",
+      "low": "Low Energy",
+      "high": "High Energy",
       "field": "arousal_raw_0_100",
       "page": "affect_vas",
       "group": "affect_vas",
@@ -1451,11 +1454,11 @@
       "anchors": [
         {
           "value": 0,
-          "label": "Very inactive"
+          "label": "Low Energy"
         },
         {
           "value": 100,
-          "label": "Very active"
+          "label": "High Energy"
         }
       ],
       "editable": "editable",
@@ -2047,6 +2050,9 @@
         "condition_position": null,
         "counterbalanced_condition_id": null,
         "condition_id": null,
+        "vr_condition_id": null,
+        "coherence_level": null,
+        "energy_noise_level": null,
         "audio_instruction_id": null,
         "assessment_block_page": null,
         "assessment_block_page_count": null,
@@ -2057,8 +2063,11 @@
         "page_id": "emotion_induction_placeholder",
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
@@ -2069,20 +2078,26 @@
         "page_id": "sam_pictographic",
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did the previous experience feel?"
+        "title": "How did you feel while during the previous tasks?"
       },
       {
         "panel_index": 4,
         "page_id": "affect_vas",
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
@@ -2093,8 +2108,11 @@
         "page_id": "ekman_intensity",
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
@@ -2105,20 +2123,26 @@
         "page_id": "hand_embodiment",
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
       },
       {
         "panel_index": 7,
         "page_id": "emotion_induction_placeholder",
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
@@ -2129,20 +2153,26 @@
         "page_id": "sam_pictographic",
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did the previous experience feel?"
+        "title": "How did you feel while during the previous tasks?"
       },
       {
         "panel_index": 9,
         "page_id": "affect_vas",
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
@@ -2153,8 +2183,11 @@
         "page_id": "ekman_intensity",
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
@@ -2165,20 +2198,26 @@
         "page_id": "hand_embodiment",
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
       },
       {
         "panel_index": 12,
         "page_id": "emotion_induction_placeholder",
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
@@ -2189,20 +2228,26 @@
         "page_id": "sam_pictographic",
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did the previous experience feel?"
+        "title": "How did you feel while during the previous tasks?"
       },
       {
         "panel_index": 14,
         "page_id": "affect_vas",
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
@@ -2213,8 +2258,11 @@
         "page_id": "ekman_intensity",
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
@@ -2225,20 +2273,26 @@
         "page_id": "hand_embodiment",
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_3",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
       },
       {
         "panel_index": 17,
         "page_id": "emotion_induction_placeholder",
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
@@ -2249,20 +2303,26 @@
         "page_id": "sam_pictographic",
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "How did the previous experience feel?"
+        "title": "How did you feel while during the previous tasks?"
       },
       {
         "panel_index": 19,
         "page_id": "affect_vas",
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 2,
         "assessment_block_page_count": 4,
@@ -2273,8 +2333,11 @@
         "page_id": "ekman_intensity",
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 3,
         "assessment_block_page_count": 4,
@@ -2285,12 +2348,15 @@
         "page_id": "hand_embodiment",
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_4",
         "assessment_block_page": 4,
         "assessment_block_page_count": 4,
-        "title": "During the previous experience, how much did you agree or disagree with these statements about the virtual hands?"
+        "title": "During the previous experience, did the virtual reality hands feel like your real hands? Rate how much you agree or disagree with each statement."
       }
     ]
   },
@@ -2315,16 +2381,7 @@
       "../questionnaire-assets/sam/arousal/arousal_06.svg",
       "../questionnaire-assets/sam/arousal/arousal_07.svg",
       "../questionnaire-assets/sam/arousal/arousal_08.svg",
-      "../questionnaire-assets/sam/arousal/arousal_09.svg",
-      "../questionnaire-assets/sam/dominance/dominance_01.svg",
-      "../questionnaire-assets/sam/dominance/dominance_02.svg",
-      "../questionnaire-assets/sam/dominance/dominance_03.svg",
-      "../questionnaire-assets/sam/dominance/dominance_04.svg",
-      "../questionnaire-assets/sam/dominance/dominance_05.svg",
-      "../questionnaire-assets/sam/dominance/dominance_06.svg",
-      "../questionnaire-assets/sam/dominance/dominance_07.svg",
-      "../questionnaire-assets/sam/dominance/dominance_08.svg",
-      "../questionnaire-assets/sam/dominance/dominance_09.svg"
+      "../questionnaire-assets/sam/arousal/arousal_09.svg"
     ],
     "audio_instruction_asset_base_path": "../neutral-hand-audio/audio",
     "audio_instruction_asset_paths": [
@@ -2351,8 +2408,11 @@
     {
       "block_position": 1,
       "condition_position": 1,
-      "counterbalanced_condition_id": "induction_d",
-      "condition_id": "induction_d",
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "emotion_induction_placeholder",
       "assessment_block_id": null,
@@ -2363,8 +2423,11 @@
     {
       "block_position": 1,
       "condition_position": 1,
-      "counterbalanced_condition_id": "induction_d",
-      "condition_id": "induction_d",
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_1_assessment_block",
@@ -2375,8 +2438,11 @@
     {
       "block_position": 1,
       "condition_position": 1,
-      "counterbalanced_condition_id": "induction_d",
-      "condition_id": "induction_d",
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "affect_vas",
       "assessment_block_id": "block_1_assessment_block",
@@ -2387,8 +2453,11 @@
     {
       "block_position": 1,
       "condition_position": 1,
-      "counterbalanced_condition_id": "induction_d",
-      "condition_id": "induction_d",
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_1_assessment_block",
@@ -2399,8 +2468,11 @@
     {
       "block_position": 1,
       "condition_position": 1,
-      "counterbalanced_condition_id": "induction_d",
-      "condition_id": "induction_d",
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "hand_embodiment",
       "assessment_block_id": "block_1_assessment_block",
@@ -2411,8 +2483,11 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "counterbalanced_condition_id": "induction_a",
-      "condition_id": "induction_a",
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "emotion_induction_placeholder",
       "assessment_block_id": null,
@@ -2423,8 +2498,11 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "counterbalanced_condition_id": "induction_a",
-      "condition_id": "induction_a",
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_2_assessment_block",
@@ -2435,8 +2513,11 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "counterbalanced_condition_id": "induction_a",
-      "condition_id": "induction_a",
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "affect_vas",
       "assessment_block_id": "block_2_assessment_block",
@@ -2447,8 +2528,11 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "counterbalanced_condition_id": "induction_a",
-      "condition_id": "induction_a",
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_2_assessment_block",
@@ -2459,8 +2543,11 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "counterbalanced_condition_id": "induction_a",
-      "condition_id": "induction_a",
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "hand_embodiment",
       "assessment_block_id": "block_2_assessment_block",
@@ -2471,8 +2558,11 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "counterbalanced_condition_id": "induction_c",
-      "condition_id": "induction_c",
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "emotion_induction_placeholder",
       "assessment_block_id": null,
@@ -2483,8 +2573,11 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "counterbalanced_condition_id": "induction_c",
-      "condition_id": "induction_c",
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_3_assessment_block",
@@ -2495,8 +2588,11 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "counterbalanced_condition_id": "induction_c",
-      "condition_id": "induction_c",
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "affect_vas",
       "assessment_block_id": "block_3_assessment_block",
@@ -2507,8 +2603,11 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "counterbalanced_condition_id": "induction_c",
-      "condition_id": "induction_c",
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_3_assessment_block",
@@ -2519,8 +2618,11 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "counterbalanced_condition_id": "induction_c",
-      "condition_id": "induction_c",
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "hand_embodiment",
       "assessment_block_id": "block_3_assessment_block",
@@ -2531,8 +2633,11 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "counterbalanced_condition_id": "induction_b",
-      "condition_id": "induction_b",
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
       "page_id": "emotion_induction_placeholder",
       "assessment_block_id": null,
@@ -2543,8 +2648,11 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "counterbalanced_condition_id": "induction_b",
-      "condition_id": "induction_b",
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
       "page_id": "sam_pictographic",
       "assessment_block_id": "block_4_assessment_block",
@@ -2555,8 +2663,11 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "counterbalanced_condition_id": "induction_b",
-      "condition_id": "induction_b",
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
       "page_id": "affect_vas",
       "assessment_block_id": "block_4_assessment_block",
@@ -2567,8 +2678,11 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "counterbalanced_condition_id": "induction_b",
-      "condition_id": "induction_b",
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
       "page_id": "ekman_intensity",
       "assessment_block_id": "block_4_assessment_block",
@@ -2579,8 +2693,11 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "counterbalanced_condition_id": "induction_b",
-      "condition_id": "induction_b",
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_4",
       "page_id": "hand_embodiment",
       "assessment_block_id": "block_4_assessment_block",
@@ -2592,30 +2709,42 @@
   "counterbalance": {
     "order_id": "order_04",
     "condition_ids": [
-      "induction_d",
-      "induction_a",
-      "induction_c",
-      "induction_b"
+      "HC_HE",
+      "LC_LE",
+      "HC_LE",
+      "LC_HE"
     ],
     "block_condition_map": [
       {
         "block_position": 1,
-        "condition_id": "induction_d"
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high"
       },
       {
         "block_position": 2,
-        "condition_id": "induction_a"
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low"
       },
       {
         "block_position": 3,
-        "condition_id": "induction_c"
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low"
       },
       {
         "block_position": 4,
-        "condition_id": "induction_b"
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high"
       }
     ],
-    "assignment_policy": "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps counterbalanced conditions onto block positions",
+    "assignment_policy": "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps factor-coded VR conditions onto block positions",
     "equal_participant_allocation": true,
     "visible_in_questionnaire_panel": false,
     "editable_in_preview": false,
@@ -2623,7 +2752,7 @@
     "participant_input_required": false
   },
   "audio_instruction_randomization": {
-    "condition_order_policy": "counterbalance emotion scenario order through counterbalance.order_id",
+    "condition_order_policy": "counterbalance condition order through counterbalance.order_id",
     "assignment_policy": "randomly shuffle the four audio instruction variants so each runtime block receives one variant",
     "options": [
       {
@@ -2663,8 +2792,11 @@
       {
         "block_position": 1,
         "condition_position": 1,
-        "counterbalanced_condition_id": "induction_d",
-        "condition_id": "induction_d",
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
         "preview_audio_instruction_id": "audio_instruction_set_1",
         "preview_audio_instruction_label": "Audio variant V01",
         "preview_audio_asset_paths": {
@@ -2676,8 +2808,11 @@
       {
         "block_position": 2,
         "condition_position": 2,
-        "counterbalanced_condition_id": "induction_a",
-        "condition_id": "induction_a",
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
         "preview_audio_instruction_id": "audio_instruction_set_2",
         "preview_audio_instruction_label": "Audio variant V02",
         "preview_audio_asset_paths": {
@@ -2689,8 +2824,11 @@
       {
         "block_position": 3,
         "condition_position": 3,
-        "counterbalanced_condition_id": "induction_c",
-        "condition_id": "induction_c",
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
         "preview_audio_instruction_id": "audio_instruction_set_3",
         "preview_audio_instruction_label": "Audio variant V03",
         "preview_audio_asset_paths": {
@@ -2702,8 +2840,11 @@
       {
         "block_position": 4,
         "condition_position": 4,
-        "counterbalanced_condition_id": "induction_b",
-        "condition_id": "induction_b",
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
         "preview_audio_instruction_id": "audio_instruction_set_4",
         "preview_audio_instruction_label": "Audio variant V04",
         "preview_audio_asset_paths": {
@@ -2717,13 +2858,19 @@
   "active_panel_page_id": "onboarding",
   "active_block_position": 4,
   "active_condition_position": 4,
-  "active_condition_id": "induction_b",
+  "active_condition_id": "LC_HE",
+  "active_vr_condition_id": "LC_HE",
+  "active_coherence_level": "low",
+  "active_energy_noise_level": "high",
   "active_assessment_page_id": "ekman_intensity",
   "responses_by_condition": [
     {
       "block_position": 1,
       "condition_position": 1,
-      "condition_id": "induction_d",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
       "assessment": {
         "sam": {
           "valence_raw_1_9": 1,
@@ -2758,7 +2905,10 @@
     {
       "block_position": 2,
       "condition_position": 2,
-      "condition_id": "induction_a",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
       "assessment": {
         "sam": {
           "valence_raw_1_9": 9,
@@ -2793,7 +2943,10 @@
     {
       "block_position": 3,
       "condition_position": 3,
-      "condition_id": "induction_c",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
       "assessment": {
         "sam": {
           "valence_raw_1_9": 9,
@@ -2828,7 +2981,10 @@
     {
       "block_position": 4,
       "condition_position": 4,
-      "condition_id": "induction_b",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
       "assessment": {
         "sam": {
           "valence_raw_1_9": 9,

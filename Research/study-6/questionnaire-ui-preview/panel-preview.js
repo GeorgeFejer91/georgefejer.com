@@ -22,18 +22,53 @@ const QUESTIONNAIRE_PAGE_GROUPS = QUESTIONNAIRE_ITEM_LIBRARY.pages || [];
 const CONTROL_MODEL = QUESTIONNAIRE_ITEMS.map((item) => ({ ...item }));
 
 const CONDITIONS = [
-  { id: "induction_a", label: "Condition A" },
-  { id: "induction_b", label: "Condition B" },
-  { id: "induction_c", label: "Condition C" },
-  { id: "induction_d", label: "Condition D" }
+  { id: "LC_LE", label: "Low coherence / low energy", coherence_level: "low", energy_noise_level: "low" },
+  { id: "LC_HE", label: "Low coherence / high energy", coherence_level: "low", energy_noise_level: "high" },
+  { id: "HC_LE", label: "High coherence / low energy", coherence_level: "high", energy_noise_level: "low" },
+  { id: "HC_HE", label: "High coherence / high energy", coherence_level: "high", energy_noise_level: "high" }
 ];
 
 const COUNTERBALANCE_ORDERS = [
-  { id: "order_01", label: "Order 01: A B D C", condition_ids: ["induction_a", "induction_b", "induction_d", "induction_c"] },
-  { id: "order_02", label: "Order 02: B C A D", condition_ids: ["induction_b", "induction_c", "induction_a", "induction_d"] },
-  { id: "order_03", label: "Order 03: C D B A", condition_ids: ["induction_c", "induction_d", "induction_b", "induction_a"] },
-  { id: "order_04", label: "Order 04: D A C B", condition_ids: ["induction_d", "induction_a", "induction_c", "induction_b"] }
+  { id: "order_01", label: "Order 01: LC_LE LC_HE HC_HE HC_LE", condition_ids: ["LC_LE", "LC_HE", "HC_HE", "HC_LE"] },
+  { id: "order_02", label: "Order 02: LC_HE HC_LE LC_LE HC_HE", condition_ids: ["LC_HE", "HC_LE", "LC_LE", "HC_HE"] },
+  { id: "order_03", label: "Order 03: HC_LE HC_HE LC_HE LC_LE", condition_ids: ["HC_LE", "HC_HE", "LC_HE", "LC_LE"] },
+  { id: "order_04", label: "Order 04: HC_HE LC_LE HC_LE LC_HE", condition_ids: ["HC_HE", "LC_LE", "HC_LE", "LC_HE"] }
 ];
+
+function conditionFor(id) {
+  return CONDITIONS.find((condition) => condition.id === id) || CONDITIONS[0];
+}
+
+function conditionExportFields(conditionId) {
+  const condition = conditionFor(conditionId);
+  return {
+    condition_id: condition.id,
+    vr_condition_id: condition.id,
+    coherence_level: condition.coherence_level,
+    energy_noise_level: condition.energy_noise_level
+  };
+}
+
+function nullableConditionExportFields(conditionId) {
+  return conditionId
+    ? conditionExportFields(conditionId)
+    : {
+      condition_id: null,
+      vr_condition_id: null,
+      coherence_level: null,
+      energy_noise_level: null
+    };
+}
+
+function activeConditionExportFields() {
+  const conditionFields = conditionExportFields(activeConditionId());
+  return {
+    active_condition_id: conditionFields.condition_id,
+    active_vr_condition_id: conditionFields.vr_condition_id,
+    active_coherence_level: conditionFields.coherence_level,
+    active_energy_noise_level: conditionFields.energy_noise_level
+  };
+}
 
 const AUDIO_INSTRUCTION_SETS = [
   {
@@ -470,6 +505,9 @@ function makeState() {
     active_assessment_page_id: "sam_pictographic",
     responses_by_condition: CONDITIONS.map((condition, index) => ({
       condition_id: condition.id,
+      vr_condition_id: condition.id,
+      coherence_level: condition.coherence_level,
+      energy_noise_level: condition.energy_noise_level,
       preview_condition_label: condition.label,
       assigned_position: index + 1,
       assessment: defaultAssessment()
@@ -643,7 +681,7 @@ function assessmentPageNumber(pageId) {
 }
 
 function conditionLabelFor(id) {
-  return (CONDITIONS.find((condition) => condition.id === id) || CONDITIONS[0]).label;
+  return conditionFor(id).label;
 }
 
 function audioInstructionFor(conditionPosition) {
@@ -677,9 +715,13 @@ function renderAudioAssetLinks(container, languageCode = state.onboarding.langua
 function responseFor(conditionId = activeConditionId()) {
   let response = state.responses_by_condition.find((entry) => entry.condition_id === conditionId);
   if (!response) {
+    const condition = conditionFor(conditionId);
     response = {
-      condition_id: conditionId,
-      preview_condition_label: conditionLabelFor(conditionId),
+      condition_id: condition.id,
+      vr_condition_id: condition.id,
+      coherence_level: condition.coherence_level,
+      energy_noise_level: condition.energy_noise_level,
+      preview_condition_label: condition.label,
       assigned_position: state.active_condition_position,
       assessment: defaultAssessment()
     };
@@ -2009,6 +2051,7 @@ function expandedPreviewSequence(order = activeOrder()) {
     },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
+      const conditionFields = conditionExportFields(conditionId);
       return conditionBlockSequence().map((pageId) => {
         const pageNumber = assessmentPageNumber(pageId);
         const page = ASSESSMENT_PAGES.find((candidate) => candidate.id === pageId);
@@ -2016,7 +2059,7 @@ function expandedPreviewSequence(order = activeOrder()) {
           block_position: conditionPosition,
           condition_position: conditionPosition,
           counterbalanced_condition_id: conditionId,
-          condition_id: conditionId,
+          ...conditionFields,
           audio_instruction_id: audioInstructionFor(conditionPosition).id,
           page_id: pageId,
           assessment_block_id: pageNumber ? `block_${conditionPosition}_assessment_block` : null,
@@ -2054,18 +2097,21 @@ function visualStoryboardExport(order = activeOrder()) {
       "hand embodiment Likert selections",
       "footer navigation enabled/disabled states"
     ],
-    panels: items.map((item, index) => ({
-      panel_index: index + 1,
-      page_id: item.page_id,
-      block_position: item.condition_position || null,
-      condition_position: item.condition_position || null,
-      counterbalanced_condition_id: item.condition_id || null,
-      condition_id: item.condition_id || null,
-      audio_instruction_id: item.condition_position ? audioInstructionFor(item.condition_position).id : null,
-      assessment_block_page: assessmentPageNumber(item.page_id),
-      assessment_block_page_count: assessmentPageNumber(item.page_id) ? ASSESSMENT_PAGES.length : null,
-      title: item.storyboard_title
-    }))
+    panels: items.map((item, index) => {
+      const conditionFields = nullableConditionExportFields(item.condition_id);
+      return {
+        panel_index: index + 1,
+        page_id: item.page_id,
+        block_position: item.condition_position || null,
+        condition_position: item.condition_position || null,
+        counterbalanced_condition_id: item.condition_id || null,
+        ...conditionFields,
+        audio_instruction_id: item.condition_position ? audioInstructionFor(item.condition_position).id : null,
+        assessment_block_page: assessmentPageNumber(item.page_id),
+        assessment_block_page_count: assessmentPageNumber(item.page_id) ? ASSESSMENT_PAGES.length : null,
+        title: item.storyboard_title
+      };
+    })
   };
 }
 
@@ -2077,7 +2123,7 @@ function previewAudioAssignments(order = activeOrder()) {
       block_position: conditionPosition,
       condition_position: conditionPosition,
       counterbalanced_condition_id: conditionId,
-      condition_id: conditionId,
+      ...conditionExportFields(conditionId),
       preview_audio_instruction_id: audio.id,
       preview_audio_instruction_label: audio.label,
       preview_audio_asset_paths: audio.asset_paths,
@@ -2133,7 +2179,10 @@ function exportObject() {
     quest_panel_frame: QUEST_PANEL_FRAME,
     terminology: {
       block_position: "presentation order position shown to the participant",
-      condition_id: "counterbalanced condition assigned to a block",
+      condition_id: "runtime condition assigned to a block; this preview uses the locked factor-coded VR condition ID",
+      vr_condition_id: "locked factor-coded VR particle condition ID",
+      coherence_level: "low or high movement coherence factor level",
+      energy_noise_level: "low or high movement energy/noise factor level",
       counterbalance_order_id: "mapping from block positions to counterbalanced conditions"
     },
     native_contract_authority: {
@@ -2167,9 +2216,9 @@ function exportObject() {
       condition_ids: order.condition_ids,
       block_condition_map: order.condition_ids.map((conditionId, index) => ({
         block_position: index + 1,
-        condition_id: conditionId
+        ...conditionExportFields(conditionId)
       })),
-      assignment_policy: "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps counterbalanced conditions onto block positions",
+      assignment_policy: "study runner/data logging assigns each participant to the least-filled counterbalance order from accumulated allocation counts; each order maps factor-coded VR conditions onto block positions",
       equal_participant_allocation: true,
       visible_in_questionnaire_panel: false,
       editable_in_preview: false,
@@ -2177,7 +2226,7 @@ function exportObject() {
       participant_input_required: false
     },
     audio_instruction_randomization: {
-      condition_order_policy: "counterbalance emotion scenario order through counterbalance.order_id",
+      condition_order_policy: "counterbalance condition order through counterbalance.order_id",
       assignment_policy: "randomly shuffle the four audio instruction variants so each runtime block receives one variant",
       options: AUDIO_INSTRUCTION_SETS,
       preview_assignments: previewAudioAssignments(order)
@@ -2185,14 +2234,14 @@ function exportObject() {
     active_panel_page_id: activePanelPageId(),
     active_block_position: state.active_condition_position,
     active_condition_position: state.active_condition_position,
-    active_condition_id: activeConditionId(),
+    ...activeConditionExportFields(),
     active_assessment_page_id: activePage().id,
     responses_by_condition: order.condition_ids.map((conditionId, index) => {
       const response = responseFor(conditionId);
       return {
         block_position: index + 1,
         condition_position: index + 1,
-        condition_id: conditionId,
+        ...conditionExportFields(conditionId),
         assessment: exportAssessment(response.assessment)
       };
     })

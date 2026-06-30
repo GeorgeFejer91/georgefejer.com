@@ -70,9 +70,19 @@ rate.
 Terminology is separated deliberately:
 
 - `block_position` means the presentation order shown to the participant.
-- `condition_id` means the counterbalanced condition assigned to that block.
+- `condition_id` means the factor-coded VR condition assigned to that block.
+- `vr_condition_id` is identical to `condition_id` in this preview contract.
 - `counterbalance.order_id` defines the mapping from block positions to
   counterbalanced conditions.
+
+The preview uses the locked neutral factor-coded condition IDs directly:
+
+| VR condition ID | Abbreviation | Coherence | Energy/noise |
+| --- | --- | --- | --- |
+| `LC_LE` | Low coherence / low energy | Low | Low |
+| `LC_HE` | Low coherence / high energy | Low | High |
+| `HC_LE` | High coherence / low energy | High | Low |
+| `HC_HE` | High coherence / high energy | High | High |
 
 Counterbalancing is represented as background request/caller-owned metadata,
 not as questionnaire panel input:
@@ -81,14 +91,24 @@ not as questionnaire panel input:
 - `counterbalance.condition_ids`
 - `condition.active_index`
 
+The current preview-defined orders preserve the original four-order rotation
+pattern over the factor-coded VR condition IDs:
+
+| Order ID | Condition order |
+| --- | --- |
+| `order_01` | `LC_LE`, `LC_HE`, `HC_HE`, `HC_LE` |
+| `order_02` | `LC_HE`, `HC_LE`, `LC_LE`, `HC_HE` |
+| `order_03` | `HC_LE`, `HC_HE`, `LC_HE`, `LC_LE` |
+| `order_04` | `HC_HE`, `LC_LE`, `HC_LE`, `LC_HE` |
+
 The intended allocation is equal across the four counterbalance orders, so the
 native study runner, caller, or data-logging layer assigns the next participant
 from persisted allocation counts to keep `order_01` through `order_04`
 balanced. The participant never chooses this, and the questionnaire panel never
 asks for it.
 
-Each induction technique placeholder uses a counterbalanced emotion scenario
-order and a runtime-randomized audio instruction variant. The audio package has
+Each induction technique placeholder uses a counterbalanced condition order and
+a runtime-randomized audio instruction variant. The audio package has
 four variants of essentially the same participant instruction in different
 movement orders. At runtime, randomly assign those four variants across the four
 blocks for a participant/session. The browser preview keeps those assignments
