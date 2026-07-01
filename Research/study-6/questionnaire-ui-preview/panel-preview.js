@@ -5,6 +5,7 @@ const SCHEMA_VERSION = 8;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
 const RECENT_POLAR_SAMPLE_COUNT = 260;
+const REAL_POLAR_SOURCE = "polar_h10_android_ble_pmd";
 const DEFAULT_LANGUAGE_CODE = "en";
 const CONSENT_TEXT = "I consent to participate in this study.";
 const AUDIO_ASSET_BASE_PATH = "../neutral-hand-audio/audio";
@@ -211,7 +212,9 @@ const UI_TEXT = {
     "polar.id": "Polar ID: {device}",
     "polar.not_connected": "not connected",
     "polar.waiting": "Waiting for Polar H10 signal",
-    "polar.waveform_aria": "ECG waveform preview",
+    "polar.searching": "Searching for nearby Polar H10",
+    "polar.waiting_samples": "Waiting for live Polar ECG samples",
+    "polar.waveform_aria": "Live Polar H10 ECG waveform",
     "session.count": "Session {position} of {total}",
     "session.ready_question": "Are you ready for the next part?",
     "session.vr_task": "VR task",
@@ -315,7 +318,9 @@ const UI_TEXT = {
     "polar.id": "Polar-ID: {device}",
     "polar.not_connected": "nicht verbunden",
     "polar.waiting": "Warten auf Polar-H10-Signal",
-    "polar.waveform_aria": "EKG-Wellenformvorschau",
+    "polar.searching": "Suche nach Polar H10 in der Naehe",
+    "polar.waiting_samples": "Warten auf Live-EKG-Samples vom Polar H10",
+    "polar.waveform_aria": "Live-EKG-Wellenform vom Polar H10",
     "session.count": "Sitzung {position} von {total}",
     "session.ready_question": "Sind Sie bereit für den nächsten Teil?",
     "session.vr_task": "VR-Aufgabe",
@@ -581,32 +586,32 @@ function dominanceManikinStyleAttribute(scaleId, score) {
 
 function defaultPolarValidation() {
   return {
-    source: "browser_visual_preview",
-    state: "ready",
-    ready: true,
-    detected: true,
-    connected: true,
-    streaming: true,
-    pmd_ready: true,
-    ecg_streaming: true,
-    device_id: "Polar H10 Preview",
-    device_name: "Polar H10 Preview",
-    device_address: "browser-preview",
-    heart_rate_bpm: 72,
-    rr_interval_count: 8,
-    ecg_sample_count: 180,
-    pmd_frame_count: 12,
+    source: "native_pending",
+    state: "scanning",
+    ready: false,
+    detected: false,
+    connected: false,
+    streaming: false,
+    pmd_ready: false,
+    ecg_streaming: false,
+    device_id: "",
+    device_name: "",
+    device_address: "",
+    heart_rate_bpm: 0,
+    rr_interval_count: 0,
+    ecg_sample_count: 0,
+    pmd_frame_count: 0,
     requested_mtu: 23,
-    negotiated_mtu: 23,
+    negotiated_mtu: 0,
     ecg_sample_rate_hz: POLAR_ECG_SAMPLE_RATE_HZ,
     ecg_resolution_bits: 14,
-    pmd_control_point_indications_enabled: true,
-    pmd_data_notifications_enabled: true,
-    pmd_settings_received: true,
-    pmd_start_response_received: true,
+    pmd_control_point_indications_enabled: false,
+    pmd_data_notifications_enabled: false,
+    pmd_settings_received: false,
+    pmd_start_response_received: false,
     recent_ecg_samples_uv: [],
-    diagnostic: "PMD ready | ECG streaming | MTU 23/23",
-    native_ready_rule: "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
+    diagnostic: "Searching for nearby Polar H10",
+    native_ready_rule: "source == polar_h10_android_ble_pmd && streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && recent_ecg_samples_uv.length >= 2 && ecg_sample_rate_hz == 130"
   };
 }
 
@@ -1194,15 +1199,27 @@ function renderVisiblePage() {
   elements.handEmbodimentPage.hidden = pageId !== "hand_embodiment";
 }
 
+function realPolarSamples(polar = state.demographics.polar_validation) {
+  return Array.isArray(polar.recent_ecg_samples_uv)
+    ? polar.recent_ecg_samples_uv.map((sample) => Number(sample)).filter((sample) => Number.isFinite(sample))
+    : [];
+}
+
+function polarHasRealNativeSamples(polar = state.demographics.polar_validation) {
+  return String(polar.source || "") === REAL_POLAR_SOURCE && realPolarSamples(polar).length >= 2;
+}
+
 function polarIsReady(polar = state.demographics.polar_validation) {
   return Boolean(
-    polar.ready &&
+    String(polar.source || "") === REAL_POLAR_SOURCE &&
+      polar.ready &&
       polar.streaming &&
       polar.heart_rate_bpm > 0 &&
       polar.rr_interval_count > 0 &&
       polar.pmd_ready &&
       polar.ecg_streaming &&
       polar.ecg_sample_count > 0 &&
+      polarHasRealNativeSamples(polar) &&
       polar.ecg_sample_rate_hz === POLAR_ECG_SAMPLE_RATE_HZ
   );
 }
@@ -1220,8 +1237,18 @@ function polarDeviceLabel(polar = state.demographics.polar_validation, languageC
   return name || address || uiText("polar.not_connected", languageCode);
 }
 
+function polarWaitingMessage(polar = state.demographics.polar_validation, languageCode = currentLanguageCode()) {
+  if (polar.connected || polar.streaming || polar.pmd_ready || polar.ecg_streaming || realPolarSamples(polar).length > 0) {
+    return uiText("polar.waiting_samples", languageCode);
+  }
+  return uiText("polar.searching", languageCode);
+}
+
 function localizedPolarDiagnostic(polar, ready, languageCode = currentLanguageCode()) {
   const diagnostic = String(ready ? (polar.diagnostic || "") : (polar.diagnostic || polar.state || "")).trim();
+  if (!ready && !polar.connected && !polar.detected) {
+    return uiText("polar.searching", languageCode);
+  }
   if (languageCode !== "de") {
     return diagnostic || uiText("polar.waiting", languageCode);
   }
@@ -1259,13 +1286,15 @@ function renderDemographics() {
 
   elements.polarStatusCard.classList.toggle("ready", ready);
   elements.polarStatusCard.classList.toggle("waiting", !ready);
-  elements.polarStatusTitle.textContent = ready ? uiText("polar.ready", languageCode) : uiText("polar.pending", languageCode);
-  elements.polarSignalDetail.textContent = uiText("polar.detail", languageCode, {
-    heartRate: polar.heart_rate_bpm,
-    rrCount: polar.rr_interval_count,
-    sampleCount: polar.ecg_sample_count,
-    sampleRate: polar.ecg_sample_rate_hz
-  });
+  elements.polarStatusTitle.textContent = ready ? uiText("polar.ready", languageCode) : polarWaitingMessage(polar, languageCode);
+  elements.polarSignalDetail.textContent = ready
+    ? uiText("polar.detail", languageCode, {
+        heartRate: polar.heart_rate_bpm,
+        rrCount: polar.rr_interval_count,
+        sampleCount: polar.ecg_sample_count,
+        sampleRate: polar.ecg_sample_rate_hz
+      })
+    : polarWaitingMessage(polar, languageCode);
   elements.polarDeviceId.textContent = uiText("polar.id", languageCode, { device: polarDeviceLabel(polar, languageCode) });
   elements.polarDiagnostic.textContent = localizedPolarDiagnostic(polar, ready, languageCode);
 
@@ -1683,18 +1712,20 @@ function demographicsStoryboardMarkup() {
         <div class="polar-status-main">
           <span class="status-lamp" aria-hidden="true"></span>
           <div>
-            <p class="story-polar-title">${escapeHtml(ready ? uiText("polar.ready", languageCode) : uiText("polar.pending", languageCode))}</p>
-            <p class="story-polar-detail">${escapeHtml(uiText("polar.detail", languageCode, {
-              heartRate: polar.heart_rate_bpm,
-              rrCount: polar.rr_interval_count,
-              sampleCount: polar.ecg_sample_count,
-              sampleRate: polar.ecg_sample_rate_hz
-            }))}</p>
+            <p class="story-polar-title">${escapeHtml(ready ? uiText("polar.ready", languageCode) : polarWaitingMessage(polar, languageCode))}</p>
+            <p class="story-polar-detail">${escapeHtml(ready
+              ? uiText("polar.detail", languageCode, {
+                  heartRate: polar.heart_rate_bpm,
+                  rrCount: polar.rr_interval_count,
+                  sampleCount: polar.ecg_sample_count,
+                  sampleRate: polar.ecg_sample_rate_hz
+                })
+              : polarWaitingMessage(polar, languageCode))}</p>
             <p class="story-polar-detail">${escapeHtml(uiText("polar.id", languageCode, { device: polarDeviceLabel(polar, languageCode) }))}</p>
             <p class="story-polar-diagnostic">${escapeHtml(localizedPolarDiagnostic(polar, ready, languageCode))}</p>
           </div>
         </div>
-        <canvas class="polar-waveform storyboard-polar-waveform" width="300" height="48" data-ready="${ready ? "true" : "false"}" aria-label="${escapeHtml(uiText("polar.waveform_aria", languageCode))}"></canvas>
+        <canvas class="polar-waveform storyboard-polar-waveform" width="300" height="48" data-ready="${ready ? "true" : "false"}" data-message="${escapeHtml(polarWaitingMessage(polar, languageCode))}" aria-label="${escapeHtml(uiText("polar.waveform_aria", languageCode))}"></canvas>
       </div>
 
       <div class="section-title demographics-title">
@@ -1919,7 +1950,7 @@ function optionButtonsMarkup(options, selectedValue, languageCode = currentLangu
 
 function drawStoryboardCanvases() {
   document.querySelectorAll(".storyboard-polar-waveform").forEach((canvas) => {
-    drawPolarWaveformCanvas(canvas, canvas.dataset.ready === "true");
+    drawPolarWaveformCanvas(canvas, canvas.dataset.ready === "true", [], canvas.dataset.message || "");
   });
 }
 
@@ -2245,16 +2276,16 @@ function prepareCanvas(canvas) {
 
 function drawPolarWaveform() {
   const polar = state.demographics.polar_validation;
-  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(polar), polar.recent_ecg_samples_uv);
+  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(polar), polar.recent_ecg_samples_uv, polarWaitingMessage(polar));
 }
 
-function drawPolarWaveformCanvas(canvas, ready, samples = []) {
+function drawPolarWaveformCanvas(canvas, ready, samples = [], waitingMessage = "") {
   const prepared = prepareCanvas(canvas);
   if (!prepared) {
     return;
   }
   const { context, width, height } = prepared;
-  const traceColor = ready ? "#127a3a" : "#a06a00";
+  const values = ready ? realPolarSamples({ recent_ecg_samples_uv: samples }).slice(-RECENT_POLAR_SAMPLE_COUNT) : [];
   context.fillStyle = "rgba(255, 255, 255, 0.7)";
   context.fillRect(0, 0, width, height);
   context.strokeStyle = "rgba(71, 85, 105, 0.14)";
@@ -2267,33 +2298,23 @@ function drawPolarWaveformCanvas(canvas, ready, samples = []) {
     context.stroke();
   });
 
-  const count = 180;
+  if (values.length < 2) {
+    context.fillStyle = "#6b7280";
+    context.font = "600 11px Inter, Arial, sans-serif";
+    context.textBaseline = "middle";
+    context.fillText(waitingMessage || "Searching for nearby Polar H10", 12, height / 2);
+    return;
+  }
+
   const baseline = height * 0.52;
-  context.strokeStyle = traceColor;
+  context.strokeStyle = "#127a3a";
   context.lineWidth = 2.2;
   context.lineCap = "round";
   context.beginPath();
-  const realSamples = Array.isArray(samples)
-    ? samples.map((sample) => Number(sample)).filter((sample) => Number.isFinite(sample))
-    : [];
-  const values = realSamples.length >= 2 ? realSamples.slice(-RECENT_POLAR_SAMPLE_COUNT) : null;
-  const scale = values
-    ? Math.max(120, ...values.map((sample) => Math.abs(sample)))
-    : 1;
-  const drawCount = values ? values.length : count;
+  const scale = Math.max(120, ...values.map((sample) => Math.abs(sample)));
+  const drawCount = values.length;
   for (let index = 0; index < drawCount; index += 1) {
-    const wave = values
-      ? values[index] / scale
-      : (() => {
-          const phase = index % 45;
-          const spike =
-            phase === 12 ? -0.42 :
-            phase === 13 ? 0.86 :
-            phase === 14 ? -0.32 :
-            phase > 25 && phase < 34 ? 0.18 * Math.sin((phase - 25) / 9 * Math.PI) :
-            0;
-          return Math.sin(index * 0.22) * 0.08 + spike;
-        })();
+    const wave = values[index] / scale;
     const x = drawCount <= 1 ? 0 : (index / (drawCount - 1)) * width;
     const y = Math.max(4, Math.min(height - 4, baseline - wave * height * 0.42));
     if (index === 0) {

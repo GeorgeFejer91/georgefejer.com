@@ -169,7 +169,7 @@ function main() {
     gender: "prefer_not_to_say",
     consent_confirmed: true,
     consent_text: "I consent to participate in this study.",
-    polar_validation: { ready: true, source: "debug_placeholder" },
+    polar_validation: { ready: false, source: "verification_no_live_ecg_display", diagnostic: "Automated verifier did not render or display ECG." },
     complete: true
   });
 

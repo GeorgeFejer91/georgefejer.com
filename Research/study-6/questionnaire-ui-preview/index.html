@@ -22,17 +22,17 @@
         </header>
 
       <section id="demographicsPage" class="assessment-page demographics-section" aria-labelledby="demographicsHeading">
-        <div id="polarStatusCard" class="polar-status ready">
+        <div id="polarStatusCard" class="polar-status waiting">
           <div class="polar-status-main">
             <span class="status-lamp" aria-hidden="true"></span>
             <div>
-              <p id="polarStatusTitle">Polar H10 ECG ready</p>
-              <p id="polarSignalDetail">HR 72 bpm | RR 8 | ECG 180 samples @ 130 Hz</p>
-              <p id="polarDeviceId">Polar ID: Polar H10 Preview</p>
-              <p id="polarDiagnostic">PMD ready | ECG streaming | MTU 23/23</p>
+              <p id="polarStatusTitle">Searching for nearby Polar H10</p>
+              <p id="polarSignalDetail">Waiting for live Polar ECG samples</p>
+              <p id="polarDeviceId">Polar ID: not connected</p>
+              <p id="polarDiagnostic">Searching for nearby Polar H10</p>
             </div>
           </div>
-          <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="ECG waveform preview"></canvas>
+          <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="Live Polar H10 ECG waveform"></canvas>
         </div>
 
         <div class="section-title demographics-title">

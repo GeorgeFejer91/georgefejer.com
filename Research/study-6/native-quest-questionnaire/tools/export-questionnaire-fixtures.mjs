@@ -6,9 +6,21 @@ import { createRequire } from "node:module";
 
 function playwrightRequire() {
   const nodePathEntries = (process.env.NODE_PATH || "").split(path.delimiter).filter(Boolean);
+  const pnpmPlaywrightCandidates = [];
+  nodePathEntries.forEach((entry) => {
+    const pnpmDir = path.join(entry, ".pnpm");
+    if (!fs.existsSync(pnpmDir)) {
+      return;
+    }
+    fs.readdirSync(pnpmDir, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory() && dirent.name.startsWith("playwright@"))
+      .forEach((dirent) => {
+        pnpmPlaywrightCandidates.push(path.join(pnpmDir, dirent.name, "node_modules"));
+      });
+  });
   const candidates = [
     ...nodePathEntries,
-    ...nodePathEntries.map((entry) => path.join(entry, ".pnpm", "playwright@1.61.0", "node_modules"))
+    ...pnpmPlaywrightCandidates
   ];
   for (const candidate of candidates) {
     if (
