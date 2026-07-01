@@ -1735,10 +1735,6 @@ function demographicsStoryboardMarkup() {
 
       <div class="demographics-grid">
         <div class="demographics-column">
-          <div class="field-group">
-            <label>${escapeHtml(uiText("demographics.language", languageCode))}</label>
-            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, demographics.language_code, languageCode)}</div>
-          </div>
           <div class="split-field-row">
             <div class="field-row">
               <label>${escapeHtml(uiText("demographics.first_name", languageCode))}</label>
@@ -1764,6 +1760,10 @@ function demographicsStoryboardMarkup() {
         </div>
 
         <div class="demographics-column consent-column">
+          <div class="field-group">
+            <label>${escapeHtml(uiText("demographics.language", languageCode))}</label>
+            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, demographics.language_code, languageCode)}</div>
+          </div>
           <label class="consent-check">
             <input type="checkbox" ${demographics.consent_confirmed ? "checked" : ""} aria-label="${escapeHtml(uiText("consent.aria", languageCode))}">
             <span>${escapeHtml(demographics.consent_text)}</span>
@@ -2724,9 +2724,12 @@ function setNativeEntryValue(elementId, value) {
   if (!element || !["participantFirstName", "participantLastName", "participantAge"].includes(element.id)) {
     return false;
   }
+  window.__study6SuppressNativeKeyboardRequest = true;
   element.value = String(value == null ? "" : value);
   element.dispatchEvent(new Event("input", { bubbles: true }));
-  element.focus({ preventScroll: false });
+  window.setTimeout(() => {
+    window.__study6SuppressNativeKeyboardRequest = false;
+  }, 300);
   return true;
 }
 
@@ -2857,6 +2860,9 @@ function requestNativeKeyboardFor(element) {
     return;
   }
   const request = () => {
+    if (window.__study6SuppressNativeKeyboardRequest) {
+      return;
+    }
     element.focus({ preventScroll: false });
     if (window.AndroidStudy6 && typeof window.AndroidStudy6.requestKeyboard === "function") {
       const label = document.querySelector(`label[for="${element.id}"]`);

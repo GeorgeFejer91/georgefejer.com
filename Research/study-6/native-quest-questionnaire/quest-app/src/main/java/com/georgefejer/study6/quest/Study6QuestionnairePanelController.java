@@ -10,11 +10,15 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -255,6 +259,7 @@ final class Study6QuestionnairePanelController {
         editText.setText(currentValue == null ? "" : currentValue);
         editText.setSelectAllOnFocus(true);
         editText.setMinEms("number".equals(inputMode) ? 6 : 18);
+        editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         editText.setLayoutParams(new ViewGroup.MarginLayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -266,12 +271,48 @@ final class Study6QuestionnairePanelController {
                     | InputType.TYPE_TEXT_FLAG_CAP_WORDS
                     | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
         }
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No-op.
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                applyNativeEntryValue(elementId, s == null ? "" : s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // No-op.
+            }
+        });
+        editText.setOnEditorActionListener((view, actionId, event) -> {
+            boolean enterKey = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
+            if (actionId == EditorInfo.IME_ACTION_DONE || enterKey) {
+                applyNativeEntryValue(elementId, editText.getText().toString());
+                dismissNativeEntryDialog(elementId);
+                return true;
+            }
+            return false;
+        });
+        editText.setOnKeyListener((view, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event != null
+                    && event.getAction() == KeyEvent.ACTION_DOWN) {
+                applyNativeEntryValue(elementId, editText.getText().toString());
+                dismissNativeEntryDialog(elementId);
+                return true;
+            }
+            return false;
+        });
         keyboardDialog = new AlertDialog.Builder(activity)
                 .setTitle(label == null || label.isEmpty() ? "Entry" : label)
                 .setView(editText)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Done", (dialog, which) ->
-                        applyNativeEntryValue(elementId, editText.getText().toString()))
+                .setNegativeButton("Cancel", (dialog, which) -> restorePanelFocus(elementId))
+                .setPositiveButton("Done", (dialog, which) -> {
+                    applyNativeEntryValue(elementId, editText.getText().toString());
+                    restorePanelFocus(elementId);
+                })
                 .create();
         keyboardDialog.setOnShowListener(dialog -> {
             editText.requestFocus();
@@ -291,6 +332,31 @@ final class Study6QuestionnairePanelController {
         keyboardDialog.show();
         keyboardDialogElementId = elementId;
         logger.logHarnessEvent("native_entry_dialog_shown", elementId + " mode=" + inputMode);
+    }
+
+    private void dismissNativeEntryDialog(String elementId) {
+        if (keyboardDialog != null) {
+            keyboardDialog.dismiss();
+        }
+        restorePanelFocus(elementId);
+    }
+
+    private void restorePanelFocus(String elementId) {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.hideSoftInputFromWindow(webView.getWindowToken(), 0);
+        }
+        webView.requestFocusFromTouch();
+        webView.requestFocus();
+        String js = "(function(){"
+                + "var el=document.getElementById(" + JSONObject.quote(elementId) + ");"
+                + "if(el){el.focus({preventScroll:false});}"
+                + "return true;"
+                + "})();";
+        webView.evaluateJavascript(js, (result) ->
+                logger.logHarnessEvent("native_entry_focus_restored",
+                        elementId + " result=" + String.valueOf(result)));
     }
 
     private void showNativeKeyboard(EditText editText, String elementId, int delayMs) {
