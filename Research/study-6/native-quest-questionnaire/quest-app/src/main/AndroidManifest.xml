@@ -12,6 +12,9 @@
         android:name="com.oculus.feature.VIRTUAL_KEYBOARD"
         android:required="false" />
     <uses-feature
+        android:name="oculus.software.overlay_keyboard"
+        android:required="false" />
+    <uses-feature
         android:name="oculus.software.handtracking"
         android:required="false" />
     <uses-feature

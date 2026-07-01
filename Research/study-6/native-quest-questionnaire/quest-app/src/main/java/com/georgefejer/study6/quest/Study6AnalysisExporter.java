@@ -182,6 +182,8 @@ final class Study6AnalysisExporter {
                 "handedness",
                 "gender",
                 "consent_confirmed",
+                "signature_complete",
+                "signature_stroke_count",
                 "polar_ready",
                 "polar_state",
                 "polar_device_id",
@@ -204,6 +206,7 @@ final class Study6AnalysisExporter {
                     continue;
                 }
                 JSONObject polar = demographics.optJSONObject("polar_validation");
+                JSONObject signature = demographics.optJSONObject("signature");
                 String polarDeviceId = "";
                 String polarState = "";
                 String polarReady = "";
@@ -221,6 +224,9 @@ final class Study6AnalysisExporter {
                         demographics.optString("handedness", ""),
                         demographics.optString("gender", ""),
                         String.valueOf(demographics.optBoolean("consent_confirmed", false)),
+                        String.valueOf(signature != null && signature.optBoolean("complete", false)),
+                        String.valueOf(demographics.optInt("signature_stroke_count",
+                                signature == null ? 0 : signature.optInt("stroke_count", 0))),
                         polarReady,
                         polarState,
                         polarDeviceId,

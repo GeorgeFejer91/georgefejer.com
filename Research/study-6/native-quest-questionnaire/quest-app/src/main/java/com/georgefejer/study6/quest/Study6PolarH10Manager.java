@@ -242,6 +242,72 @@ final class Study6PolarH10Manager implements AutoCloseable {
         }
     }
 
+    void restartScan() {
+        restartWorker("", "manual_scan_requested", "Manual Polar scan requested.");
+    }
+
+    void connectToAddress(String requestedAddress) {
+        String nextAddress = requestedAddress == null ? "" : requestedAddress.trim();
+        if (nextAddress.isEmpty()) {
+            restartScan();
+            return;
+        }
+        restartWorker(nextAddress, "manual_connect_requested", "Manual Polar connect requested for " + nextAddress + ".");
+    }
+
+    private void restartWorker(String nextAddress, String state, String message) {
+        Thread previousThread;
+        BluetoothGatt previousGatt;
+        synchronized (lock) {
+            requestedDeviceAddress = nextAddress == null ? "" : nextAddress.trim();
+            stopRequested = true;
+            statusState = state;
+            lastError = message == null ? "" : message;
+            deviceName = "";
+            deviceAddress = "";
+            rssi = Integer.MIN_VALUE;
+            recentScanCandidates = new JSONArray();
+            clearLiveConnectionFlagsLocked();
+            previousThread = workerThread;
+            previousGatt = gatt;
+            publishStatusLocked(true);
+        }
+        if (previousGatt != null) {
+            try {
+                previousGatt.disconnect();
+            } catch (Exception ignored) {
+            }
+        }
+        if (previousThread != null) {
+            previousThread.interrupt();
+        }
+        Thread restarter = new Thread(() -> {
+            if (previousThread != null) {
+                try {
+                    previousThread.join(2_500L);
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+            synchronized (lock) {
+                if (workerThread != null && workerThread.isAlive()) {
+                    lastError = "Manual Polar restart is waiting for the previous BLE worker to stop.";
+                    publishStatusLocked(true);
+                    return;
+                }
+                stopRequested = false;
+                statusState = state;
+                missingPermissions = "";
+                readyCandidateSinceElapsedMs = 0L;
+                workerThread = new Thread(this::runWorker, "Study6PolarH10Worker");
+                workerThread.start();
+                publishStatusLocked(true);
+            }
+        }, "Study6PolarH10Restarter");
+        restarter.start();
+    }
+
     JSONObject startSessionRecording(
             String participantId,
             String sessionId,

@@ -2,7 +2,6 @@ package com.georgefejer.study6.quest;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -11,7 +10,6 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -42,7 +40,6 @@ final class Study6QuestionnairePanelController {
     private MediaPlayer mediaPlayer;
     private int activeAudioBlock = -1;
     private boolean autoRunEnabled;
-    private boolean keyboardProbeEnabled;
     private boolean started;
     private boolean webContentReady;
     private boolean polarConnectedLogged;
@@ -68,7 +65,6 @@ final class Study6QuestionnairePanelController {
         apkVariantId = stringExtra(intent, "study6_apk_variant_id", "BG_ENV");
         String requestedParticipantId = stringExtra(intent, "study6_participant_id", "");
         autoRunEnabled = booleanExtra(intent, "study6_auto_run", false);
-        keyboardProbeEnabled = booleanExtra(intent, "study6_keyboard_probe", false);
         autoRunProfile = stringExtra(intent, "study6_auto_run_profile", "linear");
         logger = new Study6RunLogger(activity, apkVariantId, DEV_AUDIO_DURATION_MS / 1000, requestedParticipantId);
         Study6PolarH10Manager.requestRuntimePermissions(activity);
@@ -94,9 +90,7 @@ final class Study6QuestionnairePanelController {
         settings.setMediaPlaybackRequiresUserGesture(false);
         webView.setFocusable(true);
         webView.setFocusableInTouchMode(true);
-        activity.getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-                        | WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -111,9 +105,6 @@ final class Study6QuestionnairePanelController {
                 }
                 webContentReady = true;
                 pushLatestPolarStatus();
-                if (keyboardProbeEnabled) {
-                    runKeyboardProbe();
-                }
             }
         });
         webView.addJavascriptInterface(new Study6Bridge(), "AndroidStudy6");
@@ -190,18 +181,6 @@ final class Study6QuestionnairePanelController {
                 + "send('page_loaded');"
                 + "})();";
         webView.evaluateJavascript(js, null);
-    }
-
-    private void runKeyboardProbe() {
-        String js = "(function(){"
-                + "var el=document.getElementById('participantFirstName');"
-                + "if(!el){window.AndroidStudy6.onBridgeError('keyboard_probe_missing_first_name');return false;}"
-                + "el.scrollIntoView({block:'center',inline:'center'});"
-                + "el.focus({preventScroll:false});"
-                + "setTimeout(function(){window.AndroidStudy6.requestKeyboard('participantFirstName_probe');},150);"
-                + "return true;"
-                + "})();";
-        webView.evaluateJavascript(js, (result) -> logger.logHarnessEvent("keyboard_probe_result", String.valueOf(result)));
     }
 
     private void onPolarStatus(JSONObject status) {
@@ -570,18 +549,7 @@ final class Study6QuestionnairePanelController {
 
         @JavascriptInterface
         public void requestKeyboard(String elementId) {
-            mainHandler.post(() -> {
-                webView.requestFocusFromTouch();
-                webView.requestFocus();
-                InputMethodManager inputMethodManager =
-                        (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (inputMethodManager != null) {
-                    inputMethodManager.showSoftInput(webView, InputMethodManager.SHOW_FORCED);
-                    webView.postDelayed(() ->
-                            inputMethodManager.showSoftInput(webView, InputMethodManager.SHOW_FORCED), 120);
-                }
-                logger.logHarnessEvent("native_keyboard_requested", elementId == null ? "" : elementId);
-            });
+            logger.logHarnessEvent("native_keyboard_request_ignored", elementId == null ? "" : elementId);
         }
     }
 }
