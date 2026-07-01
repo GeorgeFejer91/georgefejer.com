@@ -118,7 +118,7 @@ virtual-hand embodiment scores.
 - Use a project-local `for-ai/` folder for new AI/operator-only helpers unless a
   script is part of a participant-facing reproducible asset package, such as the
   existing neutral-hand-audio rebuild scripts.
-- Do not store raw participant responses, names, signatures, ECG/RR recordings,
+- Do not store raw participant responses, names, ECG/RR recordings,
   private session logs, or identifying analysis exports in this public
   repository. Use the private study data root described in
   `../STUDY_RUNBOOK.md`.

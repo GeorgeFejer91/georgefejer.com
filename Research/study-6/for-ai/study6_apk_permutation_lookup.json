@@ -114,67 +114,67 @@
   "questionnaire_items": [
     {
       "item_id": "SAM1",
-      "label": "Self-Assessment Manikin pictograph valence",
+      "label": "Retrospective Self-Assessment Manikin pictograph valence",
       "scale": "1-9"
     },
     {
       "item_id": "SAM2",
-      "label": "Self-Assessment Manikin pictograph arousal",
+      "label": "Retrospective Self-Assessment Manikin pictograph arousal",
       "scale": "1-9"
     },
     {
       "item_id": "SAM3",
-      "label": "Self-Assessment Manikin pictograph dominance/control",
+      "label": "Retrospective Self-Assessment Manikin pictograph dominance/control",
       "scale": "1-9"
     },
     {
       "item_id": "valence",
-      "label": "Valence VAS",
+      "label": "Retrospective valence VAS",
       "scale": "0-100"
     },
     {
       "item_id": "arousal",
-      "label": "Arousal VAS",
+      "label": "Retrospective arousal VAS",
       "scale": "0-100"
     },
     {
       "item_id": "Anger",
-      "label": "Anger represented by particle movement",
-      "scale": "0-100"
-    },
-    {
-      "item_id": "Fear",
-      "label": "Fear represented by particle movement",
-      "scale": "0-100"
-    },
-    {
-      "item_id": "Sadness",
-      "label": "Sadness represented by particle movement",
+      "label": "Anger",
       "scale": "0-100"
     },
     {
       "item_id": "Disgust",
-      "label": "Disgust represented by particle movement",
+      "label": "Disgust",
+      "scale": "0-100"
+    },
+    {
+      "item_id": "Fear",
+      "label": "Fear",
       "scale": "0-100"
     },
     {
       "item_id": "Happiness",
-      "label": "Happiness represented by particle movement",
+      "label": "Happiness",
+      "scale": "0-100"
+    },
+    {
+      "item_id": "Sadness",
+      "label": "Sadness",
       "scale": "0-100"
     },
     {
       "item_id": "Surprise",
-      "label": "Surprise represented by particle movement",
+      "label": "Surprise",
       "scale": "0-100"
     },
     {
       "item_id": "Ownership",
-      "label": "Virtual hand ownership",
+      "label": "Adapted VEQ hand ownership",
       "scale": "1-7"
     },
     {
       "item_id": "Agency",
-      "label": "Virtual hand agency",
+      "label": "Adapted VEQ hand agency",
       "scale": "1-7"
     }
   ],

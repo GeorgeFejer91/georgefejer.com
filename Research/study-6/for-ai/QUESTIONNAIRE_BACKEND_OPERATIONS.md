@@ -75,7 +75,13 @@ Current panel constants from the preview:
 | Schema version | `8` |
 | Frame | `1080dp x 720dp` |
 | Open stage | `demographics` for first launch |
+| Repeated condition block pages | `session_ready`, `vr_task_instructions`, then the four assessment pages |
 | Repeated assessment pages | `self_assessment_manikin`, `affect_vas`, `emotion_representation_vas`, `hand_embodiment` |
+
+Every condition block must show `session_ready` before audio/condition timing
+starts. The participant presses `Start next session`; only then should the
+runtime advance to `vr_task_instructions`, start the 20-second development
+audio block or 300-second production block, and write the block-start evidence.
 
 The native app may render the same questionnaire natively. If so, it should
 still preserve the IDs, response paths, validation rules, and metadata contract
@@ -120,6 +126,24 @@ The backend must be able to write:
 The public `Research/study-6/` repository stores materials only. Do not write
 raw participant responses, names, signatures, ECG/RR recordings, private
 session logs, or analysis exports with real participant data into this repo.
+
+For each block-specific
+`data/<apk_file_code>_<participant_id>_<block_id>_<vr_condition_id>_events.jsonl`
+file, the minimum event stream is:
+
+- `session_ready_prompt_shown`;
+- `session_start_confirmed`;
+- `block_assigned`;
+- `block_started`;
+- `audio_started`;
+- `audio_stopped_dev_duration` during development, or production audio/block
+  completion events during the real study;
+- `questionnaire_started`;
+- four `page_completed` events;
+- `questionnaire_completed`;
+- `result_write_success`;
+- `block_completed`;
+- `validation_failure` or `technical_failure` when applicable.
 
 ## Study Startup Constraints
 
@@ -366,8 +390,8 @@ flattening, that payload must include enough metadata to produce the CSV rows:
 ```
 
 Demographics results should be written once per participant/session to
-`demographics.json`. Name and signature fields are identifying and must be kept
-inside the private data root. Analysis exports should use pseudonymous IDs and
+`demographics.json`. Name fields are identifying and must be kept inside the
+private data root. Analysis exports should use pseudonymous IDs and
 non-identifying demographic fields only.
 
 The backend should also write questionnaire values in long CSV format using
@@ -405,6 +429,8 @@ The backend must enforce these rules before marking a block complete:
 - Runtime condition ID maps to locked VR condition factor coding.
 - Audio language matches `language_code`.
 - Audio file exists and is the expected five-minute asset.
+- The readiness prompt was shown and the participant confirmed start before the
+  induction/audio start timestamp.
 - Induction start and end timestamps exist.
 - All required Self-Assessment Manikin pictograph fields are integers from 1 to 9.
 - Affect VAS fields are integers from 0 to 100 and were touched at least once.
@@ -512,8 +538,7 @@ The export must also include design metadata: `participant_id`, `session_id`,
 `energy_noise_level`, audio assignment, technical-failure flags, and
 physiology feature columns.
 
-Do not include participant names, raw signatures, or consent images in the
-analysis CSV.
+Do not include participant names or consent images in the analysis CSV.
 
 ## Backend Acceptance Checklist
 

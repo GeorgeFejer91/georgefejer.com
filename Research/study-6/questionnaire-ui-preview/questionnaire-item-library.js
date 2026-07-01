@@ -392,20 +392,6 @@
       result_json_field: "answers.demographics.consent_text"
     }),
     item({
-      id: "demographics.signature",
-      variable_name: "demographics_signature",
-      label: "Consent signature",
-      page: "demographics",
-      group: "consent",
-      response_namespace: "demographics",
-      field: "signature",
-      type: "signature-pad",
-      default: { has_signature: false, stroke_count: 0 },
-      editable: "editable",
-      validation: "required signature stroke data",
-      result_json_field: "answers.demographics.signature"
-    }),
-    item({
       id: "counterbalance.order_id",
       variable_name: "counterbalance_order_id",
       label: "Counterbalance order assignment",
@@ -434,6 +420,20 @@
       editable: "runtime-owned",
       validation: "derived from the current block position; must be 1..4",
       native_state_field: "questionnaire_state.condition_index"
+    }),
+    item({
+      id: "condition.session_ready_prompt",
+      variable_name: "condition_session_ready_prompt",
+      label: "Ready for next session prompt",
+      page: "session_ready",
+      group: "condition_readiness",
+      response_namespace: "condition_runtime",
+      field: "session_ready_prompt",
+      type: "placeholder-stage",
+      default: "participant readiness prompt before timed audio/condition block",
+      editable: "caller-owned",
+      validation: "shown before every condition audio block; participant must start next session before audio begins",
+      native_state_field: "questionnaire_state.condition_readiness_stage"
     }),
     item({
       id: "condition.induction_placeholder",
@@ -491,10 +491,16 @@
           id: "consent",
           fields: [
             "demographics.consent_confirmed",
-            "demographics.consent_text",
-            "demographics.signature"
+            "demographics.consent_text"
           ]
         }
+      ]
+    },
+    {
+      id: "session_ready",
+      title: "Ready for next session",
+      groups: [
+        { id: "condition_readiness", fields: ["condition.session_ready_prompt"] }
       ]
     },
     {

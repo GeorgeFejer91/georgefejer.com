@@ -28,6 +28,7 @@
             <div>
               <p id="polarStatusTitle">Polar H10 ECG ready</p>
               <p id="polarSignalDetail">HR 72 bpm | RR 8 | ECG 180 samples @ 130 Hz</p>
+              <p id="polarDeviceId">Polar ID: Polar H10 Preview</p>
               <p id="polarDiagnostic">PMD ready | ECG streaming | MTU 23/23</p>
             </div>
           </div>
@@ -49,12 +50,12 @@
             <div class="split-field-row">
               <div class="field-row">
                 <label for="participantFirstName">First name</label>
-                <input id="participantFirstName" type="text" autocomplete="given-name" inputmode="text">
+                <input id="participantFirstName" type="text" autocomplete="given-name" inputmode="text" autocapitalize="words" enterkeyhint="next">
               </div>
 
               <div class="field-row">
                 <label for="participantLastName">Last name</label>
-                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text">
+                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text" autocapitalize="words" enterkeyhint="done">
               </div>
             </div>
 
@@ -79,13 +80,20 @@
               <input id="consentCheckbox" type="checkbox">
               <span id="consentText">I consent to participate in this study.</span>
             </label>
-            <div class="signature-header">
-              <label for="signaturePad">Signature</label>
-              <button id="clearSignature" class="secondary-button small-button" type="button">Clear</button>
-            </div>
-            <canvas id="signaturePad" class="signature-pad" width="440" height="160" aria-label="Consent signature pad"></canvas>
-            <p id="signatureSummary" class="signature-summary">No signature captured</p>
           </div>
+        </div>
+      </section>
+
+      <section id="sessionReadyPage" class="assessment-page session-ready-section" aria-labelledby="sessionReadyHeading" hidden>
+        <div class="session-ready-shell">
+          <p class="session-ready-kicker" id="sessionReadyKicker">Next session</p>
+          <h2 id="sessionReadyHeading">Are you ready for the next part?</h2>
+          <div class="session-ready-summary">
+            <span id="sessionReadyConditionLabel">VR task</span>
+            <strong id="sessionReadyBlockLabel">Session 1 of 4</strong>
+            <p id="sessionReadyAudioLabel">Audio guide ready</p>
+          </div>
+          <button id="sessionReadyStart" class="primary-button session-ready-start" type="button">Start next session</button>
         </div>
       </section>
 

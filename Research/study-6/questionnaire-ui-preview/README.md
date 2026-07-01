@@ -62,7 +62,6 @@ The one-time demographics page records:
 - `demographics.gender`
 - `demographics.consent_confirmed`
 - `demographics.consent_text`
-- `demographics.signature`
 
 The Polar H10 strip is visual-only in this browser preview. In the native app,
 green readiness must be driven by the headset-side Polar state, not by browser
@@ -109,20 +108,23 @@ and data writing.
 
 Each condition block is represented as:
 
-1. `vr_task_instructions`: condition-specific VR task instructions and audio.
-2. `self_assessment_manikin`: retrospective 9-picture Self-Assessment Manikin pictograph valence, arousal, and dominance/control ratings.
-3. `affect_vas`: retrospective valence and arousal visual analog scale sliders.
-4. `emotion_representation_vas`: particle-movement emotion representation visual analog scale sliders.
-5. `hand_embodiment`: adapted single-item VEQ ownership and agency ratings for the virtual hands.
+1. `session_ready`: participant preparation screen with the `Start next session` button.
+2. `vr_task_instructions`: condition-specific VR task instructions and audio.
+3. `self_assessment_manikin`: retrospective 9-picture Self-Assessment Manikin pictograph valence, arousal, and dominance/control ratings.
+4. `affect_vas`: retrospective valence and arousal visual analog scale sliders.
+5. `emotion_representation_vas`: particle-movement emotion representation visual analog scale sliders.
+6. `hand_embodiment`: adapted single-item VEQ ownership and agency ratings for the virtual hands.
 
-The VR task instruction page is not a participant response page. It marks where
-the native Quest app or caller-owned experiment runtime presents each
-condition's five-minute task and audio before the assessment block.
+The readiness and VR task instruction pages are not participant response pages.
+The readiness page gives the participant control over the moment the next
+condition/audio block starts. Audio playback and the development/production
+condition timer begin only after the participant presses `Start next session`
+and the panel advances to `vr_task_instructions`.
 
 The participant assessment sequence repeats after every condition as one
 four-page assessment block:
 
-1. `self_assessment_manikin`: how the participant felt during the condition, using Self-Assessment Manikin pictograph valence, arousal, and dominance/control on the 9-picture manikin with compact left/right anchors (`Unpleasant` to `Pleasant`; `Inactive` to `Active`; `Not in control` to `In control`).
+1. `self_assessment_manikin`: how the participant felt during the condition, using Self-Assessment Manikin pictograph valence, arousal, and dominance/control on the 9-picture manikin with compact left/right anchors (`Unpleasant` to `Pleasant`; `Low Energy` to `High Energy`; `Not in control` to `In control`).
 2. `affect_vas`: how the participant felt during the condition, using independent 0-100 valence and arousal VAS sliders.
 3. `emotion_representation_vas`: to what degree the emotions were represented by the way the particles were moving, using independent 0-100 VAS sliders labeled with the emotion category names.
 4. `hand_embodiment`: two adapted VEQ single-item agreement ratings, one for virtual hand ownership and one for virtual hand agency, on the original 1-7 agreement scale.
@@ -130,23 +132,24 @@ four-page assessment block:
 The Self-Assessment Manikin pictograph rows do not preselect any picture. Each row is a forced
 response: the selected marker appears only after the participant indicates a
 position on that 1-9 picture scale. The row labels ask `How pleasant did this
-experience feel?`, `How active did you feel during this experience?`, and `How
-much control did you feel during your experience?`.
+experience feel?`, `How activated did you feel?`, and `How much control did
+you feel during your experience?`.
 
 The valence/arousal VAS sliders initialize at 50 and visibly mark the unlabeled
 center position. Each VAS row presents a direct participant question above the
-slider: valence asks `How positive or negative did you feel during the last
-session?` with `Very negative` on the left and `Very positive` on the right;
-arousal asks `How active or inactive did you feel during the last session?`
-with `Very inactive` on the left and `Very active` on the right. Each VAS
-slider must receive participant input once before the page can be completed, so
-a retained neutral value is deliberate UI state rather than an untouched
-default. The
-exported response fields remain the raw 0-100 ratings. The particle emotion representation page asks
-once whether the emotions were represented by the way the particles were
-moving; each slider is headed only by the emotion category name. More than one
-emotion can be rated when the movement feels like a mix. They remain endpoint-only
-(`Not represented` to `Clearly represented`) and do not show a center marker.
+slider: valence asks `How pleasant did the previous experience feel?` with
+`Unpleasant` on the left and `Pleasant` on the right; arousal asks `How
+activated did you feel in the previous experience?` with `Low Energy` on the
+left and `High Energy` on the right. Each VAS slider must receive participant
+input once before the page can be completed, so a retained neutral value is
+deliberate UI state rather than an untouched default. The exported response
+fields remain the raw 0-100 ratings. The particle emotion representation page
+asks `Which emotions did the particle motion remind you of? If it felt like a
+mix, rate how strongly each was represented.` Each slider is headed only by the
+emotion category name, in preview order: Anger, Disgust, Fear, Happiness,
+Sadness, Surprise. More than one emotion can be rated when the movement feels
+like a mix. They remain endpoint-only (`Not represented` to `Clearly
+represented`) and do not show a center marker.
 The virtual hand embodiment page asks `It felt like the virtual hands were my
 own hands.` and `It felt like I was controlling the movements of the virtual
 hands.` in English, or the equivalent German wording when German is selected.

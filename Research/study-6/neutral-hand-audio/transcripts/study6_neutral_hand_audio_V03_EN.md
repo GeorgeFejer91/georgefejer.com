@@ -1,27 +1,26 @@
-﻿# Study 6 Neutral Hand Audio Guide - V03 - English
+﻿# Study 6 Neutral Hand Audio (Conversational) - V03 - English
 
-Task: Neutral hand movement calibration task
-Target duration: 05:00 exactly
-Movement cluster order: C -> D -> B -> A
+Task: Neutral hand movement calibration task, experimenter-guided wording.
+Target duration: 05:00 exactly.
+Movement cluster order: D -> A -> C -> B
 Timing rule: each cue is followed by a protected action window before the next cue.
-Endpoint rule: the audio ends at 05:00 exactly; no terminal instruction is spoken.
 
-| Start | Next cue | Spoken duration | Protected action window | Cluster | Cue role | Spoken wording |
+| Start | Next cue | Spoken | Protected window | Cluster | Cue role | Spoken wording |
 |---:|---:|---:|---:|---|---|---|
-| 00:00 | 00:20 | 11.0 s | 9.0 s | SETUP - Setup | setup | Hold both hands where you can see them, near the center of your view, palms facing down. Keep them still. |
-| 00:20 | 00:50 | 13.9 s | 16.0 s | C - single-hand reaches | left_path_cue | Begin now with the left-side reach. Keep your right hand at the center. Move your left hand to the left side of the visible space in front of you, then bring it back to center. |
-| 00:50 | 01:14 | 12.1 s | 11.9 s | C - single-hand reaches | right_path_cue | Switch sides now. Keep your left hand at the center. Move your right hand to the right side, then keep repeating to the right and back. |
-| 01:14 | 01:20 | 4.5 s | 1.5 s | C - single-hand reaches | stop_transition | Complete this cycle. Center, stop. |
-| 01:20 | 01:48 | 17.8 s | 10.2 s | D - open and close | start | Begin now with opening and closing. Open both hands until the fingers are spread wide, then close into a loose fist. About two seconds each way. Start now, and keep repeating. |
-| 01:48 | 02:14 | 13.5 s | 12.5 s | D - open and close | repeat_cue | Continue the same opening and closing. Fingers open wide... then close loosely. Keep the motion slow and even. |
-| 02:14 | 02:20 | 4.5 s | 1.5 s | D - open and close | stop_transition | Complete this cycle. Center, stop. |
-| 02:20 | 02:48 | 19.5 s | 8.5 s | B - palms up and down | start | Now begin the palm rotation. With both hands at the center, turn the palms to face up. Hold a moment, then turn the palms back down. Up... and down, at a steady pace. |
-| 02:48 | 03:14 | 14.4 s | 11.6 s | B - palms up and down | repeat_cue | Continue the same rotation. Palms up... hold... palms down. Keep both hands centered and repeat steadily. |
-| 03:14 | 03:20 | 4.5 s | 1.5 s | B - palms up and down | stop_transition | Complete this cycle. Center, stop. |
-| 03:20 | 03:48 | 19.8 s | 8.2 s | A - apart and together | start | Start apart and together. Palms down. Move out, then back until the hands nearly touch. Three seconds out, three back. Keep repeating. |
-| 03:48 | 04:14 | 15.6 s | 10.4 s | A - apart and together | repeat_cue | Continue repeating the same movement. Out to a comfortable distance... back until the hands nearly touch. Keep the pace slow and even. |
-| 04:14 | 04:20 | 4.5 s | 1.5 s | A - apart and together | stop_transition | Complete this cycle. Center, stop. |
-| 04:20 | 04:54 | 16.2 s | 17.8 s | CIRCLE - Circle close (fixed) | start_circle | Begin now with both hands together at the center. Draw a medium-sized circle in the air, turning in one direction. Start the first circle now, and keep tracing the same circle slowly. |
-| 04:54 | 05:00 | 4.5 s | 1.5 s | CIRCLE - Circle close (fixed) | stop_transition | Complete this cycle. Center, stop. |
+| 00:00 | 00:20 | 13.6 s | 6.4 s | SETUP - Setup | setup | This session will take about five minutes. We will give you some instructions for a few hand movements. Please follow them at your own pace. To begin, could you hold both hands up in front of you, palms facing up, and look at them? |
+| 00:20 | 00:48 | 10.3 s | 17.7 s | D - open and close | start | Now let's move on to the next step. Could you hold both hands in front of you and open them wide, spreading your fingers, then close them into a fist? About two seconds each way. |
+| 00:48 | 01:12 | 7.1 s | 16.9 s | D - open and close | continue | Please keep opening and closing, fingers spread wide, then a fist. Repeat the movement a few times, at your own pace. |
+| 01:12 | 01:20 | 5.1 s | 2.9 s | D - open and close | transition | Now return both hands to the center, palms down, and pause. |
+| 01:20 | 01:48 | 17.6 s | 10.4 s | A - apart and together | start | Let's move on to the next movement. With both palms facing down, we'd like to ask you to slowly move your hands apart, out to the sides, and then bring them back together toward the center until they almost touch. Take about three seconds moving out, and three seconds coming back. |
+| 01:48 | 02:12 | 8.9 s | 15.1 s | A - apart and together | continue | Please continue, out to the sides and back toward the center, slowly and evenly. Repeat the movement a few times, at your own pace. |
+| 02:12 | 02:20 | 3.4 s | 4.6 s | A - apart and together | transition | Now bring both hands back to the center, and pause. |
+| 02:20 | 02:48 | 17.5 s | 10.5 s | C - single-hand reaches | start_left | Now let's move on to the next step, working one hand at a time. Could you keep your right hand still at the center? With your left hand, please reach out to the left, into the space in front of you, then bring it back to the center, repeating this left-hand reach a few times, at your own pace. |
+| 02:48 | 03:12 | 16.1 s | 7.9 s | C - single-hand reaches | switch_right | Now could you switch hands? Let your left hand stay at the center, and reach out to the right with your right hand, then bring it back. Please continue, repeating this right-hand reach a few times, at your own pace. |
+| 03:12 | 03:20 | 5.1 s | 2.9 s | C - single-hand reaches | transition | Now return both hands to the center, palms down, and pause. |
+| 03:20 | 03:48 | 13.8 s | 14.2 s | B - palms up and down | start | Now let's move on to the next step. With both hands near the center in front of you, could you slowly turn both palms upward, so they face the ceiling? Hold for a moment, then turn them back over so the palms face down again. |
+| 03:48 | 04:12 | 6.9 s | 17.1 s | B - palms up and down | continue | Please keep turning, palms up, hold, and palms down. Repeat the movement a few times, at your own pace. |
+| 04:12 | 04:20 | 5.1 s | 2.9 s | B - palms up and down | transition | Now return both hands to the center, palms down, and pause. |
+| 04:20 | 04:50 | 14.9 s | 15.1 s | CIRCLE - closing circle | start_circle | Now for the last movement. Could you bring both hands together near the center, and slowly trace the same medium-sized circle a few times in the air, with both hands moving together in the same direction, at your own pace? |
+| 04:50 | 05:00 | 9.4 s | 0.6 s | CIRCLE - closing circle | close | Now make the circles smaller, and smaller, until both hands return to the center, palms down, and stop. This is the end of the session. |
 
-Audio ends at 05:00 exactly.
+Audio ends at 05:00 exactly; no terminal instruction is spoken.

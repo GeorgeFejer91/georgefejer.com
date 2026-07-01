@@ -1,27 +1,26 @@
-﻿# Study 6 Neutral Hand Audio Guide - V01 - German
+﻿# Study 6 Neutral Hand Audio (Conversational) - V01 - German
 
-Aufgabe: Neutrale Handbewegungs-Kalibrierungsaufgabe
-Zieldauer: genau 05:00
-Reihenfolge der Bewegungscluster: A -> B -> D -> C
-Zeitregel: Nach jedem Hinweis bleibt ein geschütztes Bewegungsfenster bis zum nächsten Hinweis.
-Endregel: Die Audioaufnahme endet genau bei 05:00; es wird kein abschließender Hinweis gesprochen.
+Task: Neutral hand movement calibration task, experimenter-guided wording.
+Target duration: 05:00 exactly.
+Movement cluster order: A -> B -> D -> C
+Timing rule: each cue is followed by a protected action window before the next cue.
 
-| Start | Next cue | Spoken duration | Protected action window | Cluster | Cue role | Spoken wording |
+| Start | Next cue | Spoken | Protected window | Cluster | Cue role | Spoken wording |
 |---:|---:|---:|---:|---|---|---|
-| 00:00 | 00:20 | 11.0 s | 9.0 s | SETUP - Setup | setup | Halten Sie beide Hände sichtbar vor sich, nahe der Mitte Ihres Blickfelds, die Handflächen nach unten. Halten Sie sie still. |
-| 00:20 | 00:48 | 12.6 s | 15.4 s | A - auseinander und zusammen | start | Auseinander und zusammen. Hände nach außen, dann zurück bis fast zusammen. Drei Sekunden raus, drei zurück. Wiederholen. |
-| 00:48 | 01:14 | 15.3 s | 10.7 s | A - auseinander und zusammen | repeat_cue | Wiederholen Sie dieselbe Bewegung weiter. Nach außen bis zu einem gut sichtbaren Abstand ... zurück, bis die Hände sich fast berühren. Langsam und gleichmäßig. |
-| 01:14 | 01:20 | 5.8 s | 0.2 s | A - auseinander und zusammen | stop_transition | Beenden Sie den aktuellen Zyklus. Zur Mitte zurück und stoppen. |
-| 01:20 | 01:48 | 13.5 s | 14.5 s | B - Handflächen nach oben und unten | start | Beginnen Sie mit der Handflächendrehung. Hände in der Mitte. Handflächen nach oben drehen, kurz halten, dann nach unten. Weiter im gleichmäßigen Tempo. |
-| 01:48 | 02:14 | 11.8 s | 14.2 s | B - Handflächen nach oben und unten | repeat_cue | Wiederholen Sie dieselbe Drehung weiter. Handflächen nach oben ... halten ... nach unten. Beide Hände bleiben in der Mitte. |
-| 02:14 | 02:20 | 5.8 s | 0.2 s | B - Handflächen nach oben und unten | stop_transition | Beenden Sie den aktuellen Zyklus. Zur Mitte zurück und stoppen. |
-| 02:20 | 02:48 | 19.2 s | 8.8 s | D - öffnen und schließen | start | Beginnen Sie jetzt mit Öffnen und Schließen. Öffnen Sie beide Hände, bis die Finger weit gespreizt sind, dann locker schließen. Etwa zwei Sekunden je Richtung. Starten Sie jetzt und wiederholen Sie weiter. |
-| 02:48 | 03:14 | 13.0 s | 13.0 s | D - öffnen und schließen | repeat_cue | Wiederholen Sie dieselbe Öffnen-und-Schließen-Bewegung weiter. Finger weit öffnen ... dann locker schließen. Langsam und gleichmäßig. |
-| 03:14 | 03:20 | 5.8 s | 0.2 s | D - öffnen und schließen | stop_transition | Beenden Sie den aktuellen Zyklus. Zur Mitte zurück und stoppen. |
-| 03:20 | 03:50 | 15.3 s | 14.7 s | C - eine Hand ausstrecken | left_path_cue | Beginnen Sie jetzt mit der Bewegung nach links. Die rechte Hand bleibt in der Mitte. Führen Sie die linke Hand nach links in den sichtbaren Raum vor Ihnen und dann zurück zur Mitte. |
-| 03:50 | 04:14 | 14.8 s | 9.2 s | C - eine Hand ausstrecken | right_path_cue | Wechseln Sie jetzt die Seite. Die linke Hand bleibt in der Mitte. Führen Sie die rechte Hand nach rechts in den sichtbaren Raum vor Ihnen und dann zurück zur Mitte. Wiederholen Sie weiter. |
-| 04:14 | 04:20 | 5.8 s | 0.2 s | C - eine Hand ausstrecken | stop_transition | Beenden Sie den aktuellen Zyklus. Zur Mitte zurück und stoppen. |
-| 04:20 | 04:54 | 15.8 s | 18.2 s | CIRCLE - Abschluss mit Kreis (fest) | start_circle | Beginnen Sie jetzt mit beiden Händen zusammen in der Mitte. Zeichnen Sie einen mittelgroßen Kreis in die Luft, in eine Richtung. Starten Sie den ersten Kreis jetzt und zeichnen Sie langsam weiter. |
-| 04:54 | 05:00 | 5.8 s | 0.2 s | CIRCLE - Abschluss mit Kreis (fest) | stop_transition | Beenden Sie den aktuellen Zyklus. Zur Mitte zurück und stoppen. |
+| 00:00 | 00:20 | 15.7 s | 4.3 s | SETUP - Setup | setup | Diese Sitzung dauert etwa fuenf Minuten. Wir geben Ihnen einige Anweisungen fuer ein paar Handbewegungen. Bitte folgen Sie ihnen in Ihrem eigenen Tempo. Halten Sie zu Beginn beide Haende vor sich, die Handflaechen nach oben, und schauen Sie sie an. |
+| 00:20 | 00:48 | 16.2 s | 11.8 s | A - auseinander und zusammen | start | Gehen wir nun zum naechsten Schritt ueber. Die Handflaechen zeigen nach unten. Wir moechten Sie bitten, Ihre Haende langsam nach aussen auseinander zu fuehren und dann wieder zur Mitte zurueck, bis sie sich fast beruehren. Etwa drei Sekunden nach aussen, drei zurueck. |
+| 00:48 | 01:12 | 9.3 s | 14.7 s | A - auseinander und zusammen | continue | Bitte fahren Sie fort, nach aussen und zurueck zur Mitte, langsam und gleichmaessig. Wiederholen Sie die Bewegung ein paar Mal in Ihrem eigenen Tempo. |
+| 01:12 | 01:20 | 4.7 s | 3.3 s | A - auseinander und zusammen | transition | Fuehren Sie nun beide Haende zurueck zur Mitte, und halten Sie einen Moment inne. |
+| 01:20 | 01:48 | 13.9 s | 14.1 s | B - Handflaechen nach oben und unten | start | Gehen wir nun zum naechsten Schritt ueber. Halten Sie beide Haende nahe der Mitte. Koennten Sie beide Handflaechen langsam nach oben drehen, sodass sie zur Decke zeigen? Halten Sie kurz, und drehen Sie sie dann wieder nach unten. |
+| 01:48 | 02:12 | 8.5 s | 15.5 s | B - Handflaechen nach oben und unten | continue | Bitte drehen Sie weiter, Handflaechen nach oben, halten, und nach unten. Wiederholen Sie die Bewegung ein paar Mal in Ihrem eigenen Tempo. |
+| 02:12 | 02:20 | 6.2 s | 1.8 s | B - Handflaechen nach oben und unten | transition | Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen nach unten, und halten Sie inne. |
+| 02:20 | 02:48 | 12.2 s | 15.8 s | D - oeffnen und schliessen | start | Gehen wir nun zum naechsten Schritt ueber. Koennten Sie beide Haende vor sich halten und weit oeffnen, die Finger spreizen, und sie dann zu einer Faust schliessen? Etwa zwei Sekunden je Richtung. |
+| 02:48 | 03:12 | 9.3 s | 14.7 s | D - oeffnen und schliessen | continue | Bitte oeffnen und schliessen Sie weiter, die Finger weit gespreizt, dann eine Faust. Wiederholen Sie die Bewegung ein paar Mal in Ihrem eigenen Tempo. |
+| 03:12 | 03:20 | 6.2 s | 1.8 s | D - oeffnen und schliessen | transition | Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen nach unten, und halten Sie inne. |
+| 03:20 | 03:48 | 14.2 s | 13.8 s | C - eine Hand ausstrecken | start_left | Gehen wir nun zum naechsten Schritt ueber, eine Hand nach der anderen. Koennten Sie die rechte Hand still in der Mitte lassen? Fuehren Sie die linke Hand nach links in den Raum vor Ihnen und dann zurueck zur Mitte, ein paar Mal mit der linken Hand, in Ihrem eigenen Tempo. |
+| 03:48 | 04:12 | 13.1 s | 10.9 s | C - eine Hand ausstrecken | switch_right | Koennten Sie nun die Hand wechseln? Die linke Hand bleibt in der Mitte, und die rechte Hand reicht nach rechts und kommt wieder zurueck. Bitte fahren Sie fort, ein paar Mal mit der rechten Hand, in Ihrem eigenen Tempo. |
+| 04:12 | 04:20 | 6.2 s | 1.8 s | C - eine Hand ausstrecken | transition | Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen nach unten, und halten Sie inne. |
+| 04:20 | 04:50 | 13.0 s | 17.0 s | CIRCLE - Abschluss mit Kreis | start_circle | Nun zur letzten Bewegung. Koennten Sie beide Haende nahe der Mitte zusammenfuehren und langsam denselben mittelgrossen Kreis ein paar Mal in die Luft zeichnen, beide Haende gemeinsam in dieselbe Richtung, in Ihrem eigenen Tempo? |
+| 04:50 | 05:00 | 9.0 s | 1.0 s | CIRCLE - Abschluss mit Kreis | close | Machen Sie die Kreise nun kleiner, bis beide Haende in der Mitte stehen bleiben, die Handflaechen nach unten. Dies ist das Ende der Sitzung. |
 
-Die Audioaufnahme endet genau bei 05:00.
+Audio ends at 05:00 exactly; no terminal instruction is spoken.

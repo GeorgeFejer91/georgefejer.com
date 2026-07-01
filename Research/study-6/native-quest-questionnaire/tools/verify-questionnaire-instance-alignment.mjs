@@ -1,0 +1,361 @@
+#!/usr/bin/env node
+import childProcess from "node:child_process";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import https from "node:https";
+import os from "node:os";
+import path from "node:path";
+import vm from "node:vm";
+
+const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, "$1");
+const WORKSPACE_DIR = path.resolve(SCRIPT_DIR, "..");
+const STUDY_DIR = path.resolve(WORKSPACE_DIR, "..");
+const PREVIEW_DIR = path.join(STUDY_DIR, "questionnaire-ui-preview");
+const LOOKUP_PATH = path.join(STUDY_DIR, "for-ai", "study6_apk_permutation_lookup.json");
+const GENERATOR_PATH = path.join(STUDY_DIR, "for-ai", "generate_study6_apk_permutation_lookup.js");
+const GRADLE_PATH = path.join(WORKSPACE_DIR, "quest-app", "build.gradle.kts");
+const APK_PATH = process.env.STUDY6_APK || path.join(WORKSPACE_DIR, "quest-app", "build", "outputs", "apk", "debug", "quest-app-debug.apk");
+const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "https://www.georgefejer.com/Research/study-6/questionnaire-ui-preview/?previewSkipRequired=1&cb=232d4d3";
+
+const REQUIRED_FILES = [
+  "index.html",
+  "styles.css",
+  "questionnaire-item-library.js",
+  "panel-preview.js"
+];
+
+const ASSESSMENT_PAGE_IDS = [
+  "self_assessment_manikin",
+  "affect_vas",
+  "emotion_representation_vas",
+  "hand_embodiment"
+];
+
+function run(file, args, options = {}) {
+  const result = childProcess.spawnSync(file, args, {
+    cwd: options.cwd || STUDY_DIR,
+    encoding: options.encoding ?? "utf8",
+    maxBuffer: options.maxBuffer || 128 * 1024 * 1024
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0 && !options.allowFailure) {
+    throw new Error(`${file} ${args.join(" ")} failed with ${result.status}\n${result.stdout || ""}\n${result.stderr || ""}`);
+  }
+  return result;
+}
+
+function normalizeText(value) {
+  return value.replace(/\r\n/g, "\n");
+}
+
+function sha256Text(value) {
+  return crypto.createHash("sha256").update(normalizeText(value), "utf8").digest("hex").toUpperCase();
+}
+
+function stableJson(value) {
+  return JSON.stringify(value, Object.keys(value || {}).sort());
+}
+
+function equalJson(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function readJson(file) {
+  return JSON.parse(fs.readFileSync(file, "utf8"));
+}
+
+function fetchText(url, redirects = 0) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location && redirects < 5) {
+        response.resume();
+        resolve(fetchText(new URL(response.headers.location, url).href, redirects + 1));
+        return;
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        reject(new Error(`HTTP ${response.statusCode} for ${url}`));
+        return;
+      }
+      const chunks = [];
+      response.setEncoding("utf8");
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => resolve(chunks.join("")));
+    }).on("error", reject);
+  });
+}
+
+function linkedPreviewAssets(indexHtml) {
+  const assets = new Map();
+  assets.set("index.html", PREVIEW_URL);
+  const pattern = /<(?:script|link)\b[^>]+(?:src|href)="([^"]+)"/g;
+  let match;
+  while ((match = pattern.exec(indexHtml)) !== null) {
+    const href = match[1];
+    const name = href.split("?")[0].split("/").pop();
+    if (REQUIRED_FILES.includes(name)) {
+      assets.set(name, new URL(href, PREVIEW_URL).href);
+    }
+  }
+  return assets;
+}
+
+function extractApkAssets(apkPath) {
+  if (!fs.existsSync(apkPath)) {
+    return new Map();
+  }
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "study6-questionnaire-assets-"));
+  try {
+    const assetPaths = REQUIRED_FILES.map((file) => `assets/questionnaire-ui-preview/${file}`);
+    run("tar", ["-xf", apkPath, "-C", tempDir, ...assetPaths]);
+    const extracted = new Map();
+    for (const file of REQUIRED_FILES) {
+      const extractedPath = path.join(tempDir, "assets", "questionnaire-ui-preview", file);
+      if (fs.existsSync(extractedPath)) {
+        extracted.set(file, fs.readFileSync(extractedPath, "utf8"));
+      }
+    }
+    return extracted;
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+function evaluateItemLibrary(scriptText, label) {
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  vm.runInContext(scriptText, sandbox, { filename: label });
+  const library = sandbox.window.STUDY6_QUESTIONNAIRE_ITEM_LIBRARY;
+  if (!library || !Array.isArray(library.items) || !Array.isArray(library.pages)) {
+    throw new Error(`${label} did not expose STUDY6_QUESTIONNAIRE_ITEM_LIBRARY.items/pages`);
+  }
+  return JSON.parse(JSON.stringify(library));
+}
+
+function itemById(library) {
+  return new Map(library.items.map((item) => [item.id, item]));
+}
+
+function itemIdsForPage(library, pageId) {
+  const ids = [];
+  const page = library.pages.find((candidate) => candidate.id === pageId);
+  if (!page) {
+    return ids;
+  }
+  for (const group of page.groups || []) {
+    ids.push(...(group.fields || []));
+  }
+  return ids;
+}
+
+function scaleForItem(item) {
+  return `${item.min}-${item.max}`;
+}
+
+function lookupIdForItem(item) {
+  if (item.page === "self_assessment_manikin") {
+    return {
+      valence: "SAM1",
+      arousal: "SAM2",
+      dominance: "SAM3"
+    }[item.scale_id];
+  }
+  if (item.page === "affect_vas") {
+    return {
+      valence_raw_0_100: "valence",
+      arousal_raw_0_100: "arousal"
+    }[item.field];
+  }
+  if (item.page === "emotion_representation_vas") {
+    return item.label;
+  }
+  if (item.page === "hand_embodiment") {
+    return {
+      ownership: "Ownership",
+      agency: "Agency"
+    }[item.construct_id];
+  }
+  return null;
+}
+
+function canonicalQuestionnaireRows(library) {
+  const byId = itemById(library);
+  const rows = [];
+  for (const pageId of ASSESSMENT_PAGE_IDS) {
+    for (const itemId of itemIdsForPage(library, pageId)) {
+      const item = byId.get(itemId);
+      if (!item || item.editable !== "editable") {
+        continue;
+      }
+      const lookupId = lookupIdForItem(item);
+      if (!lookupId) {
+        throw new Error(`No lookup item id mapping for preview item ${item.id}`);
+      }
+      rows.push({
+        item_id: lookupId,
+        label: item.label,
+        scale: scaleForItem(item)
+      });
+    }
+  }
+  return rows;
+}
+
+function extractGeneratorQuestionnaireItems(sourceText) {
+  const match = sourceText.match(/const questionnaireItems = (\[[\s\S]*?\]);/);
+  if (!match) {
+    throw new Error("Could not find questionnaireItems array in lookup generator");
+  }
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`result = ${match[1]}`, sandbox, { filename: GENERATOR_PATH });
+  return JSON.parse(JSON.stringify(sandbox.result));
+}
+
+function signature(library) {
+  return {
+    id: library.id,
+    version: library.version,
+    pages: library.pages,
+    assessment_items: library.items.filter((item) => ASSESSMENT_PAGE_IDS.includes(item.page))
+  };
+}
+
+async function main() {
+  const failures = [];
+  const remoteIndex = await fetchText(PREVIEW_URL);
+  const remoteUrls = linkedPreviewAssets(remoteIndex);
+  const remoteTexts = new Map([["index.html", remoteIndex]]);
+  for (const file of REQUIRED_FILES) {
+    if (!remoteUrls.has(file)) {
+      failures.push(`deployed preview did not expose ${file}`);
+    } else if (file !== "index.html") {
+      remoteTexts.set(file, await fetchText(remoteUrls.get(file)));
+    }
+  }
+
+  const apkTexts = extractApkAssets(APK_PATH);
+  if (!fs.existsSync(APK_PATH)) {
+    failures.push(`APK missing: ${APK_PATH}`);
+  }
+
+  const files = [];
+  for (const file of REQUIRED_FILES) {
+    const localPath = path.join(PREVIEW_DIR, file);
+    const localText = fs.existsSync(localPath) ? fs.readFileSync(localPath, "utf8") : null;
+    const deployedText = remoteTexts.get(file) || null;
+    const apkText = apkTexts.get(file) || null;
+    const localSha = localText == null ? null : sha256Text(localText);
+    const deployedSha = deployedText == null ? null : sha256Text(deployedText);
+    const apkSha = apkText == null ? null : sha256Text(apkText);
+    if (!localText) {
+      failures.push(`local preview missing ${file}`);
+    }
+    if (!deployedText) {
+      failures.push(`deployed preview missing ${file}`);
+    }
+    if (!apkText) {
+      failures.push(`APK preview asset missing ${file}`);
+    }
+    if (localSha && deployedSha && localSha !== deployedSha) {
+      failures.push(`${file} local hash ${localSha} != deployed hash ${deployedSha}`);
+    }
+    if (localSha && apkSha && localSha !== apkSha) {
+      failures.push(`${file} local hash ${localSha} != APK hash ${apkSha}`);
+    }
+    files.push({
+      file,
+      local_sha256: localSha,
+      deployed_sha256: deployedSha,
+      apk_sha256: apkSha,
+      local_matches_deployed: Boolean(localSha && deployedSha && localSha === deployedSha),
+      local_matches_apk: Boolean(localSha && apkSha && localSha === apkSha)
+    });
+  }
+
+  const deployedLibrary = evaluateItemLibrary(remoteTexts.get("questionnaire-item-library.js"), "deployed questionnaire-item-library.js");
+  const localLibrary = evaluateItemLibrary(fs.readFileSync(path.join(PREVIEW_DIR, "questionnaire-item-library.js"), "utf8"), "local questionnaire-item-library.js");
+  const deployedSignature = signature(deployedLibrary);
+  const localSignature = signature(localLibrary);
+  if (!equalJson(localSignature, deployedSignature)) {
+    failures.push("local questionnaire item library metadata differs from deployed preview");
+  }
+
+  const expectedRows = canonicalQuestionnaireRows(deployedLibrary);
+  const lookupRows = readJson(LOOKUP_PATH).questionnaire_items || [];
+  if (!equalJson(lookupRows, expectedRows)) {
+    failures.push(`lookup questionnaire_items differ from deployed preview: expected ${stableJson(expectedRows)} observed ${stableJson(lookupRows)}`);
+  }
+
+  const generatorRows = extractGeneratorQuestionnaireItems(fs.readFileSync(GENERATOR_PATH, "utf8"));
+  if (!equalJson(generatorRows, expectedRows)) {
+    failures.push("lookup generator questionnaireItems array differs from deployed preview");
+  }
+
+  for (const fixtureName of ["default-state.json", "edge-cases.json"]) {
+    const fixturePath = path.join(PREVIEW_DIR, "fixtures", fixtureName);
+    const fixture = readJson(fixturePath);
+    const fixtureLibrary = fixture.questionnaire_item_library;
+    if (!fixtureLibrary || !equalJson(signature(fixtureLibrary), deployedSignature)) {
+      failures.push(`${fixtureName} questionnaire_item_library differs from deployed preview`);
+    }
+  }
+
+  const gradleText = fs.readFileSync(GRADLE_PATH, "utf8");
+  if (!gradleText.includes('from(studyRoot.resolve("questionnaire-ui-preview"))')) {
+    failures.push("quest-app Gradle asset sync no longer packages the canonical questionnaire-ui-preview directory");
+  }
+
+  const previewReadme = fs.readFileSync(path.join(PREVIEW_DIR, "README.md"), "utf8");
+  const stalePhrases = [
+    "`Inactive` to `Active`",
+    "How active did you feel during this experience?",
+    "How positive or negative did you feel during the last session?",
+    "Very negative",
+    "How active or inactive did you feel during the last session?",
+    "Very inactive"
+  ];
+  for (const phrase of stalePhrases) {
+    if (previewReadme.includes(phrase)) {
+      failures.push(`questionnaire-ui-preview/README.md still contains stale wording: ${phrase}`);
+    }
+  }
+
+  const report = {
+    pass: failures.length === 0,
+    failures,
+    preview_url: PREVIEW_URL,
+    apk_path: APK_PATH,
+    files,
+    canonical_questionnaire_items: expectedRows,
+    checked_instances: [
+      "deployed questionnaire-ui-preview",
+      "local questionnaire-ui-preview",
+      "APK-packaged questionnaire-ui-preview",
+      "questionnaire fixtures",
+      "for-ai/study6_apk_permutation_lookup.json",
+      "for-ai/generate_study6_apk_permutation_lookup.js",
+      "quest-app Gradle asset sync",
+      "questionnaire-ui-preview/README.md stale wording scan"
+    ]
+  };
+
+  const reportPath = process.env.STUDY6_REPORT_PATH || path.join(WORKSPACE_DIR, "build", "questionnaire-instance-alignment-report.json");
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+
+  if (!report.pass) {
+    console.error(JSON.stringify(report, null, 2));
+    process.exit(1);
+  }
+
+  console.log(`Study 6 questionnaire instance alignment passed: ${expectedRows.length} canonical response items match deployed/local/APK/backend instances.`);
+  console.log(reportPath);
+}
+
+main().catch((error) => {
+  console.error(error && error.stack ? error.stack : error);
+  process.exit(1);
+});

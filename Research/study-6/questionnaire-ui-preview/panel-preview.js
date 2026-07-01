@@ -4,6 +4,8 @@ const PANEL_ID = "study6_questionnaire_panel_preview";
 const SCHEMA_VERSION = 8;
 const QUEST_PANEL_FRAME = { width_dp: 1080, height_dp: 720 };
 const POLAR_ECG_SAMPLE_RATE_HZ = 130;
+const RECENT_POLAR_SAMPLE_COUNT = 260;
+const DEFAULT_LANGUAGE_CODE = "en";
 const CONSENT_TEXT = "I consent to participate in this study.";
 const AUDIO_ASSET_BASE_PATH = "../neutral-hand-audio/audio";
 const SAM_ASSET_BASE_PATH = "../questionnaire-assets/sam";
@@ -136,6 +138,13 @@ const ASSESSMENT_PAGES = [
   }
 ];
 
+const READY_PAGE = {
+  id: "session_ready",
+  label: "Ready",
+  title: "Ready for next session",
+  summary: "Participant readiness prompt before the next timed audio/condition block"
+};
+
 const INDUCTION_PAGE = {
   id: "vr_task_instructions",
   label: "Instructions",
@@ -146,34 +155,306 @@ const INDUCTION_PAGE = {
 const WORKFLOW_PAGES = [
   {
     id: "demographics",
-    label: "Demographics",
     title: "Demographics",
     summary: "Demographics, language, consent, and Polar H10 readiness"
   },
+  READY_PAGE,
   INDUCTION_PAGE,
   ...ASSESSMENT_PAGES
 ];
 
 const LANGUAGE_OPTIONS = [
-  { id: "en", label: "English" },
-  { id: "de", label: "Deutsch" }
+  { id: "en", label: { en: "English", de: "Englisch" } },
+  { id: "de", label: { en: "Deutsch", de: "Deutsch" } }
 ];
 
 const HANDEDNESS_OPTIONS = [
-  { id: "right", label: "Right" },
-  { id: "left", label: "Left" },
-  { id: "ambidextrous", label: "Both" },
-  { id: "prefer_not_to_say", label: "Prefer not to say" }
+  { id: "right", label: { en: "Right", de: "Rechts" } },
+  { id: "left", label: { en: "Left", de: "Links" } },
+  { id: "ambidextrous", label: { en: "Both", de: "Beide" } },
+  { id: "prefer_not_to_say", label: { en: "Prefer not to say", de: "Keine Angabe" } }
 ];
 
 const GENDER_OPTIONS = [
-  { id: "male", label: "Male" },
-  { id: "female", label: "Female" },
-  { id: "other", label: "Other" },
-  { id: "prefer_not_to_say", label: "Prefer not to say" }
+  { id: "male", label: { en: "Male", de: "Männlich" } },
+  { id: "female", label: { en: "Female", de: "Weiblich" } },
+  { id: "other", label: { en: "Other", de: "Divers" } },
+  { id: "prefer_not_to_say", label: { en: "Prefer not to say", de: "Keine Angabe" } }
 ];
 
+const UI_TEXT = {
+  en: {
+    "app.title": "Study 6 Questionnaire",
+    "page.demographics.title": "Demographics",
+    "page.demographics.subtitle": "Participant details, consent, and Polar H10 check",
+    "page.ready.label": "Ready",
+    "page.ready.title": "Ready for next session",
+    "page.session_ready.title": "Ready for next session",
+    "page.instructions.label": "Instructions",
+    "page.instructions.title": "VR task instructions",
+    "page.vr_task_instructions.title": "VR task instructions",
+    "page.self_assessment_manikin.title": "Self-Assessment Manikin pictographs",
+    "page.affect_vas.title": "Valence and arousal VAS",
+    "page.emotion_representation_vas.title": "Particle emotion representation VAS",
+    "page.hand_embodiment.title": "Virtual hand embodiment",
+    "demographics.language": "Language",
+    "demographics.first_name": "First name",
+    "demographics.last_name": "Last name",
+    "demographics.age": "Age",
+    "demographics.handedness": "Handedness",
+    "demographics.gender": "Gender",
+    "consent.text": CONSENT_TEXT,
+    "consent.aria": "Study consent",
+    "polar.ready": "Polar H10 ECG ready",
+    "polar.pending": "Polar H10 pending",
+    "polar.detail": "HR {heartRate} bpm | RR {rrCount} | ECG {sampleCount} samples @ {sampleRate} Hz",
+    "polar.id": "Polar ID: {device}",
+    "polar.not_connected": "not connected",
+    "polar.waiting": "Waiting for Polar H10 signal",
+    "polar.waveform_aria": "ECG waveform preview",
+    "session.count": "Session {position} of {total}",
+    "session.ready_question": "Are you ready for the next part?",
+    "session.vr_task": "VR task",
+    "session.audio_will_start": "{audioLabel} will start when you press Start next session.",
+    "induction.task_duration": "Five-minute task instructions",
+    "induction.audio_guide": "Audio guide",
+    "induction.audio_ready": "Audio ready",
+    "induction.follow": "Please follow the instructions.",
+    "induction.summary": "The assessment pages follow this task.",
+    "audio.variant": "Audio variant {variant}",
+    "sam.instruction": "For each row, choose the picture that best matches how you felt during the previous session.",
+    "sam.page_aria": "Self-Assessment Manikin pictographs",
+    "sam.valence.question": "How pleasant did this experience feel?",
+    "sam.valence.low": "Unpleasant",
+    "sam.valence.high": "Pleasant",
+    "sam.arousal.question": "How activated did you feel?",
+    "sam.arousal.low": "Low Energy",
+    "sam.arousal.high": "High Energy",
+    "sam.dominance.question": "How much control did you feel during your experience?",
+    "sam.dominance.low": "Not in control",
+    "sam.dominance.high": "In control",
+    "vas.page_aria": "Valence and arousal VAS",
+    "vas.valence.question": "How pleasant did the previous experience feel?",
+    "vas.valence.low": "Unpleasant",
+    "vas.valence.high": "Pleasant",
+    "vas.valence.touch": "valence",
+    "vas.arousal.question": "How activated did you feel in the previous experience?",
+    "vas.arousal.low": "Low Energy",
+    "vas.arousal.high": "High Energy",
+    "vas.arousal.touch": "arousal",
+    "emotion.heading": "Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.",
+    "emotion.aria": "Particle emotion representation VAS",
+    "emotion.anger": "Anger",
+    "emotion.disgust": "Disgust",
+    "emotion.fear": "Fear",
+    "emotion.happiness": "Happiness",
+    "emotion.sadness": "Sadness",
+    "emotion.surprise": "Surprise",
+    "emotion.low": "Not represented",
+    "emotion.high": "Clearly represented",
+    "hand.prompt": HAND_EMBODIMENT_PROMPT,
+    "hand.ownership.question": "It felt like the virtual hands were my own hands.",
+    "hand.agency.question": "It felt like I was controlling the movements of the virtual hands.",
+    "button.back": "Back",
+    "button.begin": "Begin",
+    "button.continue": "Continue",
+    "button.start_next_session": "Start next session",
+    "button.mark_complete": "Mark workflow complete",
+    "button.marked_complete": "Workflow marked complete",
+    "status.demographics_complete": "Demographics marked complete",
+    "status.ready_to_begin": "Ready to begin",
+    "status.waiting_to_start": "Waiting to start",
+    "status.ready_to_continue": "Ready to continue",
+    "validation.polar": "Polar H10 ECG is not ready.",
+    "validation.language": "Select language.",
+    "validation.first_name": "Enter first name.",
+    "validation.last_name": "Enter last name.",
+    "validation.age": "Enter age.",
+    "validation.handedness": "Select handedness.",
+    "validation.gender": "Select gender.",
+    "validation.consent": "Confirm study consent.",
+    "validation.sam": "Select a picture for {dimension}.",
+    "validation.vas_range": "VAS {field} must be 0..100.",
+    "validation.vas_touch": "Touch the {label} slider once.",
+    "validation.emotion_range": "{label} representation rating must be 0..100.",
+    "validation.hand": "Select a response for {item}.",
+    "condition.LC_LE": "Low coherence / low energy",
+    "condition.LC_HE": "Low coherence / high energy",
+    "condition.HC_LE": "High coherence / low energy",
+    "condition.HC_HE": "High coherence / high energy",
+    "story.panel_count": "Panel {index} of {total}",
+    "story.response_section": "Response section",
+    "story.ready_subtitle": "Participant readiness prompt before audio starts",
+    "story.instructions_subtitle": "Five-minute task instructions and audio"
+  },
+  de: {
+    "app.title": "Studie 6 Fragebogen",
+    "page.demographics.title": "Demografische Angaben",
+    "page.demographics.subtitle": "Teilnehmerdaten, Einwilligung und Polar-H10-Prüfung",
+    "page.ready.label": "Bereit",
+    "page.ready.title": "Bereit für die nächste Sitzung",
+    "page.session_ready.title": "Bereit für die nächste Sitzung",
+    "page.instructions.label": "Anweisungen",
+    "page.instructions.title": "VR-Aufgabenanweisungen",
+    "page.vr_task_instructions.title": "VR-Aufgabenanweisungen",
+    "page.self_assessment_manikin.title": "Self-Assessment-Manikin-Piktogramme",
+    "page.affect_vas.title": "Valenz- und Aktivierungs-VAS",
+    "page.emotion_representation_vas.title": "VAS zur Emotionsdarstellung der Partikel",
+    "page.hand_embodiment.title": "Verkörperung der virtuellen Hände",
+    "demographics.language": "Sprache",
+    "demographics.first_name": "Vorname",
+    "demographics.last_name": "Nachname",
+    "demographics.age": "Alter",
+    "demographics.handedness": "Händigkeit",
+    "demographics.gender": "Geschlecht",
+    "consent.text": "Ich willige ein, an dieser Studie teilzunehmen.",
+    "consent.aria": "Einwilligung zur Studie",
+    "polar.ready": "Polar-H10-EKG bereit",
+    "polar.pending": "Polar-H10 ausstehend",
+    "polar.detail": "HF {heartRate} bpm | RR {rrCount} | EKG {sampleCount} Samples @ {sampleRate} Hz",
+    "polar.id": "Polar-ID: {device}",
+    "polar.not_connected": "nicht verbunden",
+    "polar.waiting": "Warten auf Polar-H10-Signal",
+    "polar.waveform_aria": "EKG-Wellenformvorschau",
+    "session.count": "Sitzung {position} von {total}",
+    "session.ready_question": "Sind Sie bereit für den nächsten Teil?",
+    "session.vr_task": "VR-Aufgabe",
+    "session.audio_will_start": "{audioLabel} startet, wenn Sie Nächste Sitzung starten drücken.",
+    "induction.task_duration": "Fünfminütige Aufgabenanweisungen",
+    "induction.audio_guide": "Audioanleitung",
+    "induction.audio_ready": "Audio bereit",
+    "induction.follow": "Bitte folgen Sie den Anweisungen.",
+    "induction.summary": "Danach folgen die Bewertungsseiten.",
+    "audio.variant": "Audiovariante {variant}",
+    "sam.instruction": "Wählen Sie in jeder Zeile das Bild aus, das am besten beschreibt, wie Sie sich während der vorherigen Sitzung gefühlt haben.",
+    "sam.page_aria": "Self-Assessment-Manikin-Piktogramme",
+    "sam.valence.question": "Wie angenehm fühlte sich diese Erfahrung an?",
+    "sam.valence.low": "Unangenehm",
+    "sam.valence.high": "Angenehm",
+    "sam.arousal.question": "Wie aktiviert fühlten Sie sich?",
+    "sam.arousal.low": "Wenig aktiviert",
+    "sam.arousal.high": "Stark aktiviert",
+    "sam.dominance.question": "Wie viel Kontrolle hatten Sie während Ihrer Erfahrung?",
+    "sam.dominance.low": "Keine Kontrolle",
+    "sam.dominance.high": "Viel Kontrolle",
+    "vas.page_aria": "Valenz- und Aktivierungs-VAS",
+    "vas.valence.question": "Wie angenehm fühlte sich die vorherige Erfahrung an?",
+    "vas.valence.low": "Unangenehm",
+    "vas.valence.high": "Angenehm",
+    "vas.valence.touch": "Valenz",
+    "vas.arousal.question": "Wie aktiviert fühlten Sie sich in der vorherigen Erfahrung?",
+    "vas.arousal.low": "Wenig aktiviert",
+    "vas.arousal.high": "Stark aktiviert",
+    "vas.arousal.touch": "Aktivierung",
+    "emotion.heading": "An welche Emotionen erinnerte Sie die Partikelbewegung? Wenn es sich wie eine Mischung anfühlte, bewerten Sie, wie stark jede Emotion dargestellt war.",
+    "emotion.aria": "VAS zur Emotionsdarstellung der Partikel",
+    "emotion.anger": "Wut",
+    "emotion.disgust": "Ekel",
+    "emotion.fear": "Angst",
+    "emotion.happiness": "Freude",
+    "emotion.sadness": "Traurigkeit",
+    "emotion.surprise": "Überraschung",
+    "emotion.low": "Nicht dargestellt",
+    "emotion.high": "Eindeutig dargestellt",
+    "hand.prompt": "Fühlten sich die virtuellen Hände während der vorherigen Erfahrung wie Ihre echten Hände an? Geben Sie an, wie sehr Sie jeder Aussage zustimmen oder nicht zustimmen.",
+    "hand.ownership.question": "Es fühlte sich so an, als wären die virtuellen Hände meine eigenen Hände.",
+    "hand.agency.question": "Es fühlte sich so an, als würde ich die Bewegungen der virtuellen Hände kontrollieren.",
+    "button.back": "Zurück",
+    "button.begin": "Beginnen",
+    "button.continue": "Weiter",
+    "button.start_next_session": "Nächste Sitzung starten",
+    "button.mark_complete": "Ablauf abschließen",
+    "button.marked_complete": "Ablauf abgeschlossen",
+    "status.demographics_complete": "Demografische Angaben abgeschlossen",
+    "status.ready_to_begin": "Bereit zum Beginnen",
+    "status.waiting_to_start": "Warten auf Start",
+    "status.ready_to_continue": "Bereit zum Fortfahren",
+    "validation.polar": "Das Polar-H10-EKG ist noch nicht bereit.",
+    "validation.language": "Sprache auswählen.",
+    "validation.first_name": "Vornamen eingeben.",
+    "validation.last_name": "Nachnamen eingeben.",
+    "validation.age": "Alter eingeben.",
+    "validation.handedness": "Händigkeit auswählen.",
+    "validation.gender": "Geschlecht auswählen.",
+    "validation.consent": "Einwilligung zur Studie bestätigen.",
+    "validation.sam": "Wählen Sie ein Bild für {dimension} aus.",
+    "validation.vas_range": "VAS {field} muss zwischen 0 und 100 liegen.",
+    "validation.vas_touch": "Berühren Sie den {label}-Schieberegler einmal.",
+    "validation.emotion_range": "Die Bewertung für {label} muss zwischen 0 und 100 liegen.",
+    "validation.hand": "Wählen Sie eine Antwort für {item} aus.",
+    "condition.LC_LE": "Niedrige Kohärenz / niedrige Energie",
+    "condition.LC_HE": "Niedrige Kohärenz / hohe Energie",
+    "condition.HC_LE": "Hohe Kohärenz / niedrige Energie",
+    "condition.HC_HE": "Hohe Kohärenz / hohe Energie",
+    "story.panel_count": "Panel {index} von {total}",
+    "story.response_section": "Antwortbereich",
+    "story.ready_subtitle": "Bereitschaftsabfrage vor dem Start der Audioanleitung",
+    "story.instructions_subtitle": "Fünfminütige Aufgabenanweisungen und Audio"
+  }
+};
+
 const REQUIRED_SAM_DIMENSIONS = ["valence", "arousal", "dominance"];
+
+function normalizeLanguageCode(languageCode) {
+  return languageCode === "de" ? "de" : DEFAULT_LANGUAGE_CODE;
+}
+
+function currentLanguageCode() {
+  return normalizeLanguageCode(state && state.demographics ? state.demographics.language_code : DEFAULT_LANGUAGE_CODE);
+}
+
+function uiText(key, languageCode = currentLanguageCode(), replacements = {}, fallback = "") {
+  const language = normalizeLanguageCode(languageCode);
+  const table = UI_TEXT[language] || UI_TEXT[DEFAULT_LANGUAGE_CODE];
+  const template = table[key] || UI_TEXT[DEFAULT_LANGUAGE_CODE][key] || fallback || "";
+  return String(template).replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => {
+    const value = replacements[token];
+    return value === undefined || value === null ? "" : String(value);
+  });
+}
+
+function consentTextFor(languageCode = currentLanguageCode()) {
+  return uiText("consent.text", languageCode, {}, CONSENT_TEXT);
+}
+
+function pageTitleFor(pageId, languageCode = currentLanguageCode(), fallback = "") {
+  return uiText(`page.${pageId}.title`, languageCode, {}, fallback);
+}
+
+function displayConditionLabelFor(id, languageCode = currentLanguageCode()) {
+  return uiText(`condition.${id}`, languageCode, {}, conditionFor(id).label);
+}
+
+function audioInstructionLabel(audio, languageCode = currentLanguageCode()) {
+  const match = String(audio.id || "").match(/(\d+)$/);
+  const variant = match ? `V${match[1].padStart(2, "0")}` : audio.label;
+  return uiText("audio.variant", languageCode, { variant }, audio.label);
+}
+
+function localizedSamText(row, property, languageCode = currentLanguageCode()) {
+  return uiText(`sam.${row.id}.${property}`, languageCode, {}, row[property]);
+}
+
+function localizedAffectVasText(slider, property, languageCode = currentLanguageCode()) {
+  const key = slider.field.indexOf("arousal") === 0 ? "arousal" : "valence";
+  return uiText(`vas.${key}.${property}`, languageCode, {}, slider[property]);
+}
+
+function localizedEmotionLabel(emotion, languageCode = currentLanguageCode()) {
+  return uiText(`emotion.${emotion.id}`, languageCode, {}, emotion.label);
+}
+
+function localizedHandQuestion(item, languageCode = currentLanguageCode()) {
+  return uiText(`hand.${item.id}.question`, languageCode, {}, localizedText(item.question, languageCode));
+}
+
+function labelForContainer(container) {
+  if (!container || !container.closest) {
+    return null;
+  }
+  const fieldGroup = container.closest(".field-group");
+  return fieldGroup ? fieldGroup.querySelector("label") : null;
+}
 
 function samDimensionSortIndex(scaleId) {
   const index = REQUIRED_SAM_DIMENSIONS.indexOf(scaleId);
@@ -308,6 +589,9 @@ function defaultPolarValidation() {
     streaming: true,
     pmd_ready: true,
     ecg_streaming: true,
+    device_id: "Polar H10 Preview",
+    device_name: "Polar H10 Preview",
+    device_address: "browser-preview",
     heart_rate_bpm: 72,
     rr_interval_count: 8,
     ecg_sample_count: 180,
@@ -320,23 +604,16 @@ function defaultPolarValidation() {
     pmd_data_notifications_enabled: true,
     pmd_settings_received: true,
     pmd_start_response_received: true,
+    recent_ecg_samples_uv: [],
     diagnostic: "PMD ready | ECG streaming | MTU 23/23",
     native_ready_rule: "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
-  };
-}
-
-function defaultSignature() {
-  return {
-    has_signature: false,
-    stroke_count: 0,
-    strokes: []
   };
 }
 
 function defaultDemographics() {
   return {
     polar_validation: defaultPolarValidation(),
-    language_code: "en",
+    language_code: DEFAULT_LANGUAGE_CODE,
     participant_first_name: "",
     participant_last_name: "",
     participant_name: "",
@@ -344,8 +621,7 @@ function defaultDemographics() {
     handedness: "",
     gender: "",
     consent_confirmed: false,
-    consent_text: CONSENT_TEXT,
-    signature: defaultSignature(),
+    consent_text: consentTextFor(DEFAULT_LANGUAGE_CODE),
     complete: false
   };
 }
@@ -365,27 +641,21 @@ function combinedParticipantName(firstName, lastName) {
     .join(" ");
 }
 
-function normalizeSignature(rawSignature) {
-  const raw = rawSignature || {};
-  const strokes = Array.isArray(raw.strokes)
-    ? raw.strokes.map((stroke) => Array.isArray(stroke) ? stroke.filter((point) => point && Number.isFinite(point.x) && Number.isFinite(point.y)) : [])
-    : [];
-  return {
-    ...defaultSignature(),
-    ...raw,
-    strokes,
-    stroke_count: Number.isInteger(raw.stroke_count) ? raw.stroke_count : strokes.length,
-    has_signature: Boolean(raw.has_signature || strokes.length > 0)
-  };
-}
-
 function normalizeDemographics(rawDemographics) {
   const base = defaultDemographics();
   const raw = rawDemographics || {};
+  const { signature: _legacySignature, ...rawWithoutLegacySignature } = raw;
   const polar = {
     ...base.polar_validation,
     ...(raw.polar_validation || {})
   };
+  if (!Array.isArray(polar.recent_ecg_samples_uv)) {
+    polar.recent_ecg_samples_uv = [];
+  } else {
+    polar.recent_ecg_samples_uv = polar.recent_ecg_samples_uv
+      .map((sample) => Number(sample))
+      .filter((sample) => Number.isFinite(sample));
+  }
   const age = raw.age_years === "" || raw.age_years === undefined ? null : raw.age_years;
   const legacyName = typeof raw.participant_name === "string" ? raw.participant_name : "";
   const splitName = splitParticipantName(legacyName);
@@ -394,11 +664,12 @@ function normalizeDemographics(rawDemographics) {
   const useLegacySplit = rawFirstName.trim().length === 0 && rawLastName.trim().length === 0 && legacyName.trim().length > 0;
   const firstName = useLegacySplit ? splitName.first : rawFirstName;
   const lastName = useLegacySplit ? splitName.last : rawLastName;
+  const languageCode = normalizeLanguageCode(raw.language_code);
   return {
     ...base,
-    ...raw,
+    ...rawWithoutLegacySignature,
     polar_validation: polar,
-    language_code: LANGUAGE_OPTIONS.some((option) => option.id === raw.language_code) ? raw.language_code : base.language_code,
+    language_code: languageCode,
     participant_first_name: firstName,
     participant_last_name: lastName,
     participant_name: combinedParticipantName(firstName, lastName),
@@ -406,8 +677,7 @@ function normalizeDemographics(rawDemographics) {
     handedness: typeof raw.handedness === "string" ? raw.handedness : base.handedness,
     gender: typeof raw.gender === "string" ? raw.gender : base.gender,
     consent_confirmed: Boolean(raw.consent_confirmed),
-    consent_text: CONSENT_TEXT,
-    signature: normalizeSignature(raw.signature),
+    consent_text: consentTextFor(languageCode),
     complete: Boolean(raw.complete)
   };
 }
@@ -535,25 +805,7 @@ function makeEdgeState() {
     age_years: 29,
     handedness: "left",
     gender: "prefer_not_to_say",
-    consent_confirmed: true,
-    signature: {
-      has_signature: true,
-      stroke_count: 2,
-      strokes: [
-        [
-          { x: 0.12, y: 0.62 },
-          { x: 0.24, y: 0.45 },
-          { x: 0.36, y: 0.58 },
-          { x: 0.48, y: 0.38 }
-        ],
-        [
-          { x: 0.54, y: 0.62 },
-          { x: 0.65, y: 0.48 },
-          { x: 0.78, y: 0.54 },
-          { x: 0.88, y: 0.42 }
-        ]
-      ]
-    }
+    consent_confirmed: true
   });
   state.responses_by_condition.forEach((entry, index) => {
     const assessment = entry.assessment;
@@ -589,22 +841,35 @@ const elements = {
   pageLabel: document.getElementById("pageLabel"),
   pageTitle: document.getElementById("pageTitle"),
   demographicsPage: document.getElementById("demographicsPage"),
+  demographicsHeading: document.getElementById("demographicsHeading"),
+  demographicsSubtitle: document.querySelector(".demographics-title span"),
   polarStatusCard: document.getElementById("polarStatusCard"),
   polarStatusTitle: document.getElementById("polarStatusTitle"),
   polarSignalDetail: document.getElementById("polarSignalDetail"),
+  polarDeviceId: document.getElementById("polarDeviceId"),
   polarDiagnostic: document.getElementById("polarDiagnostic"),
   polarWaveform: document.getElementById("polarWaveform"),
   languageOptions: document.getElementById("languageOptions"),
+  languageLabel: labelForContainer(document.getElementById("languageOptions")),
   participantFirstName: document.getElementById("participantFirstName"),
+  participantFirstNameLabel: document.querySelector("label[for='participantFirstName']"),
   participantLastName: document.getElementById("participantLastName"),
+  participantLastNameLabel: document.querySelector("label[for='participantLastName']"),
   participantAge: document.getElementById("participantAge"),
+  participantAgeLabel: document.querySelector("label[for='participantAge']"),
   handednessOptions: document.getElementById("handednessOptions"),
+  handednessLabel: labelForContainer(document.getElementById("handednessOptions")),
   genderOptions: document.getElementById("genderOptions"),
+  genderLabel: labelForContainer(document.getElementById("genderOptions")),
   consentCheckbox: document.getElementById("consentCheckbox"),
   consentText: document.getElementById("consentText"),
-  signaturePad: document.getElementById("signaturePad"),
-  clearSignature: document.getElementById("clearSignature"),
-  signatureSummary: document.getElementById("signatureSummary"),
+  sessionReadyPage: document.getElementById("sessionReadyPage"),
+  sessionReadyKicker: document.getElementById("sessionReadyKicker"),
+  sessionReadyHeading: document.getElementById("sessionReadyHeading"),
+  sessionReadyConditionLabel: document.getElementById("sessionReadyConditionLabel"),
+  sessionReadyBlockLabel: document.getElementById("sessionReadyBlockLabel"),
+  sessionReadyAudioLabel: document.getElementById("sessionReadyAudioLabel"),
+  sessionReadyStart: document.getElementById("sessionReadyStart"),
   inductionPage: document.getElementById("inductionPage"),
   inductionKicker: document.getElementById("inductionKicker"),
   inductionHeading: document.getElementById("inductionHeading"),
@@ -614,9 +879,13 @@ const elements = {
   inductionRandomizationNote: document.getElementById("inductionRandomizationNote"),
   inductionAudioLinks: document.getElementById("inductionAudioLinks"),
   inductionSummary: document.getElementById("inductionSummary"),
+  inductionTaskInstructions: document.querySelector("#inductionPage .induction-placeholder strong"),
+  inductionAudioGuideLabel: document.querySelector("#inductionPage .induction-audio small"),
   samPage: document.getElementById("samPage"),
+  samInstruction: document.querySelector("#samPage .page-instruction"),
   vasPage: document.getElementById("vasPage"),
   emotionRepresentationPage: document.getElementById("emotionRepresentationPage"),
+  emotionRepresentationHeading: document.getElementById("emotionRepresentationHeading"),
   handEmbodimentPage: document.getElementById("handEmbodimentPage"),
   samRows: document.getElementById("samRows"),
   samCompletion: document.getElementById("samCompletion"),
@@ -638,11 +907,6 @@ const elements = {
   storyboardPanels: document.getElementById("storyboardPanels")
 };
 
-const signatureDrawing = {
-  active: false,
-  currentStroke: []
-};
-
 function activeOrder() {
   return COUNTERBALANCE_ORDERS.find((order) => order.id === state.counterbalance_order_id) || COUNTERBALANCE_ORDERS[0];
 }
@@ -660,6 +924,10 @@ function activePanelPageId() {
 
 function isDemographicsActive() {
   return activePanelPageId() === "demographics";
+}
+
+function isReadyActive() {
+  return activePanelPageId() === READY_PAGE.id;
 }
 
 function isInductionActive() {
@@ -758,10 +1026,51 @@ function setState(nextState) {
   render();
 }
 
+function setElementText(element, text) {
+  if (element) {
+    element.textContent = text;
+  }
+}
+
+function setElementAttribute(element, name, value) {
+  if (element) {
+    element.setAttribute(name, value);
+  }
+}
+
+function renderLocalizedStaticText() {
+  const languageCode = currentLanguageCode();
+  document.documentElement.lang = languageCode;
+  document.title = uiText("app.title", languageCode);
+
+  setElementText(elements.demographicsHeading, uiText("page.demographics.title", languageCode));
+  setElementText(elements.demographicsSubtitle, uiText("page.demographics.subtitle", languageCode));
+  setElementText(elements.languageLabel, uiText("demographics.language", languageCode));
+  setElementText(elements.participantFirstNameLabel, uiText("demographics.first_name", languageCode));
+  setElementText(elements.participantLastNameLabel, uiText("demographics.last_name", languageCode));
+  setElementText(elements.participantAgeLabel, uiText("demographics.age", languageCode));
+  setElementText(elements.handednessLabel, uiText("demographics.handedness", languageCode));
+  setElementText(elements.genderLabel, uiText("demographics.gender", languageCode));
+  setElementText(elements.sessionReadyStart, uiText("button.start_next_session", languageCode));
+  setElementText(elements.inductionTaskInstructions, uiText("induction.task_duration", languageCode));
+  setElementText(elements.inductionAudioGuideLabel, uiText("induction.audio_guide", languageCode));
+  setElementText(elements.samInstruction, uiText("sam.instruction", languageCode));
+  setElementText(elements.emotionRepresentationHeading, uiText("emotion.heading", languageCode));
+
+  setElementAttribute(elements.consentCheckbox, "aria-label", uiText("consent.aria", languageCode));
+  setElementAttribute(elements.polarWaveform, "aria-label", uiText("polar.waveform_aria", languageCode));
+  setElementAttribute(elements.samPage, "aria-label", uiText("sam.page_aria", languageCode));
+  setElementAttribute(elements.vasPage, "aria-label", uiText("vas.page_aria", languageCode));
+  setElementAttribute(elements.emotionRepresentationPage, "aria-label", uiText("emotion.aria", languageCode));
+  setElementAttribute(elements.handEmbodimentPage, "aria-label", uiText("hand.prompt", languageCode));
+}
+
 function render() {
+  renderLocalizedStaticText();
   renderHeader();
   renderVisiblePage();
   renderDemographics();
+  renderSessionReady();
   renderInductionPlaceholder();
   renderSamRows();
   renderVasSliders();
@@ -790,16 +1099,17 @@ function renderConditionButtons() {
   if (!elements.conditionButtons) {
     return;
   }
+  const languageCode = currentLanguageCode();
   elements.conditionButtons.replaceChildren();
   const order = activeOrder();
   order.condition_ids.forEach((conditionId, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = `${index + 1}. ${conditionLabelFor(conditionId).replace("Induction ", "")}`;
+    button.textContent = `${index + 1}. ${displayConditionLabelFor(conditionId, languageCode).replace("Induction ", "")}`;
     button.setAttribute("aria-pressed", String(index + 1 === state.active_condition_position));
     button.addEventListener("click", () => {
       state.active_condition_position = index + 1;
-      state.active_panel_page_id = INDUCTION_PAGE.id;
+      state.active_panel_page_id = READY_PAGE.id;
       state.active_assessment_page_id = "self_assessment_manikin";
       render();
     });
@@ -811,11 +1121,15 @@ function renderPageButtons() {
   if (!elements.pageButtons) {
     return;
   }
+  const languageCode = currentLanguageCode();
   elements.pageButtons.replaceChildren();
   WORKFLOW_PAGES.forEach((page, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = page.id === "demographics" ? page.label : `${index}. ${page.label}`;
+    const pageLabel = page.id === "demographics"
+      ? uiText("page.demographics.title", languageCode)
+      : pageTitleFor(page.id, languageCode, page.title);
+    button.textContent = page.id === "demographics" ? pageLabel : `${index}. ${pageLabel}`;
     button.setAttribute("aria-pressed", String(page.id === activePanelPageId()));
     button.addEventListener("click", () => {
       state.active_panel_page_id = page.id;
@@ -829,20 +1143,30 @@ function renderPageButtons() {
 }
 
 function renderHeader() {
+  const languageCode = currentLanguageCode();
   elements.conditionStatus.textContent = "";
   elements.conditionStatus.hidden = true;
   if (isDemographicsActive()) {
-    elements.conditionLabel.textContent = "Demographics";
-    elements.pageLabel.textContent = "Demographics";
-    elements.pageTitle.textContent = "Demographics";
+    const demographicsTitle = uiText("page.demographics.title", languageCode);
+    elements.conditionLabel.textContent = demographicsTitle;
+    elements.pageLabel.textContent = demographicsTitle;
+    elements.pageTitle.textContent = demographicsTitle;
+    elements.pageCounter.textContent = "";
+    elements.pageCounter.hidden = true;
+    return;
+  }
+  if (isReadyActive()) {
+    elements.conditionLabel.textContent = "";
+    elements.pageLabel.textContent = uiText("page.ready.label", languageCode);
+    elements.pageTitle.textContent = uiText("page.ready.title", languageCode);
     elements.pageCounter.textContent = "";
     elements.pageCounter.hidden = true;
     return;
   }
   if (isInductionActive()) {
     elements.conditionLabel.textContent = "";
-    elements.pageLabel.textContent = "Instructions";
-    elements.pageTitle.textContent = "VR task instructions";
+    elements.pageLabel.textContent = uiText("page.instructions.label", languageCode);
+    elements.pageTitle.textContent = uiText("page.instructions.title", languageCode);
     elements.pageCounter.textContent = "";
     elements.pageCounter.hidden = true;
     return;
@@ -854,7 +1178,7 @@ function renderHeader() {
   response.preview_condition_label = conditionLabelFor(conditionId);
   elements.conditionLabel.textContent = "";
   elements.pageLabel.textContent = "";
-  elements.pageTitle.textContent = page.title;
+  elements.pageTitle.textContent = pageTitleFor(page.id, languageCode, page.title);
   elements.pageCounter.textContent = "";
   elements.pageCounter.hidden = true;
 }
@@ -862,6 +1186,7 @@ function renderHeader() {
 function renderVisiblePage() {
   const pageId = activePanelPageId();
   elements.demographicsPage.hidden = pageId !== "demographics";
+  elements.sessionReadyPage.hidden = pageId !== READY_PAGE.id;
   elements.inductionPage.hidden = pageId !== INDUCTION_PAGE.id;
   elements.samPage.hidden = pageId !== "self_assessment_manikin";
   elements.vasPage.hidden = pageId !== "affect_vas";
@@ -882,23 +1207,71 @@ function polarIsReady(polar = state.demographics.polar_validation) {
   );
 }
 
+function polarDeviceLabel(polar = state.demographics.polar_validation, languageCode = currentLanguageCode()) {
+  const deviceId = String(polar.device_id || "").trim();
+  if (deviceId) {
+    return deviceId;
+  }
+  const name = String(polar.device_name || "").trim();
+  const address = String(polar.device_address || "").trim();
+  if (name && address) {
+    return `${name} [${address}]`;
+  }
+  return name || address || uiText("polar.not_connected", languageCode);
+}
+
+function localizedPolarDiagnostic(polar, ready, languageCode = currentLanguageCode()) {
+  const diagnostic = String(ready ? (polar.diagnostic || "") : (polar.diagnostic || polar.state || "")).trim();
+  if (languageCode !== "de") {
+    return diagnostic || uiText("polar.waiting", languageCode);
+  }
+  const mtuMatch = diagnostic.match(/^PMD ready \| ECG streaming \| MTU (.+)$/);
+  if (mtuMatch) {
+    return `PMD bereit | EKG-Streaming | MTU ${mtuMatch[1]}`;
+  }
+  const germanDiagnostics = {
+    "ECG stream waiting for samples": "EKG-Stream wartet auf Samples",
+    "Waiting for Polar H10 signal": "Warten auf Polar-H10-Signal",
+    waiting_for_polar_h10: "Warten auf Polar-H10-Signal",
+    native_pending: "Native Polar-H10-Prüfung ausstehend",
+    created: "Polar-H10-Prüfung vorbereitet",
+    permissions_missing: "Bluetooth-Berechtigungen fehlen",
+    bluetooth_unavailable: "Bluetooth nicht verfügbar",
+    bluetooth_off: "Bluetooth ausgeschaltet",
+    scanning: "Suche nach Polar H10",
+    connecting: "Verbindung zu Polar H10 wird hergestellt",
+    connected: "Polar H10 verbunden",
+    pmd_ready: "Polar-PMD bereit",
+    streaming: "EKG-Streaming",
+    stopped: "Gestoppt",
+    closed: "Geschlossen",
+    scan_timeout: "Polar-H10-Suche abgelaufen"
+  };
+  return germanDiagnostics[diagnostic] || diagnostic || uiText("polar.waiting", languageCode);
+}
+
 function renderDemographics() {
   state.demographics = normalizeDemographics(state.demographics);
   const demographics = state.demographics;
+  const languageCode = demographics.language_code;
   const polar = demographics.polar_validation;
   const ready = polarIsReady(polar);
 
   elements.polarStatusCard.classList.toggle("ready", ready);
   elements.polarStatusCard.classList.toggle("waiting", !ready);
-  elements.polarStatusTitle.textContent = ready ? "Polar H10 ECG ready" : "Polar H10 pending";
-  elements.polarSignalDetail.textContent =
-    `HR ${polar.heart_rate_bpm} bpm | RR ${polar.rr_interval_count} | ECG ${polar.ecg_sample_count} samples @ ${polar.ecg_sample_rate_hz} Hz`;
-  elements.polarDiagnostic.textContent = ready
-    ? polar.diagnostic
-    : (polar.diagnostic || polar.state || "Waiting for Polar H10 signal");
+  elements.polarStatusTitle.textContent = ready ? uiText("polar.ready", languageCode) : uiText("polar.pending", languageCode);
+  elements.polarSignalDetail.textContent = uiText("polar.detail", languageCode, {
+    heartRate: polar.heart_rate_bpm,
+    rrCount: polar.rr_interval_count,
+    sampleCount: polar.ecg_sample_count,
+    sampleRate: polar.ecg_sample_rate_hz
+  });
+  elements.polarDeviceId.textContent = uiText("polar.id", languageCode, { device: polarDeviceLabel(polar, languageCode) });
+  elements.polarDiagnostic.textContent = localizedPolarDiagnostic(polar, ready, languageCode);
 
   renderOptionGroup(elements.languageOptions, LANGUAGE_OPTIONS, demographics.language_code, "demographics.language", (value) => {
     demographics.language_code = value;
+    demographics.consent_text = consentTextFor(value);
     demographics.complete = false;
   });
   renderOptionGroup(elements.handednessOptions, HANDEDNESS_OPTIONS, demographics.handedness, "demographics.handedness", (value) => {
@@ -923,23 +1296,19 @@ function renderDemographics() {
   }
   elements.consentCheckbox.checked = demographics.consent_confirmed;
   elements.consentText.textContent = demographics.consent_text;
-  elements.signatureSummary.textContent = demographics.signature.has_signature
-    ? `${demographics.signature.stroke_count} signature stroke${demographics.signature.stroke_count === 1 ? "" : "s"} captured`
-    : "No signature captured";
 
   window.requestAnimationFrame(() => {
     drawPolarWaveform();
-    drawSignaturePad();
   });
 }
 
-function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect) {
+function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect, languageCode = currentLanguageCode()) {
   container.replaceChildren();
   options.forEach((option) => {
     const button = document.createElement("button");
     button.type = "button";
     button.id = `${idPrefix}.${option.id}`;
-    button.textContent = option.label;
+    button.textContent = localizedText(option.label, languageCode);
     button.setAttribute("aria-pressed", String(option.id === selectedValue));
     button.addEventListener("click", () => {
       onSelect(option.id);
@@ -949,41 +1318,66 @@ function renderOptionGroup(container, options, selectedValue, idPrefix, onSelect
   });
 }
 
+function renderSessionReady() {
+  const languageCode = currentLanguageCode();
+  const audio = audioInstructionFor(state.active_condition_position);
+  const sessionCount = uiText("session.count", languageCode, {
+    position: state.active_condition_position,
+    total: CONDITIONS.length
+  });
+  elements.sessionReadyKicker.textContent = sessionCount;
+  elements.sessionReadyHeading.textContent = uiText("session.ready_question", languageCode);
+  elements.sessionReadyConditionLabel.textContent = displayConditionLabelFor(activeConditionId(), languageCode);
+  elements.sessionReadyBlockLabel.textContent = sessionCount;
+  elements.sessionReadyAudioLabel.textContent = uiText("session.audio_will_start", languageCode, {
+    audioLabel: audioInstructionLabel(audio, languageCode)
+  });
+}
+
 function renderInductionPlaceholder() {
+  const languageCode = currentLanguageCode();
   elements.inductionKicker.textContent = "";
   elements.inductionKicker.hidden = true;
-  elements.inductionHeading.textContent = "VR task instructions";
-  elements.inductionConditionLabel.textContent = "VR task";
-  elements.inductionAudioLabel.textContent = "Audio ready";
-  elements.inductionAudioSummary.textContent = "Please follow the instructions.";
+  elements.inductionHeading.textContent = uiText("page.instructions.title", languageCode);
+  elements.inductionConditionLabel.textContent = uiText("session.vr_task", languageCode);
+  elements.inductionAudioLabel.textContent = uiText("induction.audio_ready", languageCode);
+  elements.inductionAudioSummary.textContent = uiText("induction.follow", languageCode);
   elements.inductionRandomizationNote.textContent = "";
   elements.inductionAudioLinks.replaceChildren();
-  elements.inductionSummary.textContent = "The assessment pages follow this task.";
+  elements.inductionSummary.textContent = uiText("induction.summary", languageCode);
 }
 
 function storyboardItems(order = activeOrder()) {
+  const languageCode = currentLanguageCode();
   return [
     {
       page_id: "demographics",
-      storyboard_title: "Demographics",
-      storyboard_subtitle: "Participant details, consent, and Polar H10 check"
+      storyboard_title: uiText("page.demographics.title", languageCode),
+      storyboard_subtitle: uiText("page.demographics.subtitle", languageCode)
     },
     ...order.condition_ids.flatMap((conditionId, index) => {
       const conditionPosition = index + 1;
       return [
         {
+          page_id: READY_PAGE.id,
+          condition_id: conditionId,
+          condition_position: conditionPosition,
+          storyboard_title: uiText("page.ready.title", languageCode),
+          storyboard_subtitle: uiText("story.ready_subtitle", languageCode)
+        },
+        {
           page_id: INDUCTION_PAGE.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: "VR task instructions",
-          storyboard_subtitle: "Five-minute task instructions and audio"
+          storyboard_title: uiText("page.instructions.title", languageCode),
+          storyboard_subtitle: uiText("story.instructions_subtitle", languageCode)
         },
         ...ASSESSMENT_PAGES.map((page, pageIndex) => ({
           page_id: page.id,
           condition_id: conditionId,
           condition_position: conditionPosition,
-          storyboard_title: page.title,
-          storyboard_subtitle: "Response section"
+          storyboard_title: pageTitleFor(page.id, languageCode, page.title),
+          storyboard_subtitle: uiText("story.response_section", languageCode)
         }))
       ];
     })
@@ -993,30 +1387,12 @@ function storyboardItems(order = activeOrder()) {
 function storyboardDemographicsState() {
   return normalizeDemographics({
     polar_validation: defaultPolarValidation(),
-    language_code: "en",
+    language_code: currentLanguageCode(),
     participant_first_name: "Preview",
     participant_last_name: "Participant",
     age_years: 29,
     handedness: "right",
     gender: "prefer_not_to_say",
-    signature: {
-      has_signature: true,
-      stroke_count: 2,
-      strokes: [
-        [
-          { x: 0.11, y: 0.64 },
-          { x: 0.21, y: 0.42 },
-          { x: 0.34, y: 0.58 },
-          { x: 0.46, y: 0.36 }
-        ],
-        [
-          { x: 0.52, y: 0.63 },
-          { x: 0.63, y: 0.48 },
-          { x: 0.77, y: 0.55 },
-          { x: 0.9, y: 0.4 }
-        ]
-      ]
-    },
     complete: false
   });
 }
@@ -1100,6 +1476,7 @@ function renderStoryboard() {
   if (!elements.storyboardPanels || !elements.storyboardSection || elements.storyboardSection.hidden) {
     return;
   }
+  const languageCode = currentLanguageCode();
   const items = storyboardItems();
   elements.storyboardPanels.replaceChildren();
   items.forEach((item, index) => {
@@ -1108,7 +1485,10 @@ function renderStoryboard() {
     wrapper.dataset.pageId = item.page_id;
     wrapper.innerHTML = `
       <div class="storyboard-card-label">
-        <span>Panel ${String(index + 1).padStart(2, "0")} of ${String(items.length).padStart(2, "0")}</span>
+        <span>${escapeHtml(uiText("story.panel_count", languageCode, {
+          index: String(index + 1).padStart(2, "0"),
+          total: String(items.length).padStart(2, "0")
+        }))}</span>
         <strong>${escapeHtml(item.storyboard_title)}</strong>
         <em>${escapeHtml(item.storyboard_subtitle)}</em>
       </div>
@@ -1128,8 +1508,9 @@ function escapeHtml(value) {
 }
 
 function localizedText(value, languageCode = state.demographics.language_code) {
+  const language = normalizeLanguageCode(languageCode);
   if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value[languageCode] || value.en || Object.values(value).find(Boolean) || "";
+    return value[language] || value.en || Object.values(value).find(Boolean) || "";
   }
   return String(value ?? "");
 }
@@ -1161,6 +1542,7 @@ function appendStackedLabel(element, label) {
 }
 
 function createStoryboardPanel(item) {
+  const languageCode = currentLanguageCode();
   const meta = storyboardPanelMeta(item);
   const panel = document.createElement("section");
   panel.className = "panel-frame storyboard-panel-frame";
@@ -1183,7 +1565,7 @@ function createStoryboardPanel(item) {
         ${meta.footerStatus ? `<p class="footer-status${meta.footerError ? " error" : ""}">${escapeHtml(meta.footerStatus)}</p>` : ""}
       </div>
       <div class="footer-actions">
-        <button class="secondary-button" type="button"${meta.backDisabled ? " disabled" : ""}>Back</button>
+        <button class="secondary-button" type="button"${meta.backDisabled ? " disabled" : ""}>${escapeHtml(uiText("button.back", languageCode))}</button>
         <button class="primary-button" type="button"${meta.nextDisabled ? " disabled" : ""}>${escapeHtml(meta.nextText)}</button>
       </div>
     </footer>
@@ -1195,20 +1577,37 @@ function createStoryboardPanel(item) {
 }
 
 function storyboardPanelMeta(item) {
+  const languageCode = currentLanguageCode();
   if (item.page_id === "demographics") {
     const demographics = storyboardDemographicsState();
     const errors = demographicsValidationErrors(demographics);
+    const demographicsTitle = uiText("page.demographics.title", languageCode);
     return {
       conditionStatus: "",
-      conditionLabel: "Demographics",
-      pageLabel: "Demographics",
-      pageTitle: "Demographics",
+      conditionLabel: demographicsTitle,
+      pageLabel: demographicsTitle,
+      pageTitle: demographicsTitle,
       pageCounter: "",
-      footerStatus: errors.length > 0 ? errors[0] : "Ready to begin",
+      footerStatus: errors.length > 0 ? errors[0] : uiText("status.ready_to_begin", languageCode),
       footerError: errors.length > 0,
       backDisabled: true,
       nextDisabled: errors.length > 0,
-      nextText: "Begin"
+      nextText: uiText("button.begin", languageCode)
+    };
+  }
+
+  if (item.page_id === READY_PAGE.id) {
+    return {
+      conditionStatus: "",
+      conditionLabel: "",
+      pageLabel: uiText("page.ready.label", languageCode),
+      pageTitle: uiText("page.ready.title", languageCode),
+      pageCounter: "",
+      footerStatus: uiText("status.waiting_to_start", languageCode),
+      footerError: false,
+      backDisabled: false,
+      nextDisabled: false,
+      nextText: uiText("button.start_next_session", languageCode)
     };
   }
 
@@ -1216,14 +1615,14 @@ function storyboardPanelMeta(item) {
     return {
       conditionStatus: "",
       conditionLabel: "",
-      pageLabel: "Instructions",
-      pageTitle: "VR task instructions",
+      pageLabel: uiText("page.instructions.label", languageCode),
+      pageTitle: uiText("page.instructions.title", languageCode),
       pageCounter: "",
-      footerStatus: "Ready to continue",
+      footerStatus: uiText("status.ready_to_continue", languageCode),
       footerError: false,
       backDisabled: false,
       nextDisabled: false,
-      nextText: "Continue"
+      nextText: uiText("button.continue", languageCode)
     };
   }
 
@@ -1243,15 +1642,18 @@ function storyboardPanelMeta(item) {
     nextDisabled: errors.length > 0,
     nextText: isFinalAssessmentPage
       ? item.condition_position < CONDITIONS.length
-        ? "Continue"
-        : (assessment.complete ? "Workflow marked complete" : "Mark workflow complete")
-      : "Continue"
+        ? uiText("button.continue", languageCode)
+        : (assessment.complete ? uiText("button.marked_complete", languageCode) : uiText("button.mark_complete", languageCode))
+      : uiText("button.continue", languageCode)
   };
 }
 
 function storyboardContentMarkup(item) {
   if (item.page_id === "demographics") {
     return demographicsStoryboardMarkup();
+  }
+  if (item.page_id === READY_PAGE.id) {
+    return sessionReadyStoryboardMarkup(item);
   }
   if (item.page_id === INDUCTION_PAGE.id) {
     return inductionStoryboardMarkup(item);
@@ -1271,6 +1673,7 @@ function storyboardContentMarkup(item) {
 
 function demographicsStoryboardMarkup() {
   const demographics = storyboardDemographicsState();
+  const languageCode = demographics.language_code;
   const polar = demographics.polar_validation;
   const ready = polarIsReady(polar);
   const age = demographics.age_years === null || Number.isNaN(demographics.age_years) ? "" : String(demographics.age_years);
@@ -1280,60 +1683,60 @@ function demographicsStoryboardMarkup() {
         <div class="polar-status-main">
           <span class="status-lamp" aria-hidden="true"></span>
           <div>
-            <p class="story-polar-title">${ready ? "Polar H10 ECG ready" : "Polar H10 pending"}</p>
-            <p class="story-polar-detail">HR ${escapeHtml(polar.heart_rate_bpm)} bpm | RR ${escapeHtml(polar.rr_interval_count)} | ECG ${escapeHtml(polar.ecg_sample_count)} samples @ ${escapeHtml(polar.ecg_sample_rate_hz)} Hz</p>
-            <p class="story-polar-diagnostic">${escapeHtml(ready ? polar.diagnostic : (polar.diagnostic || polar.state || "Waiting for Polar H10 signal"))}</p>
+            <p class="story-polar-title">${escapeHtml(ready ? uiText("polar.ready", languageCode) : uiText("polar.pending", languageCode))}</p>
+            <p class="story-polar-detail">${escapeHtml(uiText("polar.detail", languageCode, {
+              heartRate: polar.heart_rate_bpm,
+              rrCount: polar.rr_interval_count,
+              sampleCount: polar.ecg_sample_count,
+              sampleRate: polar.ecg_sample_rate_hz
+            }))}</p>
+            <p class="story-polar-detail">${escapeHtml(uiText("polar.id", languageCode, { device: polarDeviceLabel(polar, languageCode) }))}</p>
+            <p class="story-polar-diagnostic">${escapeHtml(localizedPolarDiagnostic(polar, ready, languageCode))}</p>
           </div>
         </div>
-        <canvas class="polar-waveform storyboard-polar-waveform" width="300" height="48" data-ready="${ready ? "true" : "false"}" aria-label="ECG waveform preview"></canvas>
+        <canvas class="polar-waveform storyboard-polar-waveform" width="300" height="48" data-ready="${ready ? "true" : "false"}" aria-label="${escapeHtml(uiText("polar.waveform_aria", languageCode))}"></canvas>
       </div>
 
       <div class="section-title demographics-title">
-        <h2>Demographics</h2>
-        <span>Participant details, consent, and Polar H10 check</span>
+        <h2>${escapeHtml(uiText("page.demographics.title", languageCode))}</h2>
+        <span>${escapeHtml(uiText("page.demographics.subtitle", languageCode))}</span>
       </div>
 
       <div class="demographics-grid">
         <div class="demographics-column">
           <div class="field-group">
-            <label>Language</label>
-            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, demographics.language_code)}</div>
+            <label>${escapeHtml(uiText("demographics.language", languageCode))}</label>
+            <div class="option-group two-options">${optionButtonsMarkup(LANGUAGE_OPTIONS, demographics.language_code, languageCode)}</div>
           </div>
           <div class="split-field-row">
             <div class="field-row">
-              <label>First name</label>
+              <label>${escapeHtml(uiText("demographics.first_name", languageCode))}</label>
               <input type="text" autocomplete="given-name" inputmode="text" value="${escapeHtml(demographics.participant_first_name)}" readonly>
             </div>
             <div class="field-row">
-              <label>Last name</label>
+              <label>${escapeHtml(uiText("demographics.last_name", languageCode))}</label>
               <input type="text" autocomplete="family-name" inputmode="text" value="${escapeHtml(demographics.participant_last_name)}" readonly>
             </div>
           </div>
           <div class="field-row compact">
-            <label>Age</label>
+            <label>${escapeHtml(uiText("demographics.age", languageCode))}</label>
             <input type="number" min="0" max="120" step="1" inputmode="numeric" value="${escapeHtml(age)}" readonly>
           </div>
           <div class="field-group">
-            <label>Handedness</label>
-            <div class="option-group four-options">${optionButtonsMarkup(HANDEDNESS_OPTIONS, demographics.handedness)}</div>
+            <label>${escapeHtml(uiText("demographics.handedness", languageCode))}</label>
+            <div class="option-group four-options">${optionButtonsMarkup(HANDEDNESS_OPTIONS, demographics.handedness, languageCode)}</div>
           </div>
           <div class="field-group">
-            <label>Gender</label>
-            <div class="option-group four-options">${optionButtonsMarkup(GENDER_OPTIONS, demographics.gender)}</div>
+            <label>${escapeHtml(uiText("demographics.gender", languageCode))}</label>
+            <div class="option-group four-options">${optionButtonsMarkup(GENDER_OPTIONS, demographics.gender, languageCode)}</div>
           </div>
         </div>
 
         <div class="demographics-column consent-column">
           <label class="consent-check">
-            <input type="checkbox" ${demographics.consent_confirmed ? "checked" : ""} aria-label="Study consent">
+            <input type="checkbox" ${demographics.consent_confirmed ? "checked" : ""} aria-label="${escapeHtml(uiText("consent.aria", languageCode))}">
             <span>${escapeHtml(demographics.consent_text)}</span>
           </label>
-          <div class="signature-header">
-            <label>Signature</label>
-            <button class="secondary-button small-button" type="button">Clear</button>
-          </div>
-          <canvas class="signature-pad storyboard-signature-pad" width="440" height="160" aria-label="Consent signature pad"></canvas>
-          <p class="signature-summary">${demographics.signature.has_signature ? `${demographics.signature.stroke_count} signature stroke${demographics.signature.stroke_count === 1 ? "" : "s"} captured` : "No signature captured"}</p>
         </div>
       </div>
     </section>
@@ -1341,99 +1744,139 @@ function demographicsStoryboardMarkup() {
 }
 
 function inductionStoryboardMarkup(item) {
+  const languageCode = currentLanguageCode();
   return `
     <section class="assessment-page induction-section">
       <div class="induction-shell">
         <p class="induction-kicker" hidden></p>
-        <h2>VR task instructions</h2>
+        <h2>${escapeHtml(uiText("page.instructions.title", languageCode))}</h2>
         <div class="induction-placeholder">
-          <span>VR task</span>
-          <strong>Five-minute task instructions</strong>
+          <span>${escapeHtml(displayConditionLabelFor(item.condition_id, languageCode))}</span>
+          <strong>${escapeHtml(uiText("induction.task_duration", languageCode))}</strong>
           <div class="induction-audio">
-            <small>Audio guide</small>
-            <b>Audio ready</b>
-            <em>Please follow the instructions.</em>
+            <small>${escapeHtml(uiText("induction.audio_guide", languageCode))}</small>
+            <b>${escapeHtml(uiText("induction.audio_ready", languageCode))}</b>
+            <em>${escapeHtml(uiText("induction.follow", languageCode))}</em>
           </div>
         </div>
-        <p class="induction-summary">The assessment pages follow this task.</p>
+        <p class="induction-summary">${escapeHtml(uiText("induction.summary", languageCode))}</p>
+      </div>
+    </section>
+  `;
+}
+
+function sessionReadyStoryboardMarkup(item) {
+  const languageCode = currentLanguageCode();
+  const audio = audioInstructionFor(item.condition_position);
+  const sessionCountText = uiText("session.count", languageCode, {
+    position: item.condition_position,
+    total: CONDITIONS.length
+  });
+  return `
+    <section class="assessment-page session-ready-section">
+      <div class="session-ready-shell">
+        <p class="session-ready-kicker">${escapeHtml(sessionCountText)}</p>
+        <h2>${escapeHtml(uiText("session.ready_question", languageCode))}</h2>
+        <div class="session-ready-summary">
+          <span>${escapeHtml(displayConditionLabelFor(item.condition_id, languageCode))}</span>
+          <strong>${escapeHtml(sessionCountText)}</strong>
+          <p>${escapeHtml(uiText("session.audio_will_start", languageCode, {
+            audioLabel: audioInstructionLabel(audio, languageCode)
+          }))}</p>
+        </div>
+        <button class="primary-button session-ready-start" type="button">${escapeHtml(uiText("button.start_next_session", languageCode))}</button>
       </div>
     </section>
   `;
 }
 
 function samStoryboardMarkup(assessment) {
+  const languageCode = currentLanguageCode();
   return `
-    <section class="assessment-page sam-section" aria-label="How did you feel while during the previous tasks?">
-      <p class="page-instruction">For each row, choose the picture that best matches how you felt during the previous session.</p>
+    <section class="assessment-page sam-section" aria-label="${escapeHtml(uiText("sam.page_aria", languageCode))}">
+      <p class="page-instruction">${escapeHtml(uiText("sam.instruction", languageCode))}</p>
       <div class="sam-rows">
-        ${SAM_MANIKIN_ROWS.map((row) => `
+        ${SAM_MANIKIN_ROWS.map((row) => {
+          const questionText = localizedSamText(row, "question", languageCode);
+          const lowText = localizedSamText(row, "low", languageCode);
+          const highText = localizedSamText(row, "high", languageCode);
+          return `
           <div class="sam-row">
             <div class="row-label">
-              <strong class="sam-row-question">${escapeHtml(row.question)}</strong>
+              <strong class="sam-row-question">${escapeHtml(questionText)}</strong>
             </div>
             <div class="sam-scale-row">
-              <span class="sam-row-anchor sam-row-anchor-low" aria-label="${escapeHtml(row.low)}">${stackedLabelMarkup(row.low)}</span>
+              <span class="sam-row-anchor sam-row-anchor-low" aria-label="${escapeHtml(lowText)}">${stackedLabelMarkup(lowText)}</span>
               <div class="sam-options">
                 ${(row.options || Array.from({ length: 9 }, (_, index) => index + 1)).map((score) => {
                   return `
-                    <button type="button" class="sam-choice" aria-label="${escapeHtml(`${row.question} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
+                    <button type="button" class="sam-choice" aria-label="${escapeHtml(`${questionText} ${score}`)}" aria-pressed="${assessment.sam[row.field] === score ? "true" : "false"}">
                       <img src="${samManikinImageUrl(row.id, score)}" alt="" draggable="false" data-sam-scale="${escapeHtml(row.id)}"${dominanceManikinStyleAttribute(row.id, score)}>
                       <span>${score}</span>
                     </button>
                   `;
                 }).join("")}
               </div>
-              <span class="sam-row-anchor sam-row-anchor-high" aria-label="${escapeHtml(row.high)}">${stackedLabelMarkup(row.high)}</span>
+              <span class="sam-row-anchor sam-row-anchor-high" aria-label="${escapeHtml(highText)}">${stackedLabelMarkup(highText)}</span>
             </div>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </section>
   `;
 }
 
 function vasStoryboardMarkup(assessment) {
+  const languageCode = currentLanguageCode();
   return `
-    <section class="assessment-page slider-section" aria-label="Rate the previous experience">
+    <section class="assessment-page slider-section" aria-label="${escapeHtml(uiText("vas.page_aria", languageCode))}">
       <div class="vas-slider-rows">
-        ${AFFECT_VAS_SLIDERS.map((slider) => `
+        ${AFFECT_VAS_SLIDERS.map((slider) => {
+          const lowText = localizedAffectVasText(slider, "low", languageCode);
+          const highText = localizedAffectVasText(slider, "high", languageCode);
+          const questionText = localizedAffectVasText(slider, "question", languageCode);
+          return `
           <div class="slider-row vas-slider-row">
             <header class="vas-slider-header">
-              <span class="vas-header-anchor vas-header-anchor-low">${slider.low}</span>
-              <strong class="vas-question">${slider.question}</strong>
-              <span class="vas-header-anchor vas-header-anchor-high">${slider.high}</span>
+              <span class="vas-header-anchor vas-header-anchor-low">${escapeHtml(lowText)}</span>
+              <strong class="vas-question">${escapeHtml(questionText)}</strong>
+              <span class="vas-header-anchor vas-header-anchor-high">${escapeHtml(highText)}</span>
             </header>
             <div class="vas-scale">
               <div class="vas-range-shell">
-                <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1" aria-label="${slider.question}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
+                <input type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" tabindex="-1" aria-label="${escapeHtml(questionText)}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
                 <span class="axis-midpoint" aria-hidden="true"></span>
                 <span class="vas-slider-readout" style="${vasReadoutStyle(assessment.affect_vas[slider.field])}">${vasDisplayValue(assessment.affect_vas[slider.field])}</span>
               </div>
             </div>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </section>
   `;
 }
 
 function emotionRepresentationStoryboardMarkup(assessment) {
+  const languageCode = currentLanguageCode();
   return `
     <section class="assessment-page emotion-representation-section">
       <div class="section-title">
-        <h2>Which emotions did the particle motion remind you of? If it felt like a mix, rate how strongly each was represented.</h2>
+        <h2>${escapeHtml(uiText("emotion.heading", languageCode))}</h2>
       </div>
       <div class="emotion-representation-slider-grid">
         ${EMOTION_REPRESENTATION_ITEMS.map((emotion) => {
           const field = emotionRepresentationFieldId(emotion.id);
+          const emotionLabel = localizedEmotionLabel(emotion, languageCode);
           return `
             <div class="slider-row emotion-representation-slider-row">
               <header>
-                <strong>${emotion.label}</strong>
+                <strong>${escapeHtml(emotionLabel)}</strong>
                 <span class="slider-value">${assessment.emotion_representation_vas[field]}</span>
               </header>
               <input type="range" min="0" max="100" step="1" value="${assessment.emotion_representation_vas[field]}" tabindex="-1">
-              <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
+              <div class="slider-axis"><span>${escapeHtml(uiText("emotion.low", languageCode))}</span><span>${escapeHtml(uiText("emotion.high", languageCode))}</span></div>
             </div>
           `;
         }).join("")}
@@ -1443,40 +1886,40 @@ function emotionRepresentationStoryboardMarkup(assessment) {
 }
 
 function handEmbodimentStoryboardMarkup(assessment) {
-  const languageCode = state.demographics.language_code;
+  const languageCode = currentLanguageCode();
   return `
-    <section class="assessment-page hand-embodiment-section" aria-label="${escapeHtml(HAND_EMBODIMENT_PROMPT)}">
+    <section class="assessment-page hand-embodiment-section" aria-label="${escapeHtml(uiText("hand.prompt", languageCode))}">
       <div class="hand-likert-rows">
-        ${HAND_EMBODIMENT_ITEMS.map((item) => `
+        ${HAND_EMBODIMENT_ITEMS.map((item) => {
+          const questionText = localizedHandQuestion(item, languageCode);
+          return `
           <div class="hand-likert-row">
-            <strong class="hand-likert-question">${escapeHtml(localizedText(item.question, languageCode))}</strong>
+            <strong class="hand-likert-question">${escapeHtml(questionText)}</strong>
             <div class="hand-likert-options">
               ${(item.options || Array.from({ length: 7 }, (_, index) => index + 1)).map((score) => `
-                <button type="button" class="hand-likert-choice" aria-label="${escapeHtml(`${localizedText(item.question, languageCode)} ${score}`)}" aria-pressed="${assessment.hand_embodiment[item.field] === score ? "true" : "false"}">
+                <button type="button" class="hand-likert-choice" aria-label="${escapeHtml(`${questionText} ${score}`)}" aria-pressed="${assessment.hand_embodiment[item.field] === score ? "true" : "false"}">
                   <span class="likert-number">${score}</span>
                   <span class="likert-label">${escapeHtml(likertLabelFor(item, score, languageCode))}</span>
                 </button>
               `).join("")}
             </div>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </section>
   `;
 }
 
-function optionButtonsMarkup(options, selectedValue) {
+function optionButtonsMarkup(options, selectedValue, languageCode = currentLanguageCode()) {
   return options.map((option) => `
-    <button type="button" aria-pressed="${option.id === selectedValue ? "true" : "false"}">${escapeHtml(option.label)}</button>
+    <button type="button" aria-pressed="${option.id === selectedValue ? "true" : "false"}">${escapeHtml(localizedText(option.label, languageCode))}</button>
   `).join("");
 }
 
 function drawStoryboardCanvases() {
   document.querySelectorAll(".storyboard-polar-waveform").forEach((canvas) => {
     drawPolarWaveformCanvas(canvas, canvas.dataset.ready === "true");
-  });
-  document.querySelectorAll(".storyboard-signature-pad").forEach((canvas) => {
-    drawSignatureCanvas(canvas, normalizeDemographics(state.demographics).signature.strokes || []);
   });
 }
 
@@ -1592,8 +2035,12 @@ function bindSmoothRangeDrag(input, applyValue) {
 
 function renderSamRows() {
   const assessment = activeAssessment();
+  const languageCode = currentLanguageCode();
   elements.samRows.replaceChildren();
   SAM_MANIKIN_ROWS.forEach((row) => {
+    const questionText = localizedSamText(row, "question", languageCode);
+    const lowText = localizedSamText(row, "low", languageCode);
+    const highText = localizedSamText(row, "high", languageCode);
     const container = document.createElement("div");
     container.className = "sam-row";
 
@@ -1601,7 +2048,7 @@ function renderSamRows() {
     label.className = "row-label";
     const question = document.createElement("strong");
     question.className = "sam-row-question";
-    question.textContent = row.question;
+    question.textContent = questionText;
     label.appendChild(question);
     container.appendChild(label);
 
@@ -1610,7 +2057,7 @@ function renderSamRows() {
 
     const lowAnchor = document.createElement("span");
     lowAnchor.className = "sam-row-anchor sam-row-anchor-low";
-    appendStackedLabel(lowAnchor, row.low);
+    appendStackedLabel(lowAnchor, lowText);
     scaleRow.appendChild(lowAnchor);
 
     const options = document.createElement("div");
@@ -1624,7 +2071,7 @@ function renderSamRows() {
       button.dataset.variableName = row.variable_name;
       button.dataset.samField = row.field;
       button.dataset.samScore = String(score);
-      button.setAttribute("aria-label", `${row.question} ${score}`);
+      button.setAttribute("aria-label", `${questionText} ${score}`);
       button.setAttribute("aria-pressed", String(assessment.sam[row.field] === score));
 
       const img = document.createElement("img");
@@ -1648,7 +2095,7 @@ function renderSamRows() {
 
     const highAnchor = document.createElement("span");
     highAnchor.className = "sam-row-anchor sam-row-anchor-high";
-    appendStackedLabel(highAnchor, row.high);
+    appendStackedLabel(highAnchor, highText);
     scaleRow.appendChild(highAnchor);
 
     container.appendChild(scaleRow);
@@ -1658,19 +2105,23 @@ function renderSamRows() {
 
 function renderVasSliders() {
   const assessment = activeAssessment();
+  const languageCode = currentLanguageCode();
   elements.sliderRows.replaceChildren();
   AFFECT_VAS_SLIDERS.forEach((slider) => {
+    const lowText = localizedAffectVasText(slider, "low", languageCode);
+    const highText = localizedAffectVasText(slider, "high", languageCode);
+    const questionText = localizedAffectVasText(slider, "question", languageCode);
     const row = document.createElement("div");
     row.className = "slider-row vas-slider-row";
     row.innerHTML = `
       <header class="vas-slider-header">
-        <span class="vas-header-anchor vas-header-anchor-low">${slider.low}</span>
-        <strong class="vas-question">${slider.question}</strong>
-        <span class="vas-header-anchor vas-header-anchor-high">${slider.high}</span>
+        <span class="vas-header-anchor vas-header-anchor-low">${escapeHtml(lowText)}</span>
+        <strong class="vas-question">${escapeHtml(questionText)}</strong>
+        <span class="vas-header-anchor vas-header-anchor-high">${escapeHtml(highText)}</span>
       </header>
       <div class="vas-scale">
         <div class="vas-range-shell">
-          <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" aria-label="${slider.question}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
+          <input id="${slider.id}" type="range" min="0" max="100" step="1" value="${assessment.affect_vas[slider.field]}" aria-label="${escapeHtml(questionText)}" aria-valuetext="${vasDisplayValue(assessment.affect_vas[slider.field])}">
           <span class="axis-midpoint" aria-hidden="true"></span>
           <span class="vas-slider-readout" id="${slider.id}.readout" style="${vasReadoutStyle(assessment.affect_vas[slider.field])}">${vasDisplayValue(assessment.affect_vas[slider.field])}</span>
         </div>
@@ -1699,18 +2150,20 @@ function renderVasSliders() {
 
 function renderEmotionRepresentationSliders() {
   const assessment = activeAssessment();
+  const languageCode = currentLanguageCode();
   elements.emotionRepresentationSliderRows.replaceChildren();
   EMOTION_REPRESENTATION_ITEMS.forEach((emotion) => {
     const field = emotionRepresentationFieldId(emotion.id);
+    const emotionLabel = localizedEmotionLabel(emotion, languageCode);
     const row = document.createElement("div");
     row.className = "slider-row emotion-representation-slider-row";
     row.innerHTML = `
       <header>
-        <strong>${emotion.label}</strong>
+        <strong>${escapeHtml(emotionLabel)}</strong>
         <span class="slider-value" id="emotion_representation_vas.${field}.value">${assessment.emotion_representation_vas[field]}</span>
       </header>
-      <input id="emotion_representation_vas.${field}" type="range" min="0" max="100" step="1" value="${assessment.emotion_representation_vas[field]}" aria-label="${emotion.label}">
-      <div class="slider-axis"><span>Not represented</span><span>Clearly represented</span></div>
+      <input id="emotion_representation_vas.${field}" type="range" min="0" max="100" step="1" value="${assessment.emotion_representation_vas[field]}" aria-label="${escapeHtml(emotionLabel)}">
+      <div class="slider-axis"><span>${escapeHtml(uiText("emotion.low", languageCode))}</span><span>${escapeHtml(uiText("emotion.high", languageCode))}</span></div>
     `;
     const input = row.querySelector("input");
     const applyValue = () => {
@@ -1729,15 +2182,16 @@ function renderEmotionRepresentationSliders() {
 
 function renderHandEmbodimentItems() {
   const assessment = activeAssessment();
-  const languageCode = state.demographics.language_code;
+  const languageCode = currentLanguageCode();
   elements.handEmbodimentRows.replaceChildren();
   HAND_EMBODIMENT_ITEMS.forEach((item) => {
+    const questionText = localizedHandQuestion(item, languageCode);
     const row = document.createElement("div");
     row.className = "hand-likert-row";
 
     const question = document.createElement("strong");
     question.className = "hand-likert-question";
-    question.textContent = localizedText(item.question, languageCode);
+    question.textContent = questionText;
     row.appendChild(question);
 
     const options = document.createElement("div");
@@ -1751,7 +2205,7 @@ function renderHandEmbodimentItems() {
       button.dataset.variableName = item.variable_name;
       button.dataset.handEmbodimentField = item.field;
       button.dataset.handEmbodimentScore = String(score);
-      button.setAttribute("aria-label", `${localizedText(item.question, languageCode)} ${score}`);
+      button.setAttribute("aria-label", `${questionText} ${score}`);
       button.setAttribute("aria-pressed", String(assessment.hand_embodiment[item.field] === score));
 
       const number = document.createElement("span");
@@ -1790,10 +2244,11 @@ function prepareCanvas(canvas) {
 }
 
 function drawPolarWaveform() {
-  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(state.demographics.polar_validation));
+  const polar = state.demographics.polar_validation;
+  drawPolarWaveformCanvas(elements.polarWaveform, polarIsReady(polar), polar.recent_ecg_samples_uv);
 }
 
-function drawPolarWaveformCanvas(canvas, ready) {
+function drawPolarWaveformCanvas(canvas, ready, samples = []) {
   const prepared = prepareCanvas(canvas);
   if (!prepared) {
     return;
@@ -1818,16 +2273,28 @@ function drawPolarWaveformCanvas(canvas, ready) {
   context.lineWidth = 2.2;
   context.lineCap = "round";
   context.beginPath();
-  for (let index = 0; index < count; index += 1) {
-    const phase = index % 45;
-    const spike =
-      phase === 12 ? -0.42 :
-      phase === 13 ? 0.86 :
-      phase === 14 ? -0.32 :
-      phase > 25 && phase < 34 ? 0.18 * Math.sin((phase - 25) / 9 * Math.PI) :
-      0;
-    const wave = Math.sin(index * 0.22) * 0.08 + spike;
-    const x = (index / (count - 1)) * width;
+  const realSamples = Array.isArray(samples)
+    ? samples.map((sample) => Number(sample)).filter((sample) => Number.isFinite(sample))
+    : [];
+  const values = realSamples.length >= 2 ? realSamples.slice(-RECENT_POLAR_SAMPLE_COUNT) : null;
+  const scale = values
+    ? Math.max(120, ...values.map((sample) => Math.abs(sample)))
+    : 1;
+  const drawCount = values ? values.length : count;
+  for (let index = 0; index < drawCount; index += 1) {
+    const wave = values
+      ? values[index] / scale
+      : (() => {
+          const phase = index % 45;
+          const spike =
+            phase === 12 ? -0.42 :
+            phase === 13 ? 0.86 :
+            phase === 14 ? -0.32 :
+            phase > 25 && phase < 34 ? 0.18 * Math.sin((phase - 25) / 9 * Math.PI) :
+            0;
+          return Math.sin(index * 0.22) * 0.08 + spike;
+        })();
+    const x = drawCount <= 1 ? 0 : (index / (drawCount - 1)) * width;
     const y = Math.max(4, Math.min(height - 4, baseline - wave * height * 0.42));
     if (index === 0) {
       context.moveTo(x, y);
@@ -1838,127 +2305,61 @@ function drawPolarWaveformCanvas(canvas, ready) {
   context.stroke();
 }
 
-function drawSignaturePad() {
-  drawSignatureCanvas(elements.signaturePad, [
-    ...(state.demographics.signature.strokes || []),
-    ...(signatureDrawing.currentStroke.length > 0 ? [signatureDrawing.currentStroke] : [])
-  ]);
-}
-
-function drawSignatureCanvas(canvas, strokes) {
-  const prepared = prepareCanvas(canvas);
-  if (!prepared) {
-    return;
-  }
-  const { context, width, height } = prepared;
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
-  context.strokeStyle = "#d9e2ec";
-  context.lineWidth = 1;
-  context.beginPath();
-  context.moveTo(18, height - 30);
-  context.lineTo(width - 18, height - 30);
-  context.stroke();
-
-  context.strokeStyle = "#111827";
-  context.lineWidth = 2.4;
-  context.lineJoin = "round";
-  context.lineCap = "round";
-  strokes.forEach((stroke) => {
-    if (!Array.isArray(stroke) || stroke.length === 0) {
-      return;
-    }
-    context.beginPath();
-    stroke.forEach((point, index) => {
-      const x = point.x * width;
-      const y = point.y * height;
-      if (index === 0) {
-        context.moveTo(x, y);
-      } else {
-        context.lineTo(x, y);
-      }
-    });
-    context.stroke();
-  });
-}
-
-function signaturePointFromEvent(event) {
-  const rect = elements.signaturePad.getBoundingClientRect();
-  const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-  const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
-  return {
-    x: Number(x.toFixed(4)),
-    y: Number(y.toFixed(4))
-  };
-}
-
-function commitSignatureStroke() {
-  if (signatureDrawing.currentStroke.length === 0) {
-    return;
-  }
-  const signature = normalizeSignature(state.demographics.signature);
-  signature.strokes.push(signatureDrawing.currentStroke);
-  signature.stroke_count = signature.strokes.length;
-  signature.has_signature = signature.stroke_count > 0;
-  state.demographics.signature = signature;
-  state.demographics.complete = false;
-  signatureDrawing.currentStroke = [];
-  render();
-}
-
 function isIntegerInRange(value, min, max) {
   return Number.isInteger(value) && value >= min && value <= max;
 }
 
 function demographicsValidationErrors(demographics = state.demographics) {
   const normalized = normalizeDemographics(demographics);
+  const languageCode = normalized.language_code;
   const errors = [];
   if (!polarIsReady(normalized.polar_validation)) {
-    errors.push("Polar H10 ECG is not ready.");
+    errors.push(uiText("validation.polar", languageCode));
   }
   if (!LANGUAGE_OPTIONS.some((option) => option.id === normalized.language_code)) {
-    errors.push("Select language.");
+    errors.push(uiText("validation.language", languageCode));
   }
   if (normalized.participant_first_name.trim().length === 0) {
-    errors.push("Enter first name.");
+    errors.push(uiText("validation.first_name", languageCode));
   }
   if (normalized.participant_last_name.trim().length === 0) {
-    errors.push("Enter last name.");
+    errors.push(uiText("validation.last_name", languageCode));
   }
   if (!isIntegerInRange(normalized.age_years, 0, 120)) {
-    errors.push("Enter age.");
+    errors.push(uiText("validation.age", languageCode));
   }
   if (!HANDEDNESS_OPTIONS.some((option) => option.id === normalized.handedness)) {
-    errors.push("Select handedness.");
+    errors.push(uiText("validation.handedness", languageCode));
   }
   if (!GENDER_OPTIONS.some((option) => option.id === normalized.gender)) {
-    errors.push("Select gender.");
+    errors.push(uiText("validation.gender", languageCode));
   }
   if (!normalized.consent_confirmed) {
-    errors.push("Confirm study consent.");
-  }
-  if (!normalized.signature.has_signature || normalized.signature.stroke_count <= 0) {
-    errors.push("Draw consent signature.");
+    errors.push(uiText("validation.consent", languageCode));
   }
   return errors;
 }
 
-function validationErrors(assessment = activeAssessment(), pageId = activePage().id) {
+function validationErrors(assessment = activeAssessment(), pageId = activePage().id, languageCode = currentLanguageCode()) {
   const normalized = normalizeAssessment(assessment);
   const errors = [];
   if (pageId === "self_assessment_manikin") {
     SAM_MANIKIN_ROWS.forEach((row) => {
       if (!isIntegerInRange(normalized.sam[row.field], 1, 9)) {
-        errors.push(`Select a picture for ${row.id}.`);
+        errors.push(uiText("validation.sam", languageCode, {
+          dimension: localizedSamText(row, "high", languageCode).toLowerCase()
+        }));
       }
     });
   }
   if (pageId === "affect_vas") {
     AFFECT_VAS_SLIDERS.forEach((slider) => {
       if (!isIntegerInRange(normalized.affect_vas[slider.field], 0, 100)) {
-        errors.push(`VAS ${slider.field} must be 0..100.`);
+        errors.push(uiText("validation.vas_range", languageCode, { field: slider.field }));
       } else if (!normalized.affect_vas_touched[slider.field]) {
-        errors.push(`Touch the ${slider.touchLabel} slider once.`);
+        errors.push(uiText("validation.vas_touch", languageCode, {
+          label: localizedAffectVasText(slider, "touch", languageCode)
+        }));
       }
     });
   }
@@ -1966,14 +2367,18 @@ function validationErrors(assessment = activeAssessment(), pageId = activePage()
     EMOTION_REPRESENTATION_ITEMS.forEach((emotion) => {
       const field = emotionRepresentationFieldId(emotion.id);
       if (!isIntegerInRange(normalized.emotion_representation_vas[field], 0, 100)) {
-        errors.push(`${emotion.label} representation rating must be 0..100.`);
+        errors.push(uiText("validation.emotion_range", languageCode, {
+          label: localizedEmotionLabel(emotion, languageCode)
+        }));
       }
     });
   }
   if (pageId === "hand_embodiment") {
     HAND_EMBODIMENT_ITEMS.forEach((item) => {
       if (!isIntegerInRange(normalized.hand_embodiment[item.field], 1, 7)) {
-        errors.push(`Select a response for ${item.id}.`);
+        errors.push(uiText("validation.hand", languageCode, {
+          item: localizedHandQuestion(item, languageCode)
+        }));
       }
     });
   }
@@ -1986,6 +2391,8 @@ function conditionValidationErrors(assessment = activeAssessment()) {
 
 function renderValidation() {
   const skipRequired = previewSkipRequiredEnabled();
+  const languageCode = currentLanguageCode();
+  elements.previousPage.textContent = uiText("button.back", languageCode);
   if (isDemographicsActive()) {
     const errors = demographicsValidationErrors();
     const hasBlockingErrors = errors.length > 0 && !skipRequired;
@@ -1994,35 +2401,48 @@ function renderValidation() {
     elements.validationSummary.textContent = hasBlockingErrors
       ? errors[0]
       : state.demographics.complete
-        ? "Demographics marked complete"
-        : "Ready to begin";
+        ? uiText("status.demographics_complete", languageCode)
+        : uiText("status.ready_to_begin", languageCode);
     elements.previousPage.disabled = true;
+    elements.nextPage.hidden = false;
     elements.nextPage.disabled = hasBlockingErrors;
-    elements.nextPage.textContent = "Begin";
+    elements.nextPage.textContent = uiText("button.begin", languageCode);
+    return;
+  }
+  if (isReadyActive()) {
+    elements.validationSummary.hidden = false;
+    elements.validationSummary.classList.remove("error");
+    elements.validationSummary.textContent = uiText("status.waiting_to_start", languageCode);
+    elements.previousPage.disabled = false;
+    elements.nextPage.hidden = true;
+    elements.nextPage.disabled = false;
+    elements.nextPage.textContent = uiText("button.start_next_session", languageCode);
     return;
   }
   if (isInductionActive()) {
     elements.validationSummary.hidden = false;
     elements.validationSummary.classList.remove("error");
-    elements.validationSummary.textContent = "Ready to continue";
+    elements.validationSummary.textContent = uiText("status.ready_to_continue", languageCode);
     elements.previousPage.disabled = false;
+    elements.nextPage.hidden = false;
     elements.nextPage.disabled = false;
-    elements.nextPage.textContent = "Continue";
+    elements.nextPage.textContent = uiText("button.continue", languageCode);
     return;
   }
   const page = activePage();
   const assessment = activeAssessment();
-  const errors = validationErrors(assessment, page.id);
+  const errors = validationErrors(assessment, page.id, languageCode);
   elements.validationSummary.hidden = true;
   elements.validationSummary.classList.remove("error");
   elements.validationSummary.textContent = "";
   elements.previousPage.disabled = false;
+  elements.nextPage.hidden = false;
   elements.nextPage.disabled = errors.length > 0 && !skipRequired;
   elements.nextPage.textContent = activePageIndex() === ASSESSMENT_PAGES.length - 1
     ? state.active_condition_position < CONDITIONS.length
-      ? "Continue"
-      : (assessment.complete ? "Workflow marked complete" : "Mark workflow complete")
-    : "Continue";
+      ? uiText("button.continue", languageCode)
+      : (assessment.complete ? uiText("button.marked_complete", languageCode) : uiText("button.mark_complete", languageCode))
+    : uiText("button.continue", languageCode);
 }
 
 function pageGroups() {
@@ -2036,7 +2456,7 @@ function pageGroups() {
 }
 
 function conditionBlockSequence() {
-  return [INDUCTION_PAGE.id, ...ASSESSMENT_PAGES.map((page) => page.id)];
+  return [READY_PAGE.id, INDUCTION_PAGE.id, ...ASSESSMENT_PAGES.map((page) => page.id)];
 }
 
 function expandedPreviewSequence(order = activeOrder()) {
@@ -2090,7 +2510,6 @@ function visualStoryboardExport(order = activeOrder()) {
     interaction_states_visible: [
       "segmented selections",
       "consent checkbox",
-      "signature strokes",
       "Self-Assessment Manikin pictograph choices",
       "VAS slider positions",
       "emotion representation VAS slider positions",
@@ -2264,11 +2683,27 @@ function renderExport() {
   elements.jsonOutput.textContent = text;
 }
 
+function setNativePolarValidation(polarValidation) {
+  state.demographics = normalizeDemographics({
+    ...state.demographics,
+    polar_validation: {
+      ...state.demographics.polar_validation,
+      ...(polarValidation || {})
+    },
+    complete: polarIsReady({
+      ...state.demographics.polar_validation,
+      ...(polarValidation || {})
+    }) ? state.demographics.complete : false
+  });
+  render();
+}
+
 window.STUDY6_QUESTIONNAIRE_PREVIEW = {
   exportObject,
   makeState,
   makeEdgeState,
-  setState
+  setState,
+  setNativePolarValidation
 };
 
 if (elements.orderSelect) {
@@ -2281,11 +2716,17 @@ if (elements.orderSelect) {
   });
 }
 
+if (elements.sessionReadyStart) {
+  elements.sessionReadyStart.addEventListener("click", () => {
+    elements.nextPage.click();
+  });
+}
+
 elements.previousPage.addEventListener("click", () => {
   if (isDemographicsActive()) {
     return;
   }
-  if (isInductionActive()) {
+  if (isReadyActive()) {
     if (state.active_condition_position > 1) {
       const previousAssessmentPageId = ASSESSMENT_PAGES[ASSESSMENT_PAGES.length - 1].id;
       state.active_condition_position -= 1;
@@ -2294,6 +2735,11 @@ elements.previousPage.addEventListener("click", () => {
     } else {
       state.active_panel_page_id = "demographics";
     }
+    render();
+    return;
+  }
+  if (isInductionActive()) {
+    state.active_panel_page_id = READY_PAGE.id;
     render();
     return;
   }
@@ -2315,6 +2761,12 @@ elements.nextPage.addEventListener("click", () => {
       return;
     }
     state.demographics.complete = true;
+    state.active_panel_page_id = READY_PAGE.id;
+    state.active_assessment_page_id = "self_assessment_manikin";
+    render();
+    return;
+  }
+  if (isReadyActive()) {
     state.active_panel_page_id = INDUCTION_PAGE.id;
     state.active_assessment_page_id = "self_assessment_manikin";
     render();
@@ -2341,7 +2793,7 @@ elements.nextPage.addEventListener("click", () => {
       ASSESSMENT_PAGES.every((item) => assessment.page_complete[item.id]);
     if (assessment.complete && state.active_condition_position < CONDITIONS.length) {
       state.active_condition_position += 1;
-      state.active_panel_page_id = INDUCTION_PAGE.id;
+      state.active_panel_page_id = READY_PAGE.id;
       state.active_assessment_page_id = "self_assessment_manikin";
     }
   }
@@ -2366,6 +2818,24 @@ elements.participantFirstName.addEventListener("input", () => {
 elements.participantLastName.addEventListener("input", () => {
   updateParticipantNameField("participant_last_name", elements.participantLastName.value);
 });
+
+function requestNativeKeyboardFor(element) {
+  if (!element) {
+    return;
+  }
+  const request = () => {
+    element.focus({ preventScroll: false });
+    if (window.AndroidStudy6 && typeof window.AndroidStudy6.requestKeyboard === "function") {
+      window.AndroidStudy6.requestKeyboard(element.id || "");
+    }
+  };
+  element.addEventListener("focus", request);
+  element.addEventListener("pointerup", request);
+  element.addEventListener("click", request);
+}
+
+requestNativeKeyboardFor(elements.participantFirstName);
+requestNativeKeyboardFor(elements.participantLastName);
 
 elements.participantAge.addEventListener("input", () => {
   const value = elements.participantAge.value.trim();
@@ -2411,42 +2881,6 @@ elements.handEmbodimentRows.addEventListener("click", (event) => {
   const assessment = activeAssessment();
   assessment.hand_embodiment[field] = score;
   markPageDirty("hand_embodiment");
-  render();
-});
-
-elements.signaturePad.addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  elements.signaturePad.setPointerCapture(event.pointerId);
-  signatureDrawing.active = true;
-  signatureDrawing.currentStroke = [signaturePointFromEvent(event)];
-  drawSignaturePad();
-});
-
-elements.signaturePad.addEventListener("pointermove", (event) => {
-  if (!signatureDrawing.active) {
-    return;
-  }
-  event.preventDefault();
-  signatureDrawing.currentStroke.push(signaturePointFromEvent(event));
-  drawSignaturePad();
-});
-
-function finishSignaturePointer(event) {
-  if (!signatureDrawing.active) {
-    return;
-  }
-  event.preventDefault();
-  signatureDrawing.active = false;
-  commitSignatureStroke();
-}
-
-elements.signaturePad.addEventListener("pointerup", finishSignaturePointer);
-elements.signaturePad.addEventListener("pointercancel", finishSignaturePointer);
-
-elements.clearSignature.addEventListener("click", () => {
-  state.demographics.signature = defaultSignature();
-  state.demographics.complete = false;
-  signatureDrawing.currentStroke = [];
   render();
 });
 

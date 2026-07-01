@@ -375,19 +375,19 @@ Recommended item IDs:
 
 | Item ID | Meaning | Source scale |
 | --- | --- | --- |
-| `SAM1` | Self-Assessment Manikin pictograph valence | 1-9 |
-| `SAM2` | Self-Assessment Manikin pictograph arousal | 1-9 |
-| `SAM3` | Self-Assessment Manikin pictograph dominance/control | 1-9 |
-| `valence` | Valence VAS | 0-100 |
-| `arousal` | Arousal VAS | 0-100 |
-| `Anger` | Anger represented by particle movement | 0-100 |
-| `Fear` | Fear represented by particle movement | 0-100 |
-| `Sadness` | Sadness represented by particle movement | 0-100 |
-| `Disgust` | Disgust represented by particle movement | 0-100 |
-| `Happiness` | Happiness represented by particle movement | 0-100 |
-| `Surprise` | Surprise represented by particle movement | 0-100 |
-| `Ownership` | Virtual hand ownership | 1-7 |
-| `Agency` | Virtual hand agency | 1-7 |
+| `SAM1` | Retrospective Self-Assessment Manikin pictograph valence | 1-9 |
+| `SAM2` | Retrospective Self-Assessment Manikin pictograph arousal | 1-9 |
+| `SAM3` | Retrospective Self-Assessment Manikin pictograph dominance/control | 1-9 |
+| `valence` | Retrospective valence VAS | 0-100 |
+| `arousal` | Retrospective arousal VAS | 0-100 |
+| `Anger` | Anger | 0-100 |
+| `Disgust` | Disgust | 0-100 |
+| `Fear` | Fear | 0-100 |
+| `Happiness` | Happiness | 0-100 |
+| `Sadness` | Sadness | 0-100 |
+| `Surprise` | Surprise | 0-100 |
+| `Ownership` | Adapted VEQ hand ownership | 1-7 |
+| `Agency` | Adapted VEQ hand agency | 1-7 |
 
 `SAM1`, `SAM2`, and `SAM3` are reserved for the Self-Assessment Manikin
 pictograph rows only. Do not use `SAM` as shorthand for the complete
@@ -490,13 +490,18 @@ data/<apk_file_code>_<participant_id>_<block_id>_<vr_condition_id>_events.jsonl
 
 Minimum event types:
 
+- `session_ready_prompt_shown`;
+- `session_start_confirmed`;
+- `block_assigned`;
 - `block_started`;
 - `audio_started`;
-- `audio_completed`;
+- `audio_completed` or `audio_stopped_dev_duration`;
 - `ecg_recording_started`;
 - `ecg_recording_completed`;
 - `questionnaire_started`;
+- `page_completed` for each assessment page;
 - `questionnaire_completed`;
+- `result_write_success`;
 - `block_completed`;
 - `technical_failure` if applicable.
 
@@ -514,13 +519,15 @@ For each APK run:
 5. Save demographics fields into `demographics/`.
 6. Read the participant row's permutation ID and join it to the condition and
    audio permutation tables.
-7. For each block, show the assigned VR condition and play the assigned audio
-   variant.
-8. Save block metadata, raw ECG CSV with sample timestamps, and event log as
+7. For each block, show `session_ready` and wait for the participant to press
+   `Start next session`.
+8. After readiness confirmation, show the assigned VR condition, start block
+   timing, and play the assigned audio variant.
+9. Save block metadata, raw ECG CSV with sample timestamps, and event log as
    flat files in `data/`, named with
    `<apk_file_code>_<participant_id>_<block_id>_<vr_condition_id>`.
-9. Append all questionnaire item rows to `data/questionnaire_responses_long.csv`.
-10. Mark the participant complete in `allocation_state.json` only when all four
+10. Append all questionnaire item rows to `data/questionnaire_responses_long.csv`.
+11. Mark the participant complete in `allocation_state.json` only when all four
    blocks are complete and valid.
 
 ## Materials Map
