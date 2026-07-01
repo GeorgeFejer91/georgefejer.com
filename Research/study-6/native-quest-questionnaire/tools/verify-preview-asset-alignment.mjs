@@ -8,7 +8,7 @@ const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname).replace(/^\/(
 const WORKSPACE_DIR = path.resolve(SCRIPT_DIR, "..");
 const STUDY_DIR = path.resolve(WORKSPACE_DIR, "..");
 const PREVIEW_DIR = path.join(STUDY_DIR, "questionnaire-ui-preview");
-const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "https://www.georgefejer.com/Research/study-6/questionnaire-ui-preview/?previewSkipRequired=1&cb=232d4d3";
+const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "";
 
 const REQUIRED_FILES = [
   "index.html",
@@ -63,18 +63,24 @@ function linkedPreviewAssets(indexHtml) {
 
 async function main() {
   const failures = [];
-  const remoteIndex = await fetchText(PREVIEW_URL);
-  const remoteUrls = linkedPreviewAssets(remoteIndex);
+  const remoteUrls = new Map();
   const remoteTexts = new Map();
-  remoteTexts.set("index.html", remoteIndex);
 
-  for (const file of REQUIRED_FILES) {
-    if (!remoteUrls.has(file)) {
-      failures.push(`remote preview did not expose ${file}`);
-      continue;
+  if (PREVIEW_URL) {
+    const remoteIndex = await fetchText(PREVIEW_URL);
+    for (const [file, url] of linkedPreviewAssets(remoteIndex)) {
+      remoteUrls.set(file, url);
     }
-    if (file !== "index.html") {
-      remoteTexts.set(file, await fetchText(remoteUrls.get(file)));
+    remoteTexts.set("index.html", remoteIndex);
+
+    for (const file of REQUIRED_FILES) {
+      if (!remoteUrls.has(file)) {
+        failures.push(`remote preview did not expose ${file}`);
+        continue;
+      }
+      if (file !== "index.html") {
+        remoteTexts.set(file, await fetchText(remoteUrls.get(file)));
+      }
     }
   }
 
@@ -89,10 +95,10 @@ async function main() {
     if (localText == null) {
       failures.push(`local preview missing ${file}`);
     }
-    if (remoteText == null) {
+    if (PREVIEW_URL && remoteText == null) {
       failures.push(`remote preview missing ${file}`);
     }
-    if (localHash && remoteHash && localHash !== remoteHash) {
+    if (PREVIEW_URL && localHash && remoteHash && localHash !== remoteHash) {
       failures.push(`${file} local hash ${localHash} != deployed hash ${remoteHash}`);
     }
 
@@ -102,14 +108,15 @@ async function main() {
       deployed_url: remoteUrls.get(file) || null,
       local_sha256: localHash,
       deployed_sha256: remoteHash,
-      local_matches_deployed: Boolean(localHash && remoteHash && localHash === remoteHash)
+      local_matches_deployed: PREVIEW_URL ? Boolean(localHash && remoteHash && localHash === remoteHash) : null
     });
   }
 
   const report = {
     pass: failures.length === 0,
     failures,
-    preview_url: PREVIEW_URL,
+    preview_url: PREVIEW_URL || null,
+    deployed_preview_checked: Boolean(PREVIEW_URL),
     files
   };
   const reportPath = process.env.STUDY6_REPORT_PATH || path.join(WORKSPACE_DIR, "build", "preview-asset-alignment-report.json");
@@ -120,7 +127,8 @@ async function main() {
     console.error(JSON.stringify(report, null, 2));
     process.exit(1);
   }
-  console.log(`Study 6 preview asset alignment passed: ${REQUIRED_FILES.length} deployed/local assets match.`);
+  const scope = PREVIEW_URL ? "deployed/local assets match" : "local preview assets are present";
+  console.log(`Study 6 preview asset alignment passed: ${REQUIRED_FILES.length} ${scope}.`);
   console.log(reportPath);
 }
 

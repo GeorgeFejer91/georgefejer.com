@@ -57,22 +57,25 @@ It checks allocation, block order, audio assignment, response IDs, nested result
 JSON, long CSV rows, block metadata, event logs, and debug Polar placeholder
 files.
 
-`verify-preview-asset-alignment.mjs` compares the deployed questionnaire preview
-with the local `questionnaire-ui-preview/` files. The preview is intentionally
-not an APK asset. Current report:
+`verify-preview-asset-alignment.mjs` checks the local
+`questionnaire-ui-preview/` files by default. Set `STUDY6_PREVIEW_URL` to also
+compare against a deployed preview. The preview is intentionally not an APK
+asset. Current local report:
 
 ```text
 native-quest-questionnaire/build/preview-asset-alignment-report.json
-index.html                              deployed = local
-styles.css                              deployed = local
-questionnaire-item-library.js           deployed = local
-panel-preview.js                        deployed = local
+index.html                              local present
+styles.css                              local present
+questionnaire-item-library.js           local present
+panel-preview.js                        local present
 ```
 
 `verify-questionnaire-instance-alignment.mjs` derives the canonical response
-item order and labels from the deployed preview item library, then checks the
-local preview, fixtures, backend lookup JSON, lookup generator source, the
-native APK asset boundary, and stale README wording scan.
+item order and labels from the local preview item library by default, then
+checks fixtures, backend lookup JSON, lookup generator source, the native APK
+asset boundary, and stale README wording scan.
+When `STUDY6_PREVIEW_URL` is unset, the local preview item library is the
+canonical design reference; deployed-preview comparison is opt-in.
 
 ```text
 native-quest-questionnaire/build/questionnaire-instance-alignment-report.json

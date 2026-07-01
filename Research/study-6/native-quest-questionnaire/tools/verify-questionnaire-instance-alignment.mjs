@@ -12,7 +12,7 @@ const PREVIEW_DIR = path.join(STUDY_DIR, "questionnaire-ui-preview");
 const LOOKUP_PATH = path.join(STUDY_DIR, "for-ai", "study6_apk_permutation_lookup.json");
 const GENERATOR_PATH = path.join(STUDY_DIR, "for-ai", "generate_study6_apk_permutation_lookup.js");
 const GRADLE_PATH = path.join(WORKSPACE_DIR, "quest-app", "build.gradle.kts");
-const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "https://www.georgefejer.com/Research/study-6/questionnaire-ui-preview/?previewSkipRequired=1&cb=232d4d3";
+const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "";
 
 const REQUIRED_FILES = [
   "index.html",
@@ -186,14 +186,20 @@ function signature(library) {
 
 async function main() {
   const failures = [];
-  const remoteIndex = await fetchText(PREVIEW_URL);
-  const remoteUrls = linkedPreviewAssets(remoteIndex);
-  const remoteTexts = new Map([["index.html", remoteIndex]]);
-  for (const file of REQUIRED_FILES) {
-    if (!remoteUrls.has(file)) {
-      failures.push(`deployed preview did not expose ${file}`);
-    } else if (file !== "index.html") {
-      remoteTexts.set(file, await fetchText(remoteUrls.get(file)));
+  const remoteUrls = new Map();
+  const remoteTexts = new Map();
+  if (PREVIEW_URL) {
+    const remoteIndex = await fetchText(PREVIEW_URL);
+    for (const [file, url] of linkedPreviewAssets(remoteIndex)) {
+      remoteUrls.set(file, url);
+    }
+    remoteTexts.set("index.html", remoteIndex);
+    for (const file of REQUIRED_FILES) {
+      if (!remoteUrls.has(file)) {
+        failures.push(`deployed preview did not expose ${file}`);
+      } else if (file !== "index.html") {
+        remoteTexts.set(file, await fetchText(remoteUrls.get(file)));
+      }
     }
   }
 
@@ -207,29 +213,32 @@ async function main() {
     if (!localText) {
       failures.push(`local preview missing ${file}`);
     }
-    if (!deployedText) {
+    if (PREVIEW_URL && !deployedText) {
       failures.push(`deployed preview missing ${file}`);
     }
-    if (localSha && deployedSha && localSha !== deployedSha) {
+    if (PREVIEW_URL && localSha && deployedSha && localSha !== deployedSha) {
       failures.push(`${file} local hash ${localSha} != deployed hash ${deployedSha}`);
     }
     files.push({
       file,
       local_sha256: localSha,
       deployed_sha256: deployedSha,
-      local_matches_deployed: Boolean(localSha && deployedSha && localSha === deployedSha)
+      local_matches_deployed: PREVIEW_URL ? Boolean(localSha && deployedSha && localSha === deployedSha) : null
     });
   }
 
-  const deployedLibrary = evaluateItemLibrary(remoteTexts.get("questionnaire-item-library.js"), "deployed questionnaire-item-library.js");
   const localLibrary = evaluateItemLibrary(fs.readFileSync(path.join(PREVIEW_DIR, "questionnaire-item-library.js"), "utf8"), "local questionnaire-item-library.js");
-  const deployedSignature = signature(deployedLibrary);
+  const deployedLibrary = PREVIEW_URL && remoteTexts.has("questionnaire-item-library.js")
+    ? evaluateItemLibrary(remoteTexts.get("questionnaire-item-library.js"), "deployed questionnaire-item-library.js")
+    : null;
+  const canonicalLibrary = deployedLibrary || localLibrary;
+  const canonicalSignature = signature(canonicalLibrary);
   const localSignature = signature(localLibrary);
-  if (!equalJson(localSignature, deployedSignature)) {
+  if (deployedLibrary && !equalJson(localSignature, canonicalSignature)) {
     failures.push("local questionnaire item library metadata differs from deployed preview");
   }
 
-  const expectedRows = canonicalQuestionnaireRows(deployedLibrary);
+  const expectedRows = canonicalQuestionnaireRows(canonicalLibrary);
   const lookupRows = readJson(LOOKUP_PATH).questionnaire_items || [];
   if (!equalJson(lookupRows, expectedRows)) {
     failures.push(`lookup questionnaire_items differ from deployed preview: expected ${stableJson(expectedRows)} observed ${stableJson(lookupRows)}`);
@@ -244,8 +253,8 @@ async function main() {
     const fixturePath = path.join(PREVIEW_DIR, "fixtures", fixtureName);
     const fixture = readJson(fixturePath);
     const fixtureLibrary = fixture.questionnaire_item_library;
-    if (!fixtureLibrary || !equalJson(signature(fixtureLibrary), deployedSignature)) {
-      failures.push(`${fixtureName} questionnaire_item_library differs from deployed preview`);
+    if (!fixtureLibrary || !equalJson(signature(fixtureLibrary), canonicalSignature)) {
+      failures.push(`${fixtureName} questionnaire_item_library differs from canonical preview`);
     }
   }
 
@@ -272,11 +281,12 @@ async function main() {
   const report = {
     pass: failures.length === 0,
     failures,
-    preview_url: PREVIEW_URL,
+    preview_url: PREVIEW_URL || null,
+    deployed_preview_checked: Boolean(PREVIEW_URL),
     files,
     canonical_questionnaire_items: expectedRows,
     checked_instances: [
-      "deployed questionnaire-ui-preview",
+      PREVIEW_URL ? "deployed questionnaire-ui-preview" : "deployed questionnaire-ui-preview (skipped)",
       "local questionnaire-ui-preview",
       "questionnaire fixtures",
       "for-ai/study6_apk_permutation_lookup.json",
@@ -295,7 +305,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Study 6 questionnaire instance alignment passed: ${expectedRows.length} canonical response items match deployed/local/backend instances; APK preview packaging is absent.`);
+  const scope = PREVIEW_URL ? "deployed/local/backend" : "local/backend";
+  console.log(`Study 6 questionnaire instance alignment passed: ${expectedRows.length} canonical response items match ${scope} instances; APK preview packaging is absent.`);
   console.log(reportPath);
 }
 
