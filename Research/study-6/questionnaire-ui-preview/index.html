@@ -55,13 +55,13 @@
 
               <div class="field-row">
                 <label for="participantLastName">Last name</label>
-                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text" autocapitalize="words" enterkeyhint="done">
+                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text" autocapitalize="words" enterkeyhint="next">
               </div>
             </div>
 
             <div class="field-row compact">
               <label for="participantAge">Age</label>
-              <input id="participantAge" type="number" min="0" max="120" step="1" inputmode="numeric">
+              <input id="participantAge" type="number" min="0" max="120" step="1" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done">
             </div>
 
             <div class="field-group">

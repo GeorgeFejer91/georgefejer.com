@@ -2,6 +2,7 @@ package com.georgefejer.study6.quest;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -9,7 +10,10 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
@@ -17,6 +21,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -40,9 +45,12 @@ final class Study6QuestionnairePanelController {
     private Study6RunLogger logger;
     private Study6PolarH10Manager polarManager;
     private MediaPlayer mediaPlayer;
+    private AlertDialog keyboardDialog;
+    private String keyboardDialogElementId = "";
     private int activeAudioBlock = -1;
     private boolean autoRunEnabled;
     private boolean keyboardProbeEnabled;
+    private String keyboardProbeFieldId;
     private boolean started;
     private boolean webContentReady;
     private boolean polarConnectedLogged;
@@ -69,6 +77,8 @@ final class Study6QuestionnairePanelController {
         String requestedParticipantId = stringExtra(intent, "study6_participant_id", "");
         autoRunEnabled = booleanExtra(intent, "study6_auto_run", false);
         keyboardProbeEnabled = booleanExtra(intent, "study6_keyboard_probe", false);
+        keyboardProbeFieldId = normalizeKeyboardElementId(
+                stringExtra(intent, "study6_keyboard_probe_field", "participantFirstName"));
         autoRunProfile = stringExtra(intent, "study6_auto_run_profile", "linear");
         logger = new Study6RunLogger(activity, apkVariantId, DEV_AUDIO_DURATION_MS / 1000, requestedParticipantId);
         Study6PolarH10Manager.requestRuntimePermissions(activity);
@@ -95,8 +105,8 @@ final class Study6QuestionnairePanelController {
         webView.setFocusable(true);
         webView.setFocusableInTouchMode(true);
         activity.getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-                        | WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+                        | WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -155,6 +165,11 @@ final class Study6QuestionnairePanelController {
             polarManager = null;
         }
         mainHandler.removeCallbacksAndMessages(null);
+        if (keyboardDialog != null) {
+            keyboardDialog.dismiss();
+            keyboardDialog = null;
+            keyboardDialogElementId = "";
+        }
         if (destroyWebView) {
             webView.destroy();
         }
@@ -194,14 +209,167 @@ final class Study6QuestionnairePanelController {
 
     private void runKeyboardProbe() {
         String js = "(function(){"
-                + "var el=document.getElementById('participantFirstName');"
-                + "if(!el){window.AndroidStudy6.onBridgeError('keyboard_probe_missing_first_name');return false;}"
+                + "var el=document.getElementById(" + JSONObject.quote(keyboardProbeFieldId) + ");"
+                + "if(!el){window.AndroidStudy6.onBridgeError('keyboard_probe_missing_field');return false;}"
                 + "el.scrollIntoView({block:'center',inline:'center'});"
                 + "el.focus({preventScroll:false});"
-                + "setTimeout(function(){window.AndroidStudy6.requestKeyboard('participantFirstName_probe');},150);"
+                + "setTimeout(function(){window.AndroidStudy6.requestKeyboard(" + JSONObject.quote(keyboardProbeFieldId) + ");},150);"
                 + "return true;"
                 + "})();";
         webView.evaluateJavascript(js, (result) -> logger.logHarnessEvent("keyboard_probe_result", String.valueOf(result)));
+    }
+
+    private void requestKeyboardForElement(String request) {
+        KeyboardRequest keyboardRequest = KeyboardRequest.from(request);
+        String elementId = normalizeKeyboardElementId(keyboardRequest.elementId);
+        showNativeEntryDialog(
+                elementId,
+                keyboardRequest.labelFor(elementId),
+                keyboardRequest.value,
+                keyboardRequest.inputModeFor(elementId));
+    }
+
+    private String normalizeKeyboardElementId(String rawElementId) {
+        String elementId = rawElementId == null ? "" : rawElementId.trim();
+        if ("participantFirstName".equals(elementId)
+                || "participantLastName".equals(elementId)
+                || "participantAge".equals(elementId)) {
+            return elementId;
+        }
+        return "participantFirstName";
+    }
+
+    private void showNativeEntryDialog(String elementId, String label, String currentValue, String inputMode) {
+        if (keyboardDialog != null && keyboardDialog.isShowing()
+                && elementId.equals(keyboardDialogElementId)) {
+            logger.logHarnessEvent("native_entry_dialog_already_open", elementId);
+            return;
+        }
+        if (keyboardDialog != null && keyboardDialog.isShowing()) {
+            keyboardDialog.dismiss();
+            keyboardDialog = null;
+            keyboardDialogElementId = "";
+        }
+        EditText editText = new EditText(activity);
+        editText.setSingleLine(true);
+        editText.setText(currentValue == null ? "" : currentValue);
+        editText.setSelectAllOnFocus(true);
+        editText.setMinEms("number".equals(inputMode) ? 6 : 18);
+        editText.setLayoutParams(new ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        if ("number".equals(inputMode)) {
+            editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+            editText.setFilters(new InputFilter[] { new InputFilter.LengthFilter(3) });
+        } else {
+            editText.setInputType(InputType.TYPE_CLASS_TEXT
+                    | InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                    | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
+        }
+        keyboardDialog = new AlertDialog.Builder(activity)
+                .setTitle(label == null || label.isEmpty() ? "Entry" : label)
+                .setView(editText)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Done", (dialog, which) ->
+                        applyNativeEntryValue(elementId, editText.getText().toString()))
+                .create();
+        keyboardDialog.setOnShowListener(dialog -> {
+            editText.requestFocus();
+            if (keyboardDialog != null && keyboardDialog.getWindow() != null) {
+                keyboardDialog.getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+                                | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
+            showNativeKeyboard(editText, elementId, 0);
+            editText.postDelayed(() -> showNativeKeyboard(editText, elementId, 120), 120);
+            editText.postDelayed(() -> showNativeKeyboard(editText, elementId, 300), 300);
+        });
+        keyboardDialog.setOnDismissListener(dialog -> {
+            keyboardDialog = null;
+            keyboardDialogElementId = "";
+        });
+        keyboardDialog.show();
+        keyboardDialogElementId = elementId;
+        logger.logHarnessEvent("native_entry_dialog_shown", elementId + " mode=" + inputMode);
+    }
+
+    private void showNativeKeyboard(EditText editText, String elementId, int delayMs) {
+        editText.requestFocus();
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        boolean shown = false;
+        if (inputMethodManager != null) {
+            shown = inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+            if (!shown) {
+                shown = inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_FORCED);
+            }
+        }
+        logger.logHarnessEvent("native_keyboard_requested",
+                elementId + " delay_ms=" + delayMs + " shown=" + shown);
+    }
+
+    private void applyNativeEntryValue(String elementId, String value) {
+        String js = "(function(){"
+                + "if(window.STUDY6_QUESTIONNAIRE_PREVIEW&&window.STUDY6_QUESTIONNAIRE_PREVIEW.setNativeEntryValue){"
+                + "return window.STUDY6_QUESTIONNAIRE_PREVIEW.setNativeEntryValue("
+                + JSONObject.quote(elementId) + "," + JSONObject.quote(value == null ? "" : value) + ");"
+                + "}"
+                + "return false;"
+                + "})();";
+        webView.evaluateJavascript(js, (result) ->
+                logger.logHarnessEvent("native_entry_value_applied",
+                        elementId + " result=" + String.valueOf(result)));
+    }
+
+    private static final class KeyboardRequest {
+        final String elementId;
+        final String label;
+        final String value;
+        final String inputMode;
+
+        KeyboardRequest(String elementId, String label, String value, String inputMode) {
+            this.elementId = elementId;
+            this.label = label;
+            this.value = value;
+            this.inputMode = inputMode;
+        }
+
+        static KeyboardRequest from(String request) {
+            String raw = request == null ? "" : request.trim();
+            if (raw.startsWith("{")) {
+                try {
+                    JSONObject json = new JSONObject(raw);
+                    return new KeyboardRequest(
+                            json.optString("elementId", ""),
+                            json.optString("label", ""),
+                            json.optString("value", ""),
+                            json.optString("inputMode", ""));
+                } catch (JSONException ignored) {
+                    return new KeyboardRequest(raw, "", "", "");
+                }
+            }
+            return new KeyboardRequest(raw, "", "", "");
+        }
+
+        String labelFor(String normalizedElementId) {
+            if (label != null && !label.isEmpty()) {
+                return label;
+            }
+            if ("participantAge".equals(normalizedElementId)) {
+                return "Age";
+            }
+            if ("participantLastName".equals(normalizedElementId)) {
+                return "Last name";
+            }
+            return "First name";
+        }
+
+        String inputModeFor(String normalizedElementId) {
+            if ("number".equals(inputMode) || "numeric".equals(inputMode)) {
+                return "number";
+            }
+            return "participantAge".equals(normalizedElementId) ? "number" : "text";
+        }
     }
 
     private void onPolarStatus(JSONObject status) {
@@ -571,16 +739,7 @@ final class Study6QuestionnairePanelController {
         @JavascriptInterface
         public void requestKeyboard(String elementId) {
             mainHandler.post(() -> {
-                webView.requestFocusFromTouch();
-                webView.requestFocus();
-                InputMethodManager inputMethodManager =
-                        (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (inputMethodManager != null) {
-                    inputMethodManager.showSoftInput(webView, InputMethodManager.SHOW_FORCED);
-                    webView.postDelayed(() ->
-                            inputMethodManager.showSoftInput(webView, InputMethodManager.SHOW_FORCED), 120);
-                }
-                logger.logHarnessEvent("native_keyboard_requested", elementId == null ? "" : elementId);
+                requestKeyboardForElement(elementId);
             });
         }
     }

@@ -244,7 +244,7 @@ h2 {
   min-height: 0;
   display: grid;
   align-content: start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .field-group,
@@ -256,11 +256,12 @@ h2 {
 .split-field-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
+  margin-top: 8px;
 }
 
 .field-row.compact {
-  max-width: 190px;
+  max-width: 210px;
 }
 
 .field-group label,
@@ -271,13 +272,17 @@ h2 {
 }
 
 .field-row input {
-  min-height: 42px;
+  min-height: 52px;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 0 12px;
+  padding: 0 14px;
   background: white;
   color: var(--text);
+  font-size: 16px;
+  line-height: 1.25;
+  scroll-margin: 24px;
+  touch-action: manipulation;
 }
 
 .option-group {
@@ -294,7 +299,7 @@ h2 {
 }
 
 .option-group button {
-  min-height: 42px;
+  min-height: 40px;
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;

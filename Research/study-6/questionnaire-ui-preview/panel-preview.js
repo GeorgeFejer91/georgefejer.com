@@ -2719,12 +2719,24 @@ function setNativePolarValidation(polarValidation) {
   render();
 }
 
+function setNativeEntryValue(elementId, value) {
+  const element = document.getElementById(elementId);
+  if (!element || !["participantFirstName", "participantLastName", "participantAge"].includes(element.id)) {
+    return false;
+  }
+  element.value = String(value == null ? "" : value);
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.focus({ preventScroll: false });
+  return true;
+}
+
 window.STUDY6_QUESTIONNAIRE_PREVIEW = {
   exportObject,
   makeState,
   makeEdgeState,
   setState,
-  setNativePolarValidation
+  setNativePolarValidation,
+  setNativeEntryValue
 };
 
 if (elements.orderSelect) {
@@ -2847,9 +2859,16 @@ function requestNativeKeyboardFor(element) {
   const request = () => {
     element.focus({ preventScroll: false });
     if (window.AndroidStudy6 && typeof window.AndroidStudy6.requestKeyboard === "function") {
-      window.AndroidStudy6.requestKeyboard(element.id || "");
+      const label = document.querySelector(`label[for="${element.id}"]`);
+      window.AndroidStudy6.requestKeyboard(JSON.stringify({
+        elementId: element.id || "",
+        label: label ? label.textContent : "",
+        value: element.value || "",
+        inputMode: element.id === "participantAge" ? "number" : "text"
+      }));
     }
   };
+  element.addEventListener("pointerdown", request);
   element.addEventListener("focus", request);
   element.addEventListener("pointerup", request);
   element.addEventListener("click", request);
@@ -2857,6 +2876,7 @@ function requestNativeKeyboardFor(element) {
 
 requestNativeKeyboardFor(elements.participantFirstName);
 requestNativeKeyboardFor(elements.participantLastName);
+requestNativeKeyboardFor(elements.participantAge);
 
 elements.participantAge.addEventListener("input", () => {
   const value = elements.participantAge.value.trim();
