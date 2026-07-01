@@ -2,6 +2,8 @@
 
 This Study 6 folder contains the complete public handoff package for the neutral ambient hand task, including final participant-heard audio scripts, exact wordings, protocol context, cached prompt audio, validation reports, and rebuild scripts.
 
+The active `audio/` and `transcripts/` folders contain the XTTS-v2 conversational rewrite generated on 2026-07-01 from the updated participant instructions. The previous ElevenLabs render is archived under `archive/2026-06-30-elevenlabs-legacy/`.
+
 Canonical URL:
 
 `https://www.georgefejer.com/Research/study-6/neutral-hand-audio/`
@@ -16,6 +18,7 @@ Compatibility URLs:
 
 - `audio/`: 8 final participant-facing MP3 files.
 - `transcripts/`: exact timed transcripts for each final MP3.
+- `archive/2026-06-30-elevenlabs-legacy/`: previous ElevenLabs MP3s, transcripts, validation reports, and manifests.
 - `source_transcripts_from_zip/`: original English and German source scripts from `hand_audio.zip`.
 - `prompt_audio_raw/`: cached intermediate ElevenLabs prompt MP3s used for reproducible local rebuilds.
 - `validation_reports/`: CSV reports for final duration, cluster duration, and prompt timing.
@@ -23,7 +26,8 @@ Compatibility URLs:
 - `wordings/`: consolidated exact wording library generated from the final timing schedule.
 - `timing_library.csv`: cue-level schedule with start/end times and protected action windows.
 - `action_blocks.csv`: standardized cluster timing blocks.
-- `elevenlabs_render_manifest.json`: render metadata, file sizes, SHA-256 hashes, cue text, and durations.
+- `tts_render_manifest.json`: XTTS-v2 render metadata, file sizes, SHA-256 hashes, cue text, and durations.
+- `elevenlabs_render_manifest.json`: compatibility copy of the current render metadata for older tooling.
 - `ASSET_MANIFEST.csv`: file inventory for the public audio and rebuild package.
 - `RESEARCH_PROJECT_MANIFEST.csv`: complete file inventory for the unified research package.
 - `scripts/`: rebuild scripts adapted to this self-contained project folder.
@@ -57,6 +61,16 @@ Languages:
 
 - `EN`: English.
 - `DE`: German.
+
+## Rebuild Current XTTS Conversational Audio
+
+Use this path to reproduce the active 2026-07-01 participant-facing files.
+
+```powershell
+python scripts/build_hand_audio_conversational.py --backend xtts
+```
+
+The script uses the configured XTTS-v2 speaker reference listed in `voice_reference_assets.csv`. It writes `audio/`, `transcripts/`, `timing_library.csv`, `validation_reports/`, and `tts_render_manifest.json`.
 
 ## Rebuild From Cached Prompt Audio
 
