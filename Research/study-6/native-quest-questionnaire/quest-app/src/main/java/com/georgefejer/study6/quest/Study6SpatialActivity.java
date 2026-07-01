@@ -1,8 +1,9 @@
 package com.georgefejer.study6.quest;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.webkit.WebView;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.meta.spatial.compose.ComposeFeature;
@@ -14,7 +15,6 @@ import com.meta.spatial.core.Vector3;
 import com.meta.spatial.runtime.ReferenceSpace;
 import com.meta.spatial.toolkit.AppSystemActivity;
 import com.meta.spatial.toolkit.DpDisplayOptions;
-import com.meta.spatial.toolkit.Grabbable;
 import com.meta.spatial.toolkit.LayoutXMLPanelRegistration;
 import com.meta.spatial.toolkit.Panel;
 import com.meta.spatial.toolkit.PanelInputOptions;
@@ -34,7 +34,10 @@ import java.util.List;
 import kotlin.Unit;
 
 public final class Study6SpatialActivity extends AppSystemActivity {
-    private Study6QuestionnairePanelController controller;
+    private static final float PANEL_SPAWN_DISTANCE_METERS = 1.15f;
+    private static final float PANEL_SPAWN_VERTICAL_OFFSET_METERS = -0.05f;
+
+    private Study6NativeQuestionnairePanelController controller;
     private Entity questionnairePanel;
 
     @Override
@@ -64,12 +67,72 @@ public final class Study6SpatialActivity extends AppSystemActivity {
 
         questionnairePanel = Entity.Companion.create(Arrays.asList(
                 new Panel(R.id.study6_questionnaire_panel),
-                new Transform(new Pose(
-                        new Vector3(0.0f, 1.42f, 1.15f),
-                        Quaternion.Companion.fromEuler(0.0f, 0.0f, 0.0f)
-                )),
-                new Grabbable()
+                new Transform(spawnPanelPose())
         ));
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        placeQuestionnairePanelInFrontOfViewer();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        placeQuestionnairePanelInFrontOfViewer();
+    }
+
+    @Override
+    public void onVRReady() {
+        super.onVRReady();
+        placeQuestionnairePanelInFrontOfViewer();
+    }
+
+    private void placeQuestionnairePanelInFrontOfViewer() {
+        if (questionnairePanel != null) {
+            questionnairePanel.setComponent(new Transform(spawnPanelPose()));
+        }
+    }
+
+    private Pose fallbackPanelPose() {
+        return new Pose(
+                new Vector3(0.0f, 1.42f, 1.15f),
+                Quaternion.Companion.fromEuler(0.0f, 0.0f, 0.0f)
+        );
+    }
+
+    private Pose spawnPanelPose() {
+        try {
+            Pose viewerPose = getScene().getViewerPose();
+            Vector3 forward = normalizeOr(viewerPose.forward(), new Vector3(0.0f, 0.0f, -1.0f));
+            Vector3 viewerUp = normalizeOr(viewerPose.up(), new Vector3(0.0f, 1.0f, 0.0f));
+            Vector3 right = normalizeOr(cross(forward, viewerUp), new Vector3(1.0f, 0.0f, 0.0f));
+            Vector3 up = normalizeOr(cross(right, forward), viewerUp);
+            Vector3 center = viewerPose.getT()
+                    .plus(forward.times(PANEL_SPAWN_DISTANCE_METERS))
+                    .plus(up.times(PANEL_SPAWN_VERTICAL_OFFSET_METERS));
+            return new Pose(center, Quaternion.Companion.fromDirection(forward, up));
+        } catch (RuntimeException error) {
+            return fallbackPanelPose();
+        }
+    }
+
+    private static Vector3 normalizeOr(Vector3 value, Vector3 fallback) {
+        float length = value.length();
+        if (!Float.isFinite(length) || length < 0.0001f) {
+            return fallback;
+        }
+        return value.times(1.0f / length);
+    }
+
+    private static Vector3 cross(Vector3 a, Vector3 b) {
+        return new Vector3(
+                a.getY() * b.getZ() - a.getZ() * b.getY(),
+                a.getZ() * b.getX() - a.getX() * b.getZ(),
+                a.getX() * b.getY() - a.getY() * b.getX()
+        );
     }
 
     @Override
@@ -86,9 +149,8 @@ public final class Study6SpatialActivity extends AppSystemActivity {
                                 new PanelInputOptions()
                         ),
                         (View rootView, com.meta.spatial.runtime.PanelSceneObject sceneObject, Entity entity) -> {
-                            WebView webView = rootView.findViewById(R.id.study6WebView);
                             TextView banner = rootView.findViewById(R.id.study6Banner);
-                            controller = new Study6QuestionnairePanelController(this, webView, banner);
+                            controller = new Study6NativeQuestionnairePanelController(this, (ViewGroup) rootView, banner);
                             controller.start(getIntent());
                             return Unit.INSTANCE;
                         }

@@ -102,14 +102,11 @@ if (!SERIAL) {
 
 const entries = fs.existsSync(APK_PATH) ? apkEntries(APK_PATH) : new Set();
 const requiredAssets = [
-  "assets/study6-quest-authority.js",
-  "assets/study6-quest-auto-run.js",
-  "assets/study6-quest-manual-audit.js",
-  "assets/questionnaire-ui-preview/index.html",
-  "assets/questionnaire-ui-preview/styles.css",
-  "assets/questionnaire-ui-preview/questionnaire-item-library.js",
-  "assets/questionnaire-ui-preview/panel-preview.js",
-  "assets/for-ai/study6_apk_permutation_lookup.json"
+  "assets/for-ai/study6_apk_permutation_lookup.json",
+  "assets/questionnaire-assets/sam/valence/valence_01.svg",
+  "assets/questionnaire-assets/sam/arousal/arousal_01.svg",
+  "assets/neutral-hand-audio/audio/study6_neutral_hand_audio_V01_EN.mp3",
+  "assets/neutral-hand-audio/audio/study6_neutral_hand_audio_V01_DE.mp3"
 ];
 for (const asset of requiredAssets) {
   if (!entries.has(asset)) {

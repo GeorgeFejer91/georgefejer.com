@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import childProcess from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import https from "node:https";
-import os from "node:os";
 import path from "node:path";
 import vm from "node:vm";
 
@@ -14,7 +12,6 @@ const PREVIEW_DIR = path.join(STUDY_DIR, "questionnaire-ui-preview");
 const LOOKUP_PATH = path.join(STUDY_DIR, "for-ai", "study6_apk_permutation_lookup.json");
 const GENERATOR_PATH = path.join(STUDY_DIR, "for-ai", "generate_study6_apk_permutation_lookup.js");
 const GRADLE_PATH = path.join(WORKSPACE_DIR, "quest-app", "build.gradle.kts");
-const APK_PATH = process.env.STUDY6_APK || path.join(WORKSPACE_DIR, "quest-app", "build", "outputs", "apk", "debug", "quest-app-debug.apk");
 const PREVIEW_URL = process.env.STUDY6_PREVIEW_URL || "https://www.georgefejer.com/Research/study-6/questionnaire-ui-preview/?previewSkipRequired=1&cb=232d4d3";
 
 const REQUIRED_FILES = [
@@ -30,21 +27,6 @@ const ASSESSMENT_PAGE_IDS = [
   "emotion_representation_vas",
   "hand_embodiment"
 ];
-
-function run(file, args, options = {}) {
-  const result = childProcess.spawnSync(file, args, {
-    cwd: options.cwd || STUDY_DIR,
-    encoding: options.encoding ?? "utf8",
-    maxBuffer: options.maxBuffer || 128 * 1024 * 1024
-  });
-  if (result.error) {
-    throw result.error;
-  }
-  if (result.status !== 0 && !options.allowFailure) {
-    throw new Error(`${file} ${args.join(" ")} failed with ${result.status}\n${result.stdout || ""}\n${result.stderr || ""}`);
-  }
-  return result;
-}
 
 function normalizeText(value) {
   return value.replace(/\r\n/g, "\n");
@@ -100,27 +82,6 @@ function linkedPreviewAssets(indexHtml) {
     }
   }
   return assets;
-}
-
-function extractApkAssets(apkPath) {
-  if (!fs.existsSync(apkPath)) {
-    return new Map();
-  }
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "study6-questionnaire-assets-"));
-  try {
-    const assetPaths = REQUIRED_FILES.map((file) => `assets/questionnaire-ui-preview/${file}`);
-    run("tar", ["-xf", apkPath, "-C", tempDir, ...assetPaths]);
-    const extracted = new Map();
-    for (const file of REQUIRED_FILES) {
-      const extractedPath = path.join(tempDir, "assets", "questionnaire-ui-preview", file);
-      if (fs.existsSync(extractedPath)) {
-        extracted.set(file, fs.readFileSync(extractedPath, "utf8"));
-      }
-    }
-    return extracted;
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
 }
 
 function evaluateItemLibrary(scriptText, label) {
@@ -236,42 +197,27 @@ async function main() {
     }
   }
 
-  const apkTexts = extractApkAssets(APK_PATH);
-  if (!fs.existsSync(APK_PATH)) {
-    failures.push(`APK missing: ${APK_PATH}`);
-  }
-
   const files = [];
   for (const file of REQUIRED_FILES) {
     const localPath = path.join(PREVIEW_DIR, file);
     const localText = fs.existsSync(localPath) ? fs.readFileSync(localPath, "utf8") : null;
     const deployedText = remoteTexts.get(file) || null;
-    const apkText = apkTexts.get(file) || null;
     const localSha = localText == null ? null : sha256Text(localText);
     const deployedSha = deployedText == null ? null : sha256Text(deployedText);
-    const apkSha = apkText == null ? null : sha256Text(apkText);
     if (!localText) {
       failures.push(`local preview missing ${file}`);
     }
     if (!deployedText) {
       failures.push(`deployed preview missing ${file}`);
     }
-    if (!apkText) {
-      failures.push(`APK preview asset missing ${file}`);
-    }
     if (localSha && deployedSha && localSha !== deployedSha) {
       failures.push(`${file} local hash ${localSha} != deployed hash ${deployedSha}`);
-    }
-    if (localSha && apkSha && localSha !== apkSha) {
-      failures.push(`${file} local hash ${localSha} != APK hash ${apkSha}`);
     }
     files.push({
       file,
       local_sha256: localSha,
       deployed_sha256: deployedSha,
-      apk_sha256: apkSha,
-      local_matches_deployed: Boolean(localSha && deployedSha && localSha === deployedSha),
-      local_matches_apk: Boolean(localSha && apkSha && localSha === apkSha)
+      local_matches_deployed: Boolean(localSha && deployedSha && localSha === deployedSha)
     });
   }
 
@@ -304,8 +250,8 @@ async function main() {
   }
 
   const gradleText = fs.readFileSync(GRADLE_PATH, "utf8");
-  if (!gradleText.includes('from(studyRoot.resolve("questionnaire-ui-preview"))')) {
-    failures.push("quest-app Gradle asset sync no longer packages the canonical questionnaire-ui-preview directory");
+  if (gradleText.includes('from(studyRoot.resolve("questionnaire-ui-preview"))')) {
+    failures.push("quest-app Gradle asset sync still packages questionnaire-ui-preview into the native APK");
   }
 
   const previewReadme = fs.readFileSync(path.join(PREVIEW_DIR, "README.md"), "utf8");
@@ -327,17 +273,15 @@ async function main() {
     pass: failures.length === 0,
     failures,
     preview_url: PREVIEW_URL,
-    apk_path: APK_PATH,
     files,
     canonical_questionnaire_items: expectedRows,
     checked_instances: [
       "deployed questionnaire-ui-preview",
       "local questionnaire-ui-preview",
-      "APK-packaged questionnaire-ui-preview",
       "questionnaire fixtures",
       "for-ai/study6_apk_permutation_lookup.json",
       "for-ai/generate_study6_apk_permutation_lookup.js",
-      "quest-app Gradle asset sync",
+      "quest-app Gradle native-APK asset boundary",
       "questionnaire-ui-preview/README.md stale wording scan"
     ]
   };
@@ -351,7 +295,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Study 6 questionnaire instance alignment passed: ${expectedRows.length} canonical response items match deployed/local/APK/backend instances.`);
+  console.log(`Study 6 questionnaire instance alignment passed: ${expectedRows.length} canonical response items match deployed/local/backend instances; APK preview packaging is absent.`);
   console.log(reportPath);
 }
 

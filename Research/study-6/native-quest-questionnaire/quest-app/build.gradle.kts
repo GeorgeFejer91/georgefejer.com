@@ -40,10 +40,6 @@ val generatedAssets = layout.buildDirectory.dir("generated/study6Assets")
 
 tasks.register<Sync>("prepareStudy6Assets") {
     into(generatedAssets)
-    from(studyRoot.resolve("questionnaire-ui-preview")) {
-        into("questionnaire-ui-preview")
-        exclude("study6-apk-permutation-lookup.generated.js")
-    }
     from(studyRoot.resolve("questionnaire-assets/sam")) {
         into("questionnaire-assets/sam")
     }

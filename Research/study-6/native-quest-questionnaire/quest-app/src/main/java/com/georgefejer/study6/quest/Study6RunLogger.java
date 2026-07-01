@@ -850,6 +850,13 @@ final class Study6RunLogger {
         put(demographics, "gender", "prefer_not_to_say");
         put(demographics, "consent_confirmed", false);
         put(demographics, "consent_text", "I consent to participate in this study.");
+        JSONObject signature = new JSONObject();
+        put(signature, "type", "native_stroke_signature");
+        put(signature, "stroke_count", 0);
+        put(signature, "complete", false);
+        put(signature, "strokes", new JSONArray());
+        put(demographics, "signature", signature);
+        put(demographics, "signature_stroke_count", 0);
         JSONObject polar = new JSONObject();
         put(polar, "ready", false);
         put(polar, "source", "native_pending");
@@ -882,6 +889,10 @@ final class Study6RunLogger {
         put(demographics, "gender", observed.optString("gender", ""));
         put(demographics, "consent_confirmed", observed.optBoolean("consent_confirmed", false));
         put(demographics, "consent_text", observed.optString("consent_text", "I consent to participate in this study."));
+        JSONObject signature = observed.optJSONObject("signature");
+        put(demographics, "signature", signature == null ? new JSONObject() : signature);
+        put(demographics, "signature_stroke_count", observed.optInt("signature_stroke_count",
+                signature == null ? 0 : signature.optInt("stroke_count", 0)));
         put(demographics, "polar_validation", observed.optJSONObject("polar_validation"));
         boolean demographicsComplete = observed.optBoolean("complete", false);
         put(demographics, "complete", demographicsComplete);

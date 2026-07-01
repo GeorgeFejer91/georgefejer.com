@@ -3,23 +3,22 @@
 This workspace contains the native Quest APK implementation for the Study 6
 questionnaire panel system.
 
-The APK now has two runnable shells over the same study controller:
+The APK now has two runnable shells over the same native study controller:
 
 - `Study6SpatialActivity`: the launch Activity. It is a Meta Spatial SDK
   `AppSystemActivity` with `VRFeature`, `ComposeFeature`, a 1080dp x 720dp
   `LayoutXMLPanelRegistration`, and a visible 3D panel entity.
-- `Study6QuestActivity`: a direct Android/WebView fallback harness for quick
+- `Study6QuestActivity`: a direct native Android-view fallback harness for quick
   debugging outside the Spatial shell.
 
-Both shells use the same `Study6QuestionnairePanelController` and
-`Study6RunLogger`. The deployed questionnaire preview assets are packaged as
-APK assets so wording, ratios, required-state behavior, sliders, SAM choices,
-name-entry behavior, and visual design stay aligned with the web source of truth.
-The runtime allocation and logging authority is
+Both shells use the same `Study6NativeQuestionnairePanelController` and
+`Study6RunLogger`. The web `questionnaire-ui-preview/` remains a design and
+contract reference, but it is not packaged as the Quest questionnaire app and
+the APK no longer ships the preview HTML/JS bridge. The runtime allocation and
+logging authority is
 `for-ai/study6_apk_permutation_lookup.json`, including the real 24-permutation
-schedule. In non-auto-run launches, the APK also installs a native-only manual
-audit bridge that writes trusted controller/hand/browser interaction evidence to
-`data/manual_interactions.jsonl`.
+schedule. In non-auto-run launches, the native controller writes trusted
+controller/hand interaction evidence directly to `data/manual_interactions.jsonl`.
 
 ## Constants
 
@@ -58,26 +57,26 @@ It checks allocation, block order, audio assignment, response IDs, nested result
 JSON, long CSV rows, block metadata, event logs, and debug Polar placeholder
 files.
 
-`verify-preview-asset-alignment.mjs` compares the deployed questionnaire preview,
-the local `questionnaire-ui-preview/` files, and the APK-packaged assets for
-the participant-facing HTML/CSS/JS contract. Current report:
+`verify-preview-asset-alignment.mjs` compares the deployed questionnaire preview
+with the local `questionnaire-ui-preview/` files. The preview is intentionally
+not an APK asset. Current report:
 
 ```text
 native-quest-questionnaire/build/preview-asset-alignment-report.json
-index.html                              deployed = local = APK
-styles.css                              deployed = local = APK
-questionnaire-item-library.js           deployed = local = APK
-panel-preview.js                        deployed = local = APK
+index.html                              deployed = local
+styles.css                              deployed = local
+questionnaire-item-library.js           deployed = local
+panel-preview.js                        deployed = local
 ```
 
 `verify-questionnaire-instance-alignment.mjs` derives the canonical response
 item order and labels from the deployed preview item library, then checks the
-local preview, APK-packaged preview assets, fixtures, backend lookup JSON,
-lookup generator source, Gradle asset sync, and stale README wording scan.
+local preview, fixtures, backend lookup JSON, lookup generator source, the
+native APK asset boundary, and stale README wording scan.
 
 ```text
 native-quest-questionnaire/build/questionnaire-instance-alignment-report.json
-13 canonical response items match deployed/local/APK/backend instances
+13 canonical response items match deployed/local/backend instances
 ```
 
 `verify-lookup-contract.mjs` checks the authoritative backend lookup and the
@@ -239,9 +238,9 @@ Current rebuilt debug APK SHA-256 with `session_ready` packaged:
 ```
 
 This current build has passed host contract, simulated data-flow, lookup, and
-local-preview-to-APK asset alignment checks. It still needs a fresh Quest
-auto-series and the real manual headset/controller/hand pass after the updated
-preview is published.
+native APK asset-boundary checks. It still needs a fresh Quest auto-series and
+the real manual headset/controller/hand pass after any final study-content
+changes are published.
 
 Bounded logcat for the final regression run had zero matches for
 `FATAL EXCEPTION`, `AndroidRuntime`, `ANR in`,
@@ -263,9 +262,9 @@ $env:STUDY6_MANUAL_PARTICIPANT_ID = "P005"
 Remove-Item Env:\STUDY6_MANUAL_PARTICIPANT_ID
 ```
 
-This checks the connected Quest, installed package, packaged questionnaire
-assets, manual-audit bridge, app-private allocation file, and expected next
-participant without launching or mutating the app.
+This checks the connected Quest, installed package, packaged native assets,
+app-private allocation file, and expected next participant without launching or
+mutating the app.
 
 Then run the supervised watcher:
 
