@@ -1,0 +1,9 @@
+<resources>
+    <style name="Study6Theme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">#0f172a</item>
+        <item name="android:statusBarColor">#f4f7fb</item>
+    </style>
+</resources>
+

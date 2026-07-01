@@ -91,19 +91,19 @@ const audioVariantCatalog = audioVariants.map((audio) => ({
 }));
 
 const questionnaireItems = [
-  { item_id: "SAM1", label: "Self-Assessment Manikin pictograph valence", scale: "1-9" },
-  { item_id: "SAM2", label: "Self-Assessment Manikin pictograph arousal", scale: "1-9" },
-  { item_id: "SAM3", label: "Self-Assessment Manikin pictograph dominance/control", scale: "1-9" },
-  { item_id: "valence", label: "Valence VAS", scale: "0-100" },
-  { item_id: "arousal", label: "Arousal VAS", scale: "0-100" },
-  { item_id: "Anger", label: "Anger represented by particle movement", scale: "0-100" },
-  { item_id: "Fear", label: "Fear represented by particle movement", scale: "0-100" },
-  { item_id: "Sadness", label: "Sadness represented by particle movement", scale: "0-100" },
-  { item_id: "Disgust", label: "Disgust represented by particle movement", scale: "0-100" },
-  { item_id: "Happiness", label: "Happiness represented by particle movement", scale: "0-100" },
-  { item_id: "Surprise", label: "Surprise represented by particle movement", scale: "0-100" },
-  { item_id: "Ownership", label: "Virtual hand ownership", scale: "1-7" },
-  { item_id: "Agency", label: "Virtual hand agency", scale: "1-7" }
+  { item_id: "SAM1", label: "Retrospective Self-Assessment Manikin pictograph valence", scale: "1-9" },
+  { item_id: "SAM2", label: "Retrospective Self-Assessment Manikin pictograph arousal", scale: "1-9" },
+  { item_id: "SAM3", label: "Retrospective Self-Assessment Manikin pictograph dominance/control", scale: "1-9" },
+  { item_id: "valence", label: "Retrospective valence VAS", scale: "0-100" },
+  { item_id: "arousal", label: "Retrospective arousal VAS", scale: "0-100" },
+  { item_id: "Anger", label: "Anger", scale: "0-100" },
+  { item_id: "Disgust", label: "Disgust", scale: "0-100" },
+  { item_id: "Fear", label: "Fear", scale: "0-100" },
+  { item_id: "Happiness", label: "Happiness", scale: "0-100" },
+  { item_id: "Sadness", label: "Sadness", scale: "0-100" },
+  { item_id: "Surprise", label: "Surprise", scale: "0-100" },
+  { item_id: "Ownership", label: "Adapted VEQ hand ownership", scale: "1-7" },
+  { item_id: "Agency", label: "Adapted VEQ hand agency", scale: "1-7" }
 ];
 
 const pad = (value, width) => String(value).padStart(width, "0");
@@ -257,6 +257,24 @@ const lookup = {
 const outputPath = path.join(__dirname, "study6_apk_permutation_lookup.json");
 fs.writeFileSync(outputPath, `${JSON.stringify(lookup, null, 2)}\n`, "utf8");
 generatedFiles.push(outputPath);
+
+const previewLookupScriptPath = path.join(
+  __dirname,
+  "..",
+  "questionnaire-ui-preview",
+  "study6-apk-permutation-lookup.generated.js"
+);
+const previewLookupScript = `"use strict";
+
+// Generated from ../for-ai/study6_apk_permutation_lookup.json by
+// ../for-ai/generate_study6_apk_permutation_lookup.js.
+// Do not edit manually; update the canonical lookup generator instead.
+(function () {
+  window.STUDY6_APK_PERMUTATION_LOOKUP = Object.freeze(${JSON.stringify(lookup, null, 2)});
+}());
+`;
+fs.writeFileSync(previewLookupScriptPath, previewLookupScript, "utf8");
+generatedFiles.push(previewLookupScriptPath);
 
 writeCsv(
   "study6_apk_variant_catalog.csv",

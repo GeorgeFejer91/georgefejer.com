@@ -22,16 +22,17 @@
         </header>
 
       <section id="demographicsPage" class="assessment-page demographics-section" aria-labelledby="demographicsHeading">
-        <div id="polarStatusCard" class="polar-status ready">
+        <div id="polarStatusCard" class="polar-status waiting">
           <div class="polar-status-main">
             <span class="status-lamp" aria-hidden="true"></span>
             <div>
-              <p id="polarStatusTitle">Polar H10 ECG ready</p>
-              <p id="polarSignalDetail">HR 72 bpm | RR 8 | ECG 180 samples @ 130 Hz</p>
-              <p id="polarDiagnostic">PMD ready | ECG streaming | MTU 23/23</p>
+              <p id="polarStatusTitle">Searching for nearby Polar H10</p>
+              <p id="polarSignalDetail">Waiting for live Polar ECG samples</p>
+              <p id="polarDeviceId">Polar ID: not connected</p>
+              <p id="polarDiagnostic">Searching for nearby Polar H10</p>
             </div>
           </div>
-          <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="ECG waveform preview"></canvas>
+          <canvas id="polarWaveform" class="polar-waveform" width="300" height="48" aria-label="Live Polar H10 ECG waveform"></canvas>
         </div>
 
         <div class="section-title demographics-title">
@@ -41,26 +42,21 @@
 
         <div class="demographics-grid">
           <div class="demographics-column">
-            <div class="field-group">
-              <label>Language</label>
-              <div id="languageOptions" class="option-group two-options"></div>
-            </div>
-
             <div class="split-field-row">
               <div class="field-row">
                 <label for="participantFirstName">First name</label>
-                <input id="participantFirstName" type="text" autocomplete="given-name" inputmode="text">
+                <input id="participantFirstName" type="text" autocomplete="given-name" inputmode="text" autocapitalize="words" enterkeyhint="next">
               </div>
 
               <div class="field-row">
                 <label for="participantLastName">Last name</label>
-                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text">
+                <input id="participantLastName" type="text" autocomplete="family-name" inputmode="text" autocapitalize="words" enterkeyhint="next">
               </div>
             </div>
 
             <div class="field-row compact">
               <label for="participantAge">Age</label>
-              <input id="participantAge" type="number" min="0" max="120" step="1" inputmode="numeric">
+              <input id="participantAge" type="number" min="0" max="120" step="1" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done">
             </div>
 
             <div class="field-group">
@@ -75,17 +71,29 @@
           </div>
 
           <div class="demographics-column consent-column">
+            <div class="field-group">
+              <label>Language</label>
+              <div id="languageOptions" class="option-group two-options"></div>
+            </div>
+
             <label class="consent-check">
               <input id="consentCheckbox" type="checkbox">
               <span id="consentText">I consent to participate in this study.</span>
             </label>
-            <div class="signature-header">
-              <label for="signaturePad">Signature</label>
-              <button id="clearSignature" class="secondary-button small-button" type="button">Clear</button>
-            </div>
-            <canvas id="signaturePad" class="signature-pad" width="440" height="160" aria-label="Consent signature pad"></canvas>
-            <p id="signatureSummary" class="signature-summary">No signature captured</p>
           </div>
+        </div>
+      </section>
+
+      <section id="sessionReadyPage" class="assessment-page session-ready-section" aria-labelledby="sessionReadyHeading" hidden>
+        <div class="session-ready-shell">
+          <p class="session-ready-kicker" id="sessionReadyKicker">Next session</p>
+          <h2 id="sessionReadyHeading">Are you ready for the next part?</h2>
+          <div class="session-ready-summary">
+            <span id="sessionReadyConditionLabel">VR task</span>
+            <strong id="sessionReadyBlockLabel">Session 1 of 4</strong>
+            <p id="sessionReadyAudioLabel">Audio guide ready</p>
+          </div>
+          <button id="sessionReadyStart" class="primary-button session-ready-start" type="button">Start next session</button>
         </div>
       </section>
 

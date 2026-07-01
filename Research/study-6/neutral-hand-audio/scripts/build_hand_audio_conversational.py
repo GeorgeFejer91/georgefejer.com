@@ -84,25 +84,26 @@ VERSION_ORDERS = {
 CLUSTER_LABELS = {
     "EN": {
         "SETUP": "Setup",
-        "A": "apart and together",
-        "B": "palms up and down",
-        "C": "single-hand reaches",
-        "D": "open and close",
+        "A": "arms into a V and back",
+        "B": "arms up and down",
+        "C": "fingers and fists",
+        "D": "arms reaching forward",
         "CIRCLE": "closing circle",
     },
     "DE": {
         "SETUP": "Setup",
-        "A": "auseinander und zusammen",
-        "B": "Handflaechen nach oben und unten",
-        "C": "eine Hand ausstrecken",
-        "D": "oeffnen und schliessen",
+        "A": "Arme zu einem V und zurueck",
+        "B": "Arme heben und senken",
+        "C": "Finger und Faeuste",
+        "D": "Arme nach vorne strecken",
         "CIRCLE": "Abschluss mit Kreis",
     },
 }
 
-# Relative cue offsets within a cluster, by cluster type.
-CORE_CUE_SCHEDULE = [("start", 0.0), ("continue", 28.0), ("transition", 52.0)]
-C_CUE_SCHEDULE = [("start_left", 0.0), ("switch_right", 28.0), ("transition", 52.0)]
+# Relative cue offsets within a cluster. Each core cluster gets a start cue and
+# one light continuation cue; there is no separate pause/transition cue (the
+# next cluster's start cue is the transition).
+CORE_CUE_SCHEDULE = [("start", 0.0), ("continue", 30.0)]
 CIRCLE_CUE_SCHEDULE = [("start_circle", 0.0), ("close", 30.0)]
 
 CLUSTER_START_TIMES = [20.0, 80.0, 140.0, 200.0]
@@ -114,177 +115,145 @@ WORDING = {
     "EN": {
         "SETUP": {
             "setup": (
-                "This session will take about five minutes. We will give you some "
-                "instructions for a few hand movements. Please follow them at your "
-                "own pace. To begin, could you hold both hands up in front of you, "
-                "palms facing up, and look at them?"
+                "This session takes about five minutes. We will guide you through "
+                "a few short hand and arm movements, one after another. To start, "
+                "hold both hands up in front of you, turn your palms to face you, "
+                "and look at them."
             ),
         },
         "A": {
             "start": (
-                "Let's move on to the next movement. With both palms facing down, "
-                "we'd like to ask you to slowly move your hands apart, out to the "
-                "sides, and then bring them back together toward the center until "
-                "they almost touch. Take about three seconds moving out, and three "
-                "seconds coming back."
+                "Now, let's do a movement with both arms. Stretch both arms out to "
+                "your sides and upward, away from each other, into a wide V shape. "
+                "Then bring your hands back down to the center until they nearly "
+                "meet. Repeat this a few times, at your own pace."
             ),
             "continue": (
-                "Please continue, out to the sides and back toward the center, "
-                "slowly and evenly. Repeat the movement a few times, at your own pace."
-            ),
-            "transition": (
-                "Now bring both hands back to the center, and pause."
+                "Keep opening your arms into the V and back to the center, "
+                "continuing at your own speed."
             ),
         },
         "B": {
             "start": (
-                "Now let's move on to the next step. With both hands near the center "
-                "in front of you, could you slowly turn both palms upward, so they "
-                "face the ceiling? Hold for a moment, then turn them back over so "
-                "the palms face down again."
+                "Now let's do the next one, with both arms in front of you. Raise "
+                "both arms upward until your hands are about at eye level, then "
+                "lower them all the way back down again. Raise and lower your arms, "
+                "and go through this a few times, in your own time."
             ),
             "continue": (
-                "Please keep turning, palms up, hold, and palms down. Repeat the "
-                "movement a few times, at your own pace."
-            ),
-            "transition": (
-                "Now return both hands to the center, palms down, and pause."
+                "Continue raising your arms all the way up to eye level and "
+                "lowering them, in your own rhythm."
             ),
         },
         "C": {
-            "start_left": (
-                "Now let's move on to the next step, working one hand at a time. "
-                "Could you keep your right hand still at the center? With your left "
-                "hand, please reach out to the left, into the space in front of you, "
-                "then bring it back to the center, repeating this left-hand reach a "
-                "few times, at your own pace."
+            "start": (
+                "Now let's try a movement with your fingers. Spread all the fingers "
+                "of both hands wide apart, stretching them out fully, then curl "
+                "them in to make two fists. Open and then close your fingers, and "
+                "repeat this several times, at your own speed."
             ),
-            "switch_right": (
-                "Now could you switch hands? Let your left hand stay at the center, "
-                "and reach out to the right with your right hand, then bring it "
-                "back. Please continue, repeating this right-hand reach a few times, "
-                "at your own pace."
-            ),
-            "transition": (
-                "Now return both hands to the center, palms down, and pause."
+            "continue": (
+                "Carry on spreading your fingers wide and closing them into fists "
+                "again, in your own time."
             ),
         },
         "D": {
             "start": (
-                "Now let's move on to the next step. Could you hold both hands in "
-                "front of you and open them wide, spreading your fingers, then close "
-                "them into a fist? About two seconds each way."
+                "Next, let's do a movement with one arm at a time. Reach your right "
+                "arm straight out in front of you, then bring it back. Do the same "
+                "with your left arm, forward and back. Alternate between them, and "
+                "do this a few times, in your own rhythm."
             ),
             "continue": (
-                "Please keep opening and closing, fingers spread wide, then a fist. "
-                "Repeat the movement a few times, at your own pace."
-            ),
-            "transition": (
-                "Now return both hands to the center, palms down, and pause."
+                "Keep reaching each arm forward and back, right and then left, and "
+                "carry on at your own pace."
             ),
         },
         "CIRCLE": {
             "start_circle": (
-                "Now for the last movement. Could you bring both hands together near "
-                "the center, and slowly trace the same medium-sized circle a few "
-                "times in the air, with both hands moving together in the same "
-                "direction, at your own pace?"
+                "Finally, let's do a movement with both hands together. Hold your "
+                "hands in front of you and move them around in a circle in the air, "
+                "both hands following the same path. Keep tracing the circle, and "
+                "repeat it a few times, at your own pace."
             ),
             "close": (
-                "Now make the circles smaller, and smaller, until both hands return "
-                "to the center, palms down, and stop. This is the end of the session."
+                "Now make the circle smaller and smaller, until both hands come "
+                "back to the center and stop. This is the end of the session."
             ),
         },
     },
     "DE": {
         "SETUP": {
             "setup": (
-                "Diese Sitzung dauert etwa fuenf Minuten. Wir geben Ihnen einige "
-                "Anweisungen fuer ein paar Handbewegungen. Bitte folgen Sie ihnen "
-                "in Ihrem eigenen Tempo. Halten Sie zu Beginn beide Haende vor "
-                "sich, die Handflaechen nach oben, und schauen Sie sie an."
+                "Diese Sitzung dauert etwa fuenf Minuten. Wir fuehren Sie "
+                "nacheinander durch einige kurze Hand- und Armbewegungen. Halten "
+                "Sie zu Beginn beide Haende vor sich, drehen Sie die Handflaechen "
+                "zu sich, und schauen Sie sie an."
             ),
         },
         "A": {
             "start": (
-                "Gehen wir nun zum naechsten Schritt ueber. Die Handflaechen zeigen "
-                "nach unten. Wir moechten Sie bitten, Ihre Haende langsam nach aussen "
-                "auseinander zu fuehren und dann wieder zur Mitte zurueck, bis sie "
-                "sich fast beruehren. Etwa drei Sekunden nach aussen, drei zurueck."
+                "Nun lassen Sie uns eine Bewegung mit beiden Armen machen. Strecken "
+                "Sie beide Arme zur Seite und nach oben aus, voneinander weg, "
+                "sodass sie ein weites V bilden. Fuehren Sie die Haende dann wieder "
+                "zur Mitte zurueck. Wiederholen Sie das ein paar Mal, in Ihrem "
+                "eigenen Tempo."
             ),
             "continue": (
-                "Bitte fahren Sie fort, nach aussen und zurueck zur Mitte, langsam "
-                "und gleichmaessig. Wiederholen Sie die Bewegung ein paar Mal in "
-                "Ihrem eigenen Tempo."
-            ),
-            "transition": (
-                "Fuehren Sie nun beide Haende zurueck zur Mitte, und halten Sie "
-                "einen Moment inne."
+                "Oeffnen Sie die Arme weiter zum V und fuehren Sie sie zurueck zur "
+                "Mitte, in Ihrem eigenen Rhythmus."
             ),
         },
         "B": {
             "start": (
-                "Gehen wir nun zum naechsten Schritt ueber. Halten Sie beide Haende "
-                "nahe der Mitte. Koennten Sie beide Handflaechen langsam nach oben "
-                "drehen, sodass sie zur Decke zeigen? Halten Sie kurz, und drehen "
-                "Sie sie dann wieder nach unten."
+                "Machen wir nun die naechste Bewegung, mit beiden Armen vor sich. "
+                "Heben Sie beide Arme an, bis Ihre Haende etwa auf Augenhoehe sind, "
+                "und senken Sie sie dann wieder ganz nach unten. Heben und senken "
+                "Sie die Arme, und wiederholen Sie das mehrmals, ganz nach Belieben."
             ),
             "continue": (
-                "Bitte drehen Sie weiter, Handflaechen nach oben, halten, und nach "
-                "unten. Wiederholen Sie die Bewegung ein paar Mal in Ihrem eigenen "
-                "Tempo."
-            ),
-            "transition": (
-                "Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen "
-                "nach unten, und halten Sie inne."
+                "Heben und senken Sie beide Arme weiter, bis auf Augenhoehe und "
+                "zurueck, so wie Sie moechten."
             ),
         },
         "C": {
-            "start_left": (
-                "Gehen wir nun zum naechsten Schritt ueber, eine Hand nach der "
-                "anderen. Koennten Sie die rechte Hand still in der Mitte lassen? "
-                "Fuehren Sie die linke Hand nach links in den Raum vor Ihnen und "
-                "dann zurueck zur Mitte, ein paar Mal mit der linken Hand, in "
-                "Ihrem eigenen Tempo."
+            "start": (
+                "Versuchen wir nun eine Bewegung mit Ihren Fingern. Spreizen Sie "
+                "alle Finger weit auseinander, strecken Sie sie ganz "
+                "aus, und ballen Sie sie dann zu zwei Faeusten. Oeffnen und "
+                "schliessen Sie die Finger, und wiederholen Sie das einige Male, in "
+                "Ihrem eigenen Rhythmus."
             ),
-            "switch_right": (
-                "Koennten Sie nun die Hand wechseln? Die linke Hand bleibt in der "
-                "Mitte, und die rechte Hand reicht nach rechts und kommt wieder "
-                "zurueck. Bitte fahren Sie fort, ein paar Mal mit der rechten Hand, "
-                "in Ihrem eigenen Tempo."
-            ),
-            "transition": (
-                "Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen "
-                "nach unten, und halten Sie inne."
+            "continue": (
+                "Spreizen und ballen Sie die Finger weiter, oeffnen und "
+                "schliessen Sie sie, ganz nach Belieben."
             ),
         },
         "D": {
             "start": (
-                "Gehen wir nun zum naechsten Schritt ueber. Koennten Sie beide "
-                "Haende vor sich halten und weit oeffnen, die Finger spreizen, und "
-                "sie dann zu einer Faust schliessen? Etwa zwei Sekunden je Richtung."
+                "Als naechstes machen wir eine Bewegung mit einem Arm nach dem "
+                "anderen. Strecken Sie den rechten Arm gerade vor sich aus und "
+                "fuehren Sie ihn zurueck. Machen Sie dasselbe mit dem linken Arm, "
+                "vor und zurueck. Wiederholen Sie das mehrmals abwechselnd, so wie "
+                "Sie moechten."
             ),
             "continue": (
-                "Bitte oeffnen und schliessen Sie weiter, die Finger weit gespreizt, "
-                "dann eine Faust. Wiederholen Sie die Bewegung ein paar Mal in Ihrem "
-                "eigenen Tempo."
-            ),
-            "transition": (
-                "Fuehren Sie nun beide Haende zurueck zur Mitte, die Handflaechen "
-                "nach unten, und halten Sie inne."
+                "Strecken Sie weiter abwechselnd den rechten und den linken Arm "
+                "vor und zurueck, in Ihrem eigenen Tempo."
             ),
         },
         "CIRCLE": {
             "start_circle": (
-                "Nun zur letzten Bewegung. Koennten Sie beide Haende nahe der Mitte "
-                "zusammenfuehren und langsam denselben mittelgrossen Kreis ein paar "
-                "Mal in die Luft zeichnen, beide Haende gemeinsam in dieselbe "
-                "Richtung, in Ihrem eigenen Tempo?"
+                "Zum Abschluss machen wir eine Bewegung mit beiden Haenden "
+                "zusammen. Halten Sie die Haende vor sich und bewegen Sie sie im "
+                "Kreis durch die Luft, beide auf derselben Bahn. Zeichnen Sie den "
+                "Kreis weiter, und wiederholen Sie ihn ein paar Mal, ganz nach "
+                "Belieben."
             ),
             "close": (
-                "Machen Sie die Kreise nun kleiner, bis beide Haende in der Mitte "
-                "stehen bleiben, die Handflaechen nach unten. Dies ist das Ende der "
-                "Sitzung."
+                "Lassen Sie den Kreis nun kleiner und kleiner werden, bis beide "
+                "Haende zur Mitte zurueckkommen und stehen bleiben. Dies ist das "
+                "Ende der Sitzung."
             ),
         },
     },
@@ -346,7 +315,7 @@ def build_schedule(language: str, version: str) -> tuple[list[Cue], list[Cluster
         clusters.append(
             Cluster(version, language, cluster_id, labels[cluster_id], base, end, 60.0)
         )
-        schedule = C_CUE_SCHEDULE if cluster_id == "C" else CORE_CUE_SCHEDULE
+        schedule = CORE_CUE_SCHEDULE
         for cue_role, offset in schedule:
             cues.append(
                 Cue(

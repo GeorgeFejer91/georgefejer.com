@@ -19,6 +19,7 @@
     "open_stage": "demographics",
     "screen_sequence": [
       "demographics",
+      "session_ready",
       "vr_task_instructions",
       "self_assessment_manikin",
       "affect_vas",
@@ -27,6 +28,7 @@
     ],
     "demographics_required_once": true,
     "condition_block_sequence": [
+      "session_ready",
       "vr_task_instructions",
       "self_assessment_manikin",
       "affect_vas",
@@ -220,24 +222,6 @@
       },
       {
         "item_library_version": 1,
-        "id": "demographics.signature",
-        "variable_name": "demographics_signature",
-        "label": "Consent signature",
-        "page": "demographics",
-        "group": "consent",
-        "response_namespace": "demographics",
-        "field": "signature",
-        "type": "signature-pad",
-        "default": {
-          "has_signature": false,
-          "stroke_count": 0
-        },
-        "editable": "editable",
-        "validation": "required signature stroke data",
-        "result_json_field": "answers.demographics.signature"
-      },
-      {
-        "item_library_version": 1,
         "id": "counterbalance.order_id",
         "variable_name": "counterbalance_order_id",
         "label": "Counterbalance order assignment",
@@ -272,6 +256,21 @@
         "editable": "runtime-owned",
         "validation": "derived from the current block position; must be 1..4",
         "native_state_field": "questionnaire_state.condition_index"
+      },
+      {
+        "item_library_version": 1,
+        "id": "condition.session_ready_prompt",
+        "variable_name": "condition_session_ready_prompt",
+        "label": "Ready for next session prompt",
+        "page": "session_ready",
+        "group": "condition_readiness",
+        "response_namespace": "condition_runtime",
+        "field": "session_ready_prompt",
+        "type": "placeholder-stage",
+        "default": "participant readiness prompt before timed audio/condition block",
+        "editable": "caller-owned",
+        "validation": "shown before every condition audio block; participant must start next session before audio begins",
+        "native_state_field": "questionnaire_state.condition_readiness_stage"
       },
       {
         "item_library_version": 1,
@@ -921,8 +920,19 @@
             "id": "consent",
             "fields": [
               "demographics.consent_confirmed",
-              "demographics.consent_text",
-              "demographics.signature"
+              "demographics.consent_text"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "session_ready",
+        "title": "Ready for next session",
+        "groups": [
+          {
+            "id": "condition_readiness",
+            "fields": [
+              "condition.session_ready_prompt"
             ]
           }
         ]
@@ -1171,24 +1181,6 @@
     },
     {
       "item_library_version": 1,
-      "id": "demographics.signature",
-      "variable_name": "demographics_signature",
-      "label": "Consent signature",
-      "page": "demographics",
-      "group": "consent",
-      "response_namespace": "demographics",
-      "field": "signature",
-      "type": "signature-pad",
-      "default": {
-        "has_signature": false,
-        "stroke_count": 0
-      },
-      "editable": "editable",
-      "validation": "required signature stroke data",
-      "result_json_field": "answers.demographics.signature"
-    },
-    {
-      "item_library_version": 1,
       "id": "counterbalance.order_id",
       "variable_name": "counterbalance_order_id",
       "label": "Counterbalance order assignment",
@@ -1223,6 +1215,21 @@
       "editable": "runtime-owned",
       "validation": "derived from the current block position; must be 1..4",
       "native_state_field": "questionnaire_state.condition_index"
+    },
+    {
+      "item_library_version": 1,
+      "id": "condition.session_ready_prompt",
+      "variable_name": "condition_session_ready_prompt",
+      "label": "Ready for next session prompt",
+      "page": "session_ready",
+      "group": "condition_readiness",
+      "response_namespace": "condition_runtime",
+      "field": "session_ready_prompt",
+      "type": "placeholder-stage",
+      "default": "participant readiness prompt before timed audio/condition block",
+      "editable": "caller-owned",
+      "validation": "shown before every condition audio block; participant must start next session before audio begins",
+      "native_state_field": "questionnaire_state.condition_readiness_stage"
     },
     {
       "item_library_version": 1,
@@ -1872,8 +1879,19 @@
           "id": "consent",
           "fields": [
             "demographics.consent_confirmed",
-            "demographics.consent_text",
-            "demographics.signature"
+            "demographics.consent_text"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "session_ready",
+      "title": "Ready for next session",
+      "groups": [
+        {
+          "id": "condition_readiness",
+          "fields": [
+            "condition.session_ready_prompt"
           ]
         }
       ]
@@ -1950,28 +1968,32 @@
   ],
   "demographics": {
     "polar_validation": {
-      "source": "browser_visual_preview",
-      "state": "ready",
-      "ready": true,
-      "detected": true,
-      "connected": true,
-      "streaming": true,
-      "pmd_ready": true,
-      "ecg_streaming": true,
-      "heart_rate_bpm": 72,
-      "rr_interval_count": 8,
-      "ecg_sample_count": 180,
-      "pmd_frame_count": 12,
+      "source": "native_pending",
+      "state": "scanning",
+      "ready": false,
+      "detected": false,
+      "connected": false,
+      "streaming": false,
+      "pmd_ready": false,
+      "ecg_streaming": false,
+      "device_id": "",
+      "device_name": "",
+      "device_address": "",
+      "heart_rate_bpm": 0,
+      "rr_interval_count": 0,
+      "ecg_sample_count": 0,
+      "pmd_frame_count": 0,
       "requested_mtu": 23,
-      "negotiated_mtu": 23,
+      "negotiated_mtu": 0,
       "ecg_sample_rate_hz": 130,
       "ecg_resolution_bits": 14,
-      "pmd_control_point_indications_enabled": true,
-      "pmd_data_notifications_enabled": true,
-      "pmd_settings_received": true,
-      "pmd_start_response_received": true,
-      "diagnostic": "PMD ready | ECG streaming | MTU 23/23",
-      "native_ready_rule": "streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && ecg_sample_rate_hz == 130"
+      "pmd_control_point_indications_enabled": false,
+      "pmd_data_notifications_enabled": false,
+      "pmd_settings_received": false,
+      "pmd_start_response_received": false,
+      "recent_ecg_samples_uv": [],
+      "diagnostic": "Searching for nearby Polar H10",
+      "native_ready_rule": "source == polar_h10_android_ble_pmd && streaming && heart_rate_bpm > 0 && rr_interval_count > 0 && pmd_ready && ecg_streaming && ecg_sample_count > 0 && recent_ecg_samples_uv.length >= 2 && ecg_sample_rate_hz == 130"
     },
     "language_code": "en",
     "participant_first_name": "",
@@ -1982,15 +2004,10 @@
     "gender": "",
     "consent_confirmed": false,
     "consent_text": "I consent to participate in this study.",
-    "signature": {
-      "has_signature": false,
-      "stroke_count": 0,
-      "strokes": []
-    },
     "complete": false
   },
   "visual_storyboard": {
-    "panel_count": 21,
+    "panel_count": 25,
     "frame": {
       "width_dp": 1080,
       "height_dp": 720
@@ -1998,7 +2015,6 @@
     "interaction_states_visible": [
       "segmented selections",
       "consent checkbox",
-      "signature strokes",
       "Self-Assessment Manikin pictograph choices",
       "VAS slider positions",
       "emotion representation VAS slider positions",
@@ -2023,7 +2039,7 @@
       },
       {
         "panel_index": 2,
-        "page_id": "vr_task_instructions",
+        "page_id": "session_ready",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "LC_LE",
@@ -2034,11 +2050,11 @@
         "audio_instruction_id": "audio_instruction_set_1",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "VR task instructions"
+        "title": "Ready for next session"
       },
       {
         "panel_index": 3,
-        "page_id": "self_assessment_manikin",
+        "page_id": "vr_task_instructions",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "LC_LE",
@@ -2047,13 +2063,13 @@
         "coherence_level": "low",
         "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_1",
-        "assessment_block_page": 1,
-        "assessment_block_page_count": 4,
-        "title": "Self-Assessment Manikin pictographs"
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "VR task instructions"
       },
       {
         "panel_index": 4,
-        "page_id": "affect_vas",
+        "page_id": "self_assessment_manikin",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "LC_LE",
@@ -2062,13 +2078,13 @@
         "coherence_level": "low",
         "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_1",
-        "assessment_block_page": 2,
+        "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "Valence and arousal VAS"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 5,
-        "page_id": "emotion_representation_vas",
+        "page_id": "affect_vas",
         "block_position": 1,
         "condition_position": 1,
         "counterbalanced_condition_id": "LC_LE",
@@ -2077,12 +2093,27 @@
         "coherence_level": "low",
         "energy_noise_level": "low",
         "audio_instruction_id": "audio_instruction_set_1",
-        "assessment_block_page": 3,
+        "assessment_block_page": 2,
         "assessment_block_page_count": 4,
-        "title": "Particle emotion representation VAS"
+        "title": "Valence and arousal VAS"
       },
       {
         "panel_index": 6,
+        "page_id": "emotion_representation_vas",
+        "block_position": 1,
+        "condition_position": 1,
+        "counterbalanced_condition_id": "LC_LE",
+        "condition_id": "LC_LE",
+        "vr_condition_id": "LC_LE",
+        "coherence_level": "low",
+        "energy_noise_level": "low",
+        "audio_instruction_id": "audio_instruction_set_1",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 4,
+        "title": "Particle emotion representation VAS"
+      },
+      {
+        "panel_index": 7,
         "page_id": "hand_embodiment",
         "block_position": 1,
         "condition_position": 1,
@@ -2097,8 +2128,8 @@
         "title": "Virtual hand embodiment"
       },
       {
-        "panel_index": 7,
-        "page_id": "vr_task_instructions",
+        "panel_index": 8,
+        "page_id": "session_ready",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_HE",
@@ -2109,26 +2140,11 @@
         "audio_instruction_id": "audio_instruction_set_2",
         "assessment_block_page": null,
         "assessment_block_page_count": null,
-        "title": "VR task instructions"
-      },
-      {
-        "panel_index": 8,
-        "page_id": "self_assessment_manikin",
-        "block_position": 2,
-        "condition_position": 2,
-        "counterbalanced_condition_id": "LC_HE",
-        "condition_id": "LC_HE",
-        "vr_condition_id": "LC_HE",
-        "coherence_level": "low",
-        "energy_noise_level": "high",
-        "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": 1,
-        "assessment_block_page_count": 4,
-        "title": "Self-Assessment Manikin pictographs"
+        "title": "Ready for next session"
       },
       {
         "panel_index": 9,
-        "page_id": "affect_vas",
+        "page_id": "vr_task_instructions",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_HE",
@@ -2137,13 +2153,13 @@
         "coherence_level": "low",
         "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": 2,
-        "assessment_block_page_count": 4,
-        "title": "Valence and arousal VAS"
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "VR task instructions"
       },
       {
         "panel_index": 10,
-        "page_id": "emotion_representation_vas",
+        "page_id": "self_assessment_manikin",
         "block_position": 2,
         "condition_position": 2,
         "counterbalanced_condition_id": "LC_HE",
@@ -2152,12 +2168,42 @@
         "coherence_level": "low",
         "energy_noise_level": "high",
         "audio_instruction_id": "audio_instruction_set_2",
-        "assessment_block_page": 3,
+        "assessment_block_page": 1,
         "assessment_block_page_count": 4,
-        "title": "Particle emotion representation VAS"
+        "title": "Self-Assessment Manikin pictographs"
       },
       {
         "panel_index": 11,
+        "page_id": "affect_vas",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 2,
+        "assessment_block_page_count": 4,
+        "title": "Valence and arousal VAS"
+      },
+      {
+        "panel_index": 12,
+        "page_id": "emotion_representation_vas",
+        "block_position": 2,
+        "condition_position": 2,
+        "counterbalanced_condition_id": "LC_HE",
+        "condition_id": "LC_HE",
+        "vr_condition_id": "LC_HE",
+        "coherence_level": "low",
+        "energy_noise_level": "high",
+        "audio_instruction_id": "audio_instruction_set_2",
+        "assessment_block_page": 3,
+        "assessment_block_page_count": 4,
+        "title": "Particle emotion representation VAS"
+      },
+      {
+        "panel_index": 13,
         "page_id": "hand_embodiment",
         "block_position": 2,
         "condition_position": 2,
@@ -2172,7 +2218,22 @@
         "title": "Virtual hand embodiment"
       },
       {
-        "panel_index": 12,
+        "panel_index": 14,
+        "page_id": "session_ready",
+        "block_position": 3,
+        "condition_position": 3,
+        "counterbalanced_condition_id": "HC_HE",
+        "condition_id": "HC_HE",
+        "vr_condition_id": "HC_HE",
+        "coherence_level": "high",
+        "energy_noise_level": "high",
+        "audio_instruction_id": "audio_instruction_set_3",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Ready for next session"
+      },
+      {
+        "panel_index": 15,
         "page_id": "vr_task_instructions",
         "block_position": 3,
         "condition_position": 3,
@@ -2187,7 +2248,7 @@
         "title": "VR task instructions"
       },
       {
-        "panel_index": 13,
+        "panel_index": 16,
         "page_id": "self_assessment_manikin",
         "block_position": 3,
         "condition_position": 3,
@@ -2202,7 +2263,7 @@
         "title": "Self-Assessment Manikin pictographs"
       },
       {
-        "panel_index": 14,
+        "panel_index": 17,
         "page_id": "affect_vas",
         "block_position": 3,
         "condition_position": 3,
@@ -2217,7 +2278,7 @@
         "title": "Valence and arousal VAS"
       },
       {
-        "panel_index": 15,
+        "panel_index": 18,
         "page_id": "emotion_representation_vas",
         "block_position": 3,
         "condition_position": 3,
@@ -2232,7 +2293,7 @@
         "title": "Particle emotion representation VAS"
       },
       {
-        "panel_index": 16,
+        "panel_index": 19,
         "page_id": "hand_embodiment",
         "block_position": 3,
         "condition_position": 3,
@@ -2247,7 +2308,22 @@
         "title": "Virtual hand embodiment"
       },
       {
-        "panel_index": 17,
+        "panel_index": 20,
+        "page_id": "session_ready",
+        "block_position": 4,
+        "condition_position": 4,
+        "counterbalanced_condition_id": "HC_LE",
+        "condition_id": "HC_LE",
+        "vr_condition_id": "HC_LE",
+        "coherence_level": "high",
+        "energy_noise_level": "low",
+        "audio_instruction_id": "audio_instruction_set_4",
+        "assessment_block_page": null,
+        "assessment_block_page_count": null,
+        "title": "Ready for next session"
+      },
+      {
+        "panel_index": 21,
         "page_id": "vr_task_instructions",
         "block_position": 4,
         "condition_position": 4,
@@ -2262,7 +2338,7 @@
         "title": "VR task instructions"
       },
       {
-        "panel_index": 18,
+        "panel_index": 22,
         "page_id": "self_assessment_manikin",
         "block_position": 4,
         "condition_position": 4,
@@ -2277,7 +2353,7 @@
         "title": "Self-Assessment Manikin pictographs"
       },
       {
-        "panel_index": 19,
+        "panel_index": 23,
         "page_id": "affect_vas",
         "block_position": 4,
         "condition_position": 4,
@@ -2292,7 +2368,7 @@
         "title": "Valence and arousal VAS"
       },
       {
-        "panel_index": 20,
+        "panel_index": 24,
         "page_id": "emotion_representation_vas",
         "block_position": 4,
         "condition_position": 4,
@@ -2307,7 +2383,7 @@
         "title": "Particle emotion representation VAS"
       },
       {
-        "panel_index": 21,
+        "panel_index": 25,
         "page_id": "hand_embodiment",
         "block_position": 4,
         "condition_position": 4,
@@ -2377,6 +2453,21 @@
       "coherence_level": "low",
       "energy_noise_level": "low",
       "audio_instruction_id": "audio_instruction_set_1",
+      "page_id": "session_ready",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 1,
+      "condition_position": 1,
+      "counterbalanced_condition_id": "LC_LE",
+      "condition_id": "LC_LE",
+      "vr_condition_id": "LC_LE",
+      "coherence_level": "low",
+      "energy_noise_level": "low",
+      "audio_instruction_id": "audio_instruction_set_1",
       "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
@@ -2452,6 +2543,21 @@
       "coherence_level": "low",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_2",
+      "page_id": "session_ready",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 2,
+      "condition_position": 2,
+      "counterbalanced_condition_id": "LC_HE",
+      "condition_id": "LC_HE",
+      "vr_condition_id": "LC_HE",
+      "coherence_level": "low",
+      "energy_noise_level": "high",
+      "audio_instruction_id": "audio_instruction_set_2",
       "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
@@ -2527,6 +2633,21 @@
       "coherence_level": "high",
       "energy_noise_level": "high",
       "audio_instruction_id": "audio_instruction_set_3",
+      "page_id": "session_ready",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
+    },
+    {
+      "block_position": 3,
+      "condition_position": 3,
+      "counterbalanced_condition_id": "HC_HE",
+      "condition_id": "HC_HE",
+      "vr_condition_id": "HC_HE",
+      "coherence_level": "high",
+      "energy_noise_level": "high",
+      "audio_instruction_id": "audio_instruction_set_3",
       "page_id": "vr_task_instructions",
       "assessment_block_id": null,
       "assessment_block_page": null,
@@ -2592,6 +2713,21 @@
       "assessment_block_page": 4,
       "assessment_block_page_count": 4,
       "assessment_block_group": "Adapted VEQ virtual hand ownership and agency ratings"
+    },
+    {
+      "block_position": 4,
+      "condition_position": 4,
+      "counterbalanced_condition_id": "HC_LE",
+      "condition_id": "HC_LE",
+      "vr_condition_id": "HC_LE",
+      "coherence_level": "high",
+      "energy_noise_level": "low",
+      "audio_instruction_id": "audio_instruction_set_4",
+      "page_id": "session_ready",
+      "assessment_block_id": null,
+      "assessment_block_page": null,
+      "assessment_block_page_count": null,
+      "assessment_block_group": null
     },
     {
       "block_position": 4,
