@@ -1,8 +1,18 @@
-# HTML UI skill route
+# Academic website skill routes
 
-For new or changed text-bearing HTML/CSS UI, use the installed `uncodixfy-pretext` skill ([source](https://github.com/GeorgeFejer91/uncodixfy-pretext/blob/main/SKILL.md)). Read its Pretext reference and load its `ponytail` companion. This route carries Uncodixfy's restrained visual discipline and requires real `@chenglou/pretext` measurement for bounded text on the touched UI. Preserve this project's identity and existing stack; do not retrofit unrelated pages.
+See [PROJECT.md](PROJECT.md) for the current goal and acceptance evidence. Keep the homepage and presentation archive as static HTML on GitHub Pages.
 
-Design the box layout first, then measure its remaining text space. Prefer reflow or more room before reducing type; provide an explicit no-fit outcome. Check the rendered browser at narrow widths, 320 CSS px reflow, 200% text/zoom, and long or localized labels. This instruction does not claim the existing UI has already been migrated or verified.
+| Work | Skills and references |
+| --- | --- |
+| Text-bearing HTML and CSS | Read the installed `uncodixfy-pretext` [skill](https://github.com/GeorgeFejer91/uncodixfy-pretext/blob/main/SKILL.md) and its `references/pretext.md`. Use `ponytail` for the smallest complete implementation. |
+| Homepage navigation | Read `uncodixfy-pretext/references/accordion-stretch.md`. Use CSS Grid for the header, ordered links and Contact anchor. Let the index grow into document flow on narrow or short screens and with enlarged text. |
+| Keyboard and resize behavior | Use `agents-inc-accessibility`. Verify focus, native links, 320 CSS px reflow, 200% text sizing and user text spacing in a rendered browser. |
+
+Use white text on black with secondary text in a high-contrast gray. Keep one homepage navigation tree and the existing section IDs. Apply the stretch layout to the navigation panel. Use normal document flow for the profile, publication entries, and presentation archive.
+
+The homepage measures its four bounded navigation labels in `Academic/assets/index-fit.js`, using the rendered font, letter spacing, and content box. The base CSS lets labels wrap. Leave that fallback available when Pretext is unavailable or a label exceeds its box.
+
+The static site vendors the browser modules for `@chenglou/pretext@1.0.0` in `Academic/assets/vendor/pretext-1.0.0/`. The files come from the npm release's `dist` directory with the upstream MIT license. Six lines in function declarations have trailing spaces removed. The [release tarball](https://registry.npmjs.org/@chenglou/pretext/-/pretext-1.0.0.tgz) has integrity `sha512-BxKiDMxWJhyzL8asvcgg3T9YnUU7OUFsKO8oRaR2SYAPX4Sh2wM9gqTBjrBaZ4fnl84cEQ8czC0Q1M83z3chsA==`. When upgrading, check the upstream README and changelog, verify the new tarball, update the import and versioned directory together, and repeat the rendered checks.
 
 <!-- for-ai:shared-skills:start -->
 ## Shared project skill baseline

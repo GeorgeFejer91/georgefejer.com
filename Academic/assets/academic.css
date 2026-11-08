@@ -1,0 +1,258 @@
+:root {
+    color-scheme: dark;
+    --ink: #fff;
+    --secondary: #c6c6c6;
+    --rule: #525252;
+    --gutter: clamp(1rem, 5vw, 4rem);
+    font: 100% / 1.55 Arial, sans-serif;
+    background: #000;
+    color: var(--ink);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow-wrap: break-word;
+}
+
+a {
+    color: inherit;
+    text-underline-offset: .22em;
+}
+
+a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+
+img {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+}
+
+h1, h2, h3, p {
+    margin: 0;
+}
+
+p + p, h3 + p {
+    margin-block-start: .45rem;
+}
+
+h1 {
+    font-size: clamp(2.25rem, 1.75rem + 2.8vw, 4rem);
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: clamp(1.45rem, 1.2rem + 1vw, 2rem);
+    line-height: 1.25;
+}
+
+h3 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+}
+
+.site-width {
+    inline-size: min(70rem, 100% - 2 * var(--gutter));
+    margin-inline: auto;
+}
+
+.site-index {
+    --index-gap: clamp(1rem, min(3.4vw, 4svh), 2.75rem);
+    --index-type: clamp(1.125rem, min(1rem + 1.1vw, 1rem + 1.5svh), 1.625rem);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--index-gap);
+    min-inline-size: 0;
+    padding-block: clamp(1.5rem, min(7vw, 8svh), 5rem) var(--index-gap);
+}
+
+.identity {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--index-gap);
+    min-inline-size: 0;
+}
+
+.identity-text {
+    min-inline-size: 0;
+}
+
+.identity p {
+    max-inline-size: 60ch;
+    margin-block-start: .75rem;
+}
+
+.affiliation {
+    font-weight: 700;
+}
+
+.introduction {
+    color: var(--secondary);
+}
+
+.portrait {
+    flex: none;
+    inline-size: clamp(3.5rem, min(16vw, 20svh), 9.5rem);
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.index-nav {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--index-gap);
+    min-inline-size: 0;
+    min-block-size: 0;
+}
+
+.index-links {
+    display: grid;
+    align-content: center;
+    gap: .35rem var(--index-gap);
+    min-inline-size: 0;
+    min-block-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.index-links li {
+    min-inline-size: 0;
+}
+
+.index-link {
+    display: grid;
+    align-items: center;
+    min-inline-size: 0;
+    min-block-size: 3rem;
+    padding: .55em .15em;
+    border-block-end: 1px solid var(--rule);
+    font-size: var(--index-type);
+    font-weight: 700;
+    line-height: 1.3;
+    text-decoration: none;
+}
+
+.index-link:hover, .index-link:focus-visible {
+    text-decoration: underline;
+}
+
+.index-link span {
+    min-inline-size: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.index-link[data-fit="reflow"] span {
+    overflow-wrap: anywhere;
+}
+
+.index-contact {
+    justify-self: start;
+    min-inline-size: min(11rem, 100%);
+    max-inline-size: 100%;
+}
+
+@media (min-width: 44rem) {
+    .index-links {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 44rem) and (min-height: 32rem) {
+    .site-index {
+        min-block-size: clamp(24rem, 61svh, 34rem);
+    }
+}
+
+@media (max-width: 28rem) {
+    .identity {
+        flex-wrap: wrap;
+    }
+}
+
+.section {
+    border-block-start: 1px solid var(--rule);
+    padding-block: clamp(1.5rem, 4vw, 3rem);
+    scroll-margin-block-start: 1rem;
+}
+
+.section > h2 {
+    margin-block-end: 1rem;
+}
+
+.section > p, .entry-list p {
+    max-inline-size: 70ch;
+}
+
+.research-list {
+    display: grid;
+    gap: 1.35rem 3rem;
+}
+
+@media (min-width: 48rem) {
+    .research-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.entry-list > article + article {
+    margin-block-start: 1.4rem;
+}
+
+.entry-meta {
+    color: var(--secondary);
+    font-size: .94rem;
+}
+
+.skills, .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.skills {
+    color: var(--secondary);
+    margin-block-end: 1.5rem;
+}
+
+.contact-links {
+    margin-block-start: 1rem;
+}
+
+.contact-links a {
+    display: block;
+    padding-block: .35rem;
+}
+
+.site-footer {
+    border-block-start: 1px solid var(--rule);
+    padding-block: 1.25rem 2rem;
+    color: var(--secondary);
+    font-size: .94rem;
+}
+
+.archive-header {
+    padding-block: clamp(1.5rem, 6vw, 4rem) 1.75rem;
+}
+
+.archive-header h1 {
+    margin-block-start: 1.5rem;
+}
+
+.archive-header p {
+    margin-block-start: .75rem;
+    color: var(--secondary);
+}

@@ -27,3 +27,15 @@ Do not recreate old root content folders such as `assets/`, `einhorn-sammler/`,
 `quest-sam-questionnaire-preview/`, `audio-assets/`, `print/`, `print2/`,
 `projects/`, or `research-projects/`. New work should target the canonical
 `Academic/`, `Hobby/`, and `Research/` paths.
+
+## Academic presentations
+
+The public index is [Academic/presentations/](Academic/presentations/index.html).
+Put each presentation in a folder such as `Academic/presentations/talk-slug/`.
+A PDF can be linked as `talk-slug/slides.pdf`. An HTML deck can be linked as
+`talk-slug/` if its entry file is `index.html`. Keep a web deck's supporting files
+in the same folder and use relative asset links.
+
+When adding the first talk, replace the empty-state paragraph in the index
+with a list. Give each entry the presentation title, event, date, and a link
+to the slides. Only put files intended for public viewing in the site.

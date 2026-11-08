@@ -1,0 +1,21 @@
+# Academic website
+
+The root homepage is George Fejer's public academic profile. The site is served as static files through the existing GitHub Pages setup. Keep the homepage, academic assets, and the presentations index within their established paths.
+
+## Current goal
+
+Give the profile a black background and white text, replace duplicate menus with one ordered stretch index, and add a page where future academic presentations can be hosted.
+
+- [x] Replace the homepage navigation with Profile, Research, Presentations, and Contact. Keep existing section IDs and academic content.
+- [x] Add the presentation index at `Academic/presentations/` and document how to add a PDF or an HTML deck.
+- [x] Pin and use Pretext to measure the four navigation labels. Verify keyboard navigation, text reflow, and the presentation round trip in a rendered browser.
+
+## Verification and handoff
+
+Run `py -3.12 for-ai/check_academic_site.py` with Python Playwright and its Chromium installed. The check starts a local HTTP server for the static site. Pass `--screenshots <directory>` to save previews.
+
+On 2026-11-08, Chromium 148 passed ten viewport pairs from 320 by 568 to 1920 by 1080, including a short landscape viewport and both sides of the stretch breakpoints. The check covered menu spacing and anchors, no internal overflow, the four Pretext measurements, a long label's reflow, 200% text size and custom text spacing, keyboard focus and native fragment links, and the presentation page round trip with and without JavaScript.
+
+The refresh is based on `origin/main` at `2d86262` in the isolated `codex/academic-site-refresh` worktree. The primary checkout has unrelated staged changes. The next content task is to add a presentation using the [repository instructions](../README.md#academic-presentations). Publish only through a separate authorized action.
+
+For UI work, start with [SKILLS.md](SKILLS.md).
