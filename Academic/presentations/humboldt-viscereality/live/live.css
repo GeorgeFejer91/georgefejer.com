@@ -1,0 +1,100 @@
+.live-stage {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #000;
+    isolation: isolate;
+    cursor: pointer;
+}
+
+.live-stage:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+
+.live-pane, .live-poster, .live-background {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+}
+
+.live-pane {
+    overflow: hidden;
+}
+
+.live-layer, .live-gif, .live-layer video {
+    position: absolute;
+    transform-origin: 0 0;
+}
+
+.live-sprite, .live-gif img {
+    position: absolute;
+    max-inline-size: none;
+}
+
+.live-sprite {
+    inline-size: 100%;
+    block-size: 100%;
+}
+
+.live-gif {
+    overflow: hidden;
+}
+
+.live-layer video {
+    display: block;
+    max-inline-size: none;
+    aspect-ratio: auto;
+    background: #000;
+    object-fit: fill;
+    cursor: default;
+}
+
+.live-dialog {
+    inline-size: min(92vw, 60rem);
+    max-block-size: 92vh;
+    border: 1px solid var(--rule);
+    padding: 1rem;
+    background: #111;
+    color: #fff;
+}
+
+.live-dialog::backdrop {
+    background: #000b;
+}
+
+.live-dialog video {
+    margin-block: 1rem;
+    max-block-size: 66vh;
+}
+
+.live-dialog button {
+    min-block-size: 2.75rem;
+    font: inherit;
+}
+
+#live-presenter:fullscreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 100%;
+    padding: .75rem;
+    background: #000;
+    color: #fff;
+}
+
+#live-presenter:fullscreen .live-stage {
+    inline-size: min(100%, max(1px, (100dvh - 8rem) * 16 / 9));
+    flex: none;
+}
+
+#live-presenter:fullscreen .live-help {
+    display: none;
+}
+
+#live-presenter:fullscreen .slide-navigation:not([hidden]) {
+    justify-content: center;
+}

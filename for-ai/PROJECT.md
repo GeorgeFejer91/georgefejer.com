@@ -35,3 +35,13 @@ The archive links to `Academic/presentations/humboldt-viscereality/` for browser
 The 1080p H.264/AAC web file is 80,687,128 bytes and runs 15 minutes 7 seconds. `slides.js` maps the entry, settled frame, and stop for each slide. The cues were aligned with PowerPoint's own slide stills and checked against the rendered motion and all five video segments. The browser plays the rendered animation sequence. Use the PowerPoint download for editable objects and manual animation cues.
 
 The site check covers the archive link, keyboard advance, the automatic stop, slide jumps, reduced motion, and narrow layouts. Its local server supports MP4 byte ranges to exercise the same seek behavior the hosted player needs.
+
+## Humboldt interactive website deck
+
+The presentation archive opens `Academic/presentations/humboldt-viscereality/live/` by default. Like Creations of Ra, it renders independent layers in a browser stage and plays each embedded clip in its own video element. The desktop render and original PPTX are still linked. The interactive player fetches the assets and embedded clips for each slide as needed.
+
+Desktop PowerPoint exports the base artwork and transparent object layers from the verified final deck. The manifest records the source slide order, Morph durations and explicitly paired object names. The browser also pairs unambiguous repeated images and text. It moves paired objects with Web Animations and fades other layers. It preserves the 18 click groups and five independent videos. The source video parked off the slide canvas on slide 22 is accessible through a demonstration dialog. The 3D model appears as its PowerPoint preview. The browser recreates the motion with web transforms. The PPTX retains Microsoft's native playback.
+
+To regenerate the assets, extract the five `ppt/media/media*.mp4` files from the verified deck. Remux the first four with FFmpeg stream copy and `-movflags +faststart`. Encode `media5.mp4` to H.264/AAC at up to 1920 pixels wide with `-crf 23 -maxrate 10M -bufsize 12M -movflags +faststart`. On Windows with desktop PowerPoint, pywin32, Pillow and NumPy, run `py -3.12 for-ai/export_humboldt_live.py SOURCE_PPTX NEW_OUTPUT_DIR --web-media WEB_READY_MP4_DIR`. Verify the asset inventory and run `py -3.12 for-ai/check_academic_site.py` after copying the completed export to the live page's `deck/` directory.
+
+The browser check covers 35 slides, a reversible reveal cue, user-triggered media, the authored zoom cue, carousel object motion, full screen, slide jumps, reduced motion and narrow layout.

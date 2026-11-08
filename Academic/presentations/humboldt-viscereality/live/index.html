@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Present and explore the interactive Humboldt lecture on embodiment and bioresponsive virtual reality.">
+    <title>Altered States of Viscereality | Interactive slides</title>
+    <link rel="stylesheet" href="../../../assets/academic.css">
+    <link rel="stylesheet" href="../player.css">
+    <link rel="stylesheet" href="live.css">
+    <script type="module" src="../../../assets/index-fit.js"></script>
+    <script type="module" src="live.js"></script>
+</head>
+<body>
+    <header class="site-width archive-header">
+        <a href="../../">Back to Presentations</a>
+        <h1>Altered States of Viscereality</h1>
+        <p>Humboldt University of Berlin / Bernstein Center for Computational Neuroscience</p>
+    </header>
+    <main class="site-width slide-player" id="live-presenter">
+        <div class="live-stage" id="live-stage" role="region" aria-label="Interactive slide" tabindex="0">
+            <img class="live-poster" src="../cover.webp" alt="Altered States of Viscereality title slide">
+        </div>
+        <nav class="slide-navigation" id="live-navigation" data-fit-controls aria-label="Slide navigation" hidden>
+            <button type="button" id="live-previous" data-fit="unavailable"><span>Previous</span></button>
+            <label for="live-picker">Slide <select id="live-picker"></select></label>
+            <button type="button" id="live-next" data-fit="unavailable"><span>Next</span></button>
+            <button type="button" id="live-fullscreen" data-fit="unavailable"><span>Full screen</span></button>
+            <button type="button" id="live-demo" data-fit="unavailable" hidden><span>Play demonstration</span></button>
+        </nav>
+        <p id="live-status" role="status">Loading slides…</p>
+        <p class="entry-meta live-help">Use Next, Space, or the right arrow to advance one cue. Press F for full screen. Use the controls on an embedded video to play, pause, or seek it.</p>
+        <p class="live-help"><a href="https://github.com/GeorgeFejer91/georgefejer.com/releases/download/presentation-humboldt-altered-states-of-viscereality/Altered.States.of.Viscereality.-.Humboldt.-.Final.pptx">Download PowerPoint</a> · <a href="../">Watch the desktop recording</a></p>
+        <dialog class="live-dialog" id="live-demo-dialog" aria-labelledby="demo-title">
+            <h2 id="demo-title">Respiratory coupling demonstration</h2>
+            <video controls playsinline preload="none"></video>
+            <form method="dialog"><button>Close demonstration</button></form>
+        </dialog>
+        <noscript><p>The interactive player needs JavaScript. The desktop recording and PowerPoint are linked above.</p></noscript>
+    </main>
+</body>
+</html>

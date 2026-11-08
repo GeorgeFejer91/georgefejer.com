@@ -175,8 +175,7 @@ def check_morph_player(browser, url):
     page = browser.new_page(viewport={"width": 1200, "height": 760})
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(url + "Academic/presentations/")
-    page.get_by_role("link", name="View online with Morph transitions").click()
+    page.goto(url + "Academic/presentations/humboldt-viscereality/")
     page.get_by_role("navigation", name="Slide navigation").wait_for(state="visible")
     slides = page.evaluate("async () => (await import('./slides.js')).slides")
     assert len(slides) == 35 and sum(slide["morph"] > 0 for slide in slides) == 34
@@ -227,6 +226,89 @@ def check_morph_player(browser, url):
     page.close()
 
 
+def check_live_presentation(browser, url):
+    page = browser.new_page(viewport={"width": 1200, "height": 820})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(url + "Academic/presentations/")
+    page.get_by_role("link", name="Open interactive presentation").click()
+    page.get_by_role("navigation", name="Slide navigation").wait_for(state="visible")
+    picker = page.get_by_role("combobox", name="Slide")
+    next_step = page.get_by_role("button", name="Next", exact=True)
+    previous = page.get_by_role("button", name="Previous", exact=True)
+    assert picker.locator("option").count() == 35
+    assert page.locator("video[src]").count() == 0
+
+    def status_prefix(prefix):
+        page.wait_for_function(
+            "prefix => document.querySelector('#live-status').textContent.startsWith(prefix)",
+            arg=prefix,
+        )
+
+    def choose(number):
+        picker.select_option(label=str(number))
+        status_prefix(f"Slide {number} of 35")
+
+    choose(6)
+    mask = page.locator('.live-pane [data-layer="40"]')
+    assert mask.is_visible()
+    next_step.press("Enter")
+    assert "Cue 1 of 9" in page.get_by_role("status").inner_text()
+    mask.wait_for(state="hidden")
+    previous.press("Enter")
+    mask.wait_for(state="visible")
+
+    choose(7)
+    clip = page.get_by_label("Rubber hand illusion", exact=True)
+    assert clip.evaluate("(video) => video.paused")
+    next_step.click()
+    page.wait_for_function("document.querySelector('.live-pane video').currentTime > 0.05")
+    status_prefix("Slide 7 of 35")
+    next_step.click()
+    status_prefix("Slide 8 of 35")
+    page.wait_for_function("document.querySelectorAll('.live-pane').length === 1")
+
+    choose(21)
+    next_step.click()
+    page.wait_for_function("""document.querySelector('[data-layer="6"] .live-sprite')
+        .style.transform.includes('1.1')""")
+    status_prefix("Slide 21 of 35")
+
+    choose(22)
+    page.get_by_role("button", name="Play demonstration").click()
+    dialog = page.get_by_role("dialog")
+    assert dialog.is_visible()
+    page.wait_for_function("document.querySelector('dialog video').currentTime > 0.05")
+    page.get_by_role("button", name="Close demonstration").click()
+    assert not dialog.is_visible()
+    page.locator("#live-stage").focus()
+    page.keyboard.press("ArrowRight")
+    status_prefix("Slide 23 of 35")
+    page.wait_for_function("""() => [...document.querySelectorAll('[data-morph-key]')].some(
+        node => node.dataset.morphKey === '!!ViscerealityBreathingCarousel' &&
+                node.getAnimations().some(anim => anim.playState === 'running' &&
+                    anim.effect.getKeyframes().some(frame => frame.transform?.includes('translate')))
+    )""")
+    page.wait_for_function("document.querySelectorAll('.live-pane').length === 1")
+
+    page.keyboard.press("f")
+    page.wait_for_function("document.fullscreenElement?.id === 'live-presenter'")
+    page.get_by_role("button", name="Exit full screen").click()
+    page.wait_for_function("!document.fullscreenElement")
+    page.emulate_media(reduced_motion="reduce")
+    next_step.click()
+    status_prefix("Slide 24 of 35")
+    assert page.locator(".live-pane").count() == 1
+    assert page.locator(".live-gif img[src$='.gif']").count() == 0
+    choose(35)
+    assert next_step.is_disabled()
+    page.set_viewport_size({"width": 320, "height": 568})
+    page.add_style_tag(content="html { font-size: 200%; } " + SPACING)
+    assert_no_overflow(page)
+    assert not errors, errors
+    page.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--screenshots", type=Path)
@@ -239,8 +321,9 @@ def main():
                 url = f"http://127.0.0.1:{server.server_port}/"
                 check_site(browser, url, args.screenshots)
                 check_morph_player(browser, url)
+                check_live_presentation(browser, url)
                 print(f"Chromium {browser.version}: {len(VIEWPORTS)} viewport pairs, label fitting, "
-                      "200% text and spacing, keyboard navigation, presentations, Morph player, and no-JS fallback passed.")
+                      "200% text and spacing, keyboard navigation, presentations, video playback, live Morph and click cues, and no-JS fallback passed.")
         finally:
             server.shutdown()
 
