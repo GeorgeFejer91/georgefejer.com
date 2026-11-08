@@ -1,7 +1,7 @@
 import { measureLineStats, measureNaturalWidth, prepare } from "./vendor/pretext-1.0.0/layout.js";
 
-const index = document.querySelector(".site-index");
-const labels = [...index.querySelectorAll(".index-link span")];
+const index = document.querySelector(".site-index, [data-fit-controls]");
+const labels = [...index.querySelectorAll(".index-link > span, [data-fit] > span")];
 const preparedLabels = new WeakMap();
 const inset = (styles, ...names) => names.reduce((sum, name) => sum + (parseFloat(styles[name]) || 0), 0);
 
@@ -58,7 +58,7 @@ function startMeasurement() {
     schedule();
 }
 
-if (typeof Intl.Segmenter === "function" && typeof ResizeObserver === "function" && typeof MutationObserver === "function" && document.fonts
+if (index && typeof Intl.Segmenter === "function" && typeof ResizeObserver === "function" && typeof MutationObserver === "function" && document.fonts
     && document.createElement("canvas").getContext("2d")) {
     document.fonts.ready.then(startMeasurement);
 }

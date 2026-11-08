@@ -27,3 +27,11 @@ For UI work, start with [SKILLS.md](SKILLS.md).
 - [x] Verify the final PowerPoint package and its embedded media. The 35-slide deck contains 66 embedded media files and has SHA-256 `39e4f7134549f2ee5756e1456f575dc6c08f27cfe31780894bc639c85dda1d4c`.
 
 GitHub verified the uploaded asset against the local SHA-256 and byte count. The archive entry links to the final PowerPoint on the Humboldt release. Keep the original slides and supporting assets with the local transfer.
+
+## Humboldt online presentation
+
+The archive links to `Academic/presentations/humboldt-viscereality/` for browser playback and retains the verified PowerPoint download. Desktop PowerPoint rendered all 35 slides and all 34 original object Morph transitions at their source durations. The export used an unsaved copy. It added playback cues for the videos on slides 19 and 22, which are triggered manually in the original deck.
+
+The 1080p H.264/AAC web file is 80,687,128 bytes and runs 15 minutes 7 seconds. `slides.js` maps the entry, settled frame, and stop for each slide. The cues were aligned with PowerPoint's own slide stills and checked against the rendered motion and all five video segments. The browser plays the rendered animation sequence. Use the PowerPoint download for editable objects and manual animation cues.
+
+The site check covers the archive link, keyboard advance, the automatic stop, slide jumps, reduced motion, and narrow layouts. Its local server supports MP4 byte ranges to exercise the same seek behavior the hosted player needs.

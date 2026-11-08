@@ -1,6 +1,7 @@
 """Check the homepage and presentations index in Chromium (requires Playwright)."""
 
 import argparse
+import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -20,6 +21,49 @@ word-spacing: .16em !important; } p { margin-block-end: 2em !important; }"""
 class SiteHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
+
+    def send_head(self):
+        self.video_bytes = None
+        path = Path(self.translate_path(self.path))
+        byte_range = re.fullmatch(r"bytes=(\d+)-(\d*)", self.headers.get("Range", ""))
+        if path.suffix != ".mp4" or not path.is_file() or not byte_range:
+            return super().send_head()
+
+        size = path.stat().st_size
+        start = int(byte_range[1])
+        end = min(int(byte_range[2]) if byte_range[2] else size - 1, size - 1)
+        if start > end:
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{size}")
+            self.end_headers()
+            return None
+
+        self.video_bytes = end - start + 1
+        self.send_response(206)
+        self.send_header("Content-Type", "video/mp4")
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(self.video_bytes))
+        self.end_headers()
+        source = path.open("rb")
+        source.seek(start)
+        return source
+
+    def copyfile(self, source, outputfile):
+        try:
+            if self.video_bytes is None:
+                super().copyfile(source, outputfile)
+                return
+            remaining = self.video_bytes
+            while remaining:
+                block = source.read(min(65536, remaining))
+                if not block:
+                    break
+                outputfile.write(block)
+                remaining -= len(block)
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            if self.video_bytes is None:
+                raise
 
 
 def assert_no_overflow(page):
@@ -127,6 +171,62 @@ def check_site(browser, url, screenshots):
     assert fallback.url == url
 
 
+def check_morph_player(browser, url):
+    page = browser.new_page(viewport={"width": 1200, "height": 760})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(url + "Academic/presentations/")
+    page.get_by_role("link", name="View online with Morph transitions").click()
+    page.get_by_role("navigation", name="Slide navigation").wait_for(state="visible")
+    slides = page.evaluate("async () => (await import('./slides.js')).slides")
+    assert len(slides) == 35 and sum(slide["morph"] > 0 for slide in slides) == 34
+    assert all(s["entry"] <= s["still"] < s["stop"] for s in slides)
+    assert all(a["stop"] < b["entry"] for a, b in zip(slides, slides[1:]))
+    assert page.get_by_role("link", name="Download PowerPoint").get_attribute("href").endswith(".pptx")
+
+    next_slide = page.get_by_role("button", name="Next slide")
+    previous = page.get_by_role("button", name="Previous slide")
+    picker = page.get_by_role("combobox", name="Slide")
+    status = page.get_by_role("status")
+    assert previous.is_disabled()
+    assert picker.locator("option").count() == 35
+    next_slide.press("Enter")
+    page.wait_for_function(
+        """() => { const v = document.querySelector('video');
+                   return !v.paused && !v.seeking && v.currentTime > 3; }"""
+    )
+    assert status.inner_text().startswith("Slide 2 of 35")
+    page.wait_for_function(
+        """target => { const v = document.querySelector('video');
+                       return v.paused && !v.seeking && Math.abs(v.currentTime - target) < .35; }""",
+        arg=slides[1]["stop"],
+    )
+    previous.press("Enter")
+    assert status.inner_text().startswith("Slide 1 of 35")
+
+    page.emulate_media(reduced_motion="reduce")
+    picker.select_option(label="21")
+    assert status.inner_text().startswith("Slide 21 of 35")
+    next_slide.click()
+    page.wait_for_function(
+        """target => { const v = document.querySelector('video');
+                       return v.paused && !v.seeking && Math.abs(v.currentTime - target) < .1; }""",
+        arg=slides[21]["still"],
+    )
+    assert status.inner_text().startswith("Slide 22 of 35")
+    picker.select_option(label="35")
+    assert next_slide.is_disabled()
+    assert status.inner_text().startswith("Slide 35 of 35")
+
+    for width, height in ((320, 568), (390, 844), (640, 360)):
+        page.set_viewport_size({"width": width, "height": height})
+        assert_no_overflow(page)
+    page.add_style_tag(content="html { font-size: 200%; } " + SPACING)
+    assert_no_overflow(page)
+    assert not errors, errors
+    page.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--screenshots", type=Path)
@@ -136,9 +236,11 @@ def main():
         try:
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch()
-                check_site(browser, f"http://127.0.0.1:{server.server_port}/", args.screenshots)
+                url = f"http://127.0.0.1:{server.server_port}/"
+                check_site(browser, url, args.screenshots)
+                check_morph_player(browser, url)
                 print(f"Chromium {browser.version}: {len(VIEWPORTS)} viewport pairs, label fitting, "
-                      "200% text and spacing, keyboard navigation, presentations, and no-JS fallback passed.")
+                      "200% text and spacing, keyboard navigation, presentations, Morph player, and no-JS fallback passed.")
         finally:
             server.shutdown()
 
