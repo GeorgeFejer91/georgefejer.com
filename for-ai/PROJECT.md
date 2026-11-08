@@ -19,3 +19,11 @@ On 2026-11-08, Chromium 148 passed ten viewport pairs from 320 by 568 to 1920 by
 The refresh is based on `origin/main` at `2d86262` in the isolated `codex/academic-site-refresh` worktree. The primary checkout has unrelated staged changes. The next content task is to add a presentation using the [repository instructions](../README.md#academic-presentations). Publish only through a separate authorized action.
 
 For UI work, start with [SKILLS.md](SKILLS.md).
+
+## Humboldt presentation handoff
+
+- [x] Prepare and check the archive entry for Altered States of Viscereality.
+- [x] Save and verify all 12 transfer files locally. Verified the six GLB headers and the archive integrity of the six PowerPoint files.
+- [x] Verify the final PowerPoint package and its embedded media. The 35-slide deck contains 66 embedded media files and has SHA-256 `39e4f7134549f2ee5756e1456f575dc6c08f27cfe31780894bc639c85dda1d4c`.
+
+GitHub verified the uploaded asset against the local SHA-256 and byte count. The archive entry links to the final PowerPoint on the Humboldt release. Keep the original slides and supporting assets with the local transfer.
