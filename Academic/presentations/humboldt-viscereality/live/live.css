@@ -23,6 +23,10 @@
     overflow: hidden;
 }
 
+.live-stage [hidden] {
+    display: none;
+}
+
 .live-layer, .live-gif, .live-layer video {
     position: absolute;
     transform-origin: 0 0;
@@ -49,6 +53,80 @@
     background: #000;
     object-fit: fill;
     cursor: default;
+}
+
+.live-media, .live-link {
+    position: absolute;
+    display: block;
+}
+
+.live-media {
+    border: 0;
+    max-inline-size: none;
+}
+
+.live-model {
+    pointer-events: none;
+}
+
+button.live-media {
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+}
+
+.live-media:focus-visible, .live-link:focus-visible {
+    outline: 3px solid white;
+    outline-offset: -3px;
+}
+
+.live-layer audio {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    block-size: 100%;
+}
+
+.live-layer audio:focus-visible {
+    opacity: 1;
+}
+
+#beacon-status:empty, #beacon-dialog-status:empty {
+    display: none;
+}
+
+.beacon-dialog {
+    inline-size: min(92vw, 31rem);
+    overflow: auto;
+}
+
+#beacon-selection:not([hidden]) {
+    display: grid;
+    gap: .45rem;
+    margin-block: 1rem;
+}
+
+.beacon-dialog input, .beacon-dialog select, .beacon-dialog button {
+    min-block-size: 2.75rem;
+    max-inline-size: 100%;
+    padding: .35rem .6rem;
+    border: 1px solid var(--rule);
+    background: #151515;
+    color: inherit;
+    font: inherit;
+}
+
+.beacon-dialog :focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+#beacon-qr svg {
+    display: block;
+    inline-size: min(100%, 13rem);
+    block-size: auto;
 }
 
 .live-dialog {

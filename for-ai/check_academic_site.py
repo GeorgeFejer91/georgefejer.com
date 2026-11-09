@@ -236,8 +236,9 @@ def check_live_presentation(browser, url):
     picker = page.get_by_role("combobox", name="Slide")
     next_step = page.get_by_role("button", name="Next", exact=True)
     previous = page.get_by_role("button", name="Previous", exact=True)
-    assert picker.locator("option").count() == 35
-    assert page.locator("video[src]").count() == 0
+    assert picker.locator("option").count() == 37
+    assert page.locator(".live-pane video[src]").count() == 0
+    assert page.locator('script[src*="vdoninja"]').count() == 0
 
     def status_prefix(prefix):
         page.wait_for_function(
@@ -247,61 +248,80 @@ def check_live_presentation(browser, url):
 
     def choose(number):
         picker.select_option(label=str(number))
-        status_prefix(f"Slide {number} of 35")
+        status_prefix(f"Slide {number} of 37")
 
-    choose(6)
-    mask = page.locator('.live-pane [data-layer="40"]')
-    assert mask.is_visible()
+    choose(12)
     next_step.press("Enter")
-    assert "Cue 1 of 9" in page.get_by_role("status").inner_text()
-    mask.wait_for(state="hidden")
+    assert "Cue 1 of 2" in page.locator("#live-status").inner_text()
+    page.wait_for_function("document.querySelector('.live-pane audio').currentTime > 0.05")
     previous.press("Enter")
-    mask.wait_for(state="visible")
+    assert "Cue 0 of 2" in page.locator("#live-status").inner_text()
 
-    choose(7)
-    clip = page.get_by_label("Rubber hand illusion", exact=True)
-    assert clip.evaluate("(video) => video.paused")
+    choose(14)
+    clip = page.get_by_label("Rubber hand illusion demonstration", exact=True)
+    assert clip.evaluate("video => video.paused")
     next_step.click()
     page.wait_for_function("document.querySelector('.live-pane video').currentTime > 0.05")
-    status_prefix("Slide 7 of 35")
+
+    choose(29)
+    assert page.locator('.live-pane a').get_attribute('href') == (
+        'https://beanotherlab.org/home/work/the-library-of-ourselves/')
+    choose(30)
+    page.route('https://www.youtube-nocookie.com/**', lambda route: route.fulfill(body=''))
+    page.get_by_role('button', name='Play Viscereality in Motion').click()
+    assert 'Qm-lmC-xYCI' in page.locator('.live-pane iframe').get_attribute('src')
+    assert page.get_by_role('link', name='Open on YouTube').get_attribute('href').endswith('Qm-lmC-xYCI')
+    choose(31)
+    page.wait_for_function("document.querySelector('.live-pane video').currentTime > 0.05")
+    assert page.locator('.live-pane video').evaluate('video => video.loop && video.muted')
+    choose(33)
     next_step.click()
-    status_prefix("Slide 8 of 35")
-    page.wait_for_function("document.querySelectorAll('.live-pane').length === 1")
+    page.wait_for_function("document.querySelector('[data-layer=\"6\"] .live-sprite').style.transform.includes('1.1')")
+
+    # Check each adjacent pair in both directions, including the 21–27 object tracks.
+    page.evaluate("""() => {
+        window.morphs = [];
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (frames, options) {
+            if (this.classList.contains('live-pane')) window.morphs.push(options.duration);
+            return animate.call(this, frames, options);
+        };
+    }""")
+    manifest = page.evaluate("fetch('deck/deck.json').then(response => response.json())")
+    choose(1)
+    for n, slide in enumerate(manifest[:-1], 1):
+        for _ in slide['steps']:
+            next_step.click()
+        next_step.click()
+        status_prefix(f"Slide {n + 1} of 37")
+    assert page.evaluate("window.morphs") == [slide['duration'] for slide in manifest[1:]]
+    assert next_step.is_disabled()
+    for n in range(36, 0, -1):
+        previous.click()
+        status_prefix(f"Slide {n} of 37")
+    assert page.evaluate("window.morphs.slice(36)") == [slide['duration'] for slide in manifest[:0:-1]]
+    assert previous.is_disabled()
 
     choose(21)
     next_step.click()
-    page.wait_for_function("""document.querySelector('[data-layer="6"] .live-sprite')
-        .style.transform.includes('1.1')""")
-    status_prefix("Slide 21 of 35")
-
-    choose(22)
-    page.get_by_role("button", name="Play demonstration").click()
-    dialog = page.get_by_role("dialog")
-    assert dialog.is_visible()
-    page.wait_for_function("document.querySelector('dialog video').currentTime > 0.05")
-    page.get_by_role("button", name="Close demonstration").click()
-    assert not dialog.is_visible()
-    page.locator("#live-stage").focus()
-    page.keyboard.press("ArrowRight")
-    status_prefix("Slide 23 of 35")
+    status_prefix("Slide 22 of 37")
     page.wait_for_function("""() => [...document.querySelectorAll('[data-morph-key]')].some(
-        node => node.dataset.morphKey === '!!ViscerealityBreathingCarousel' &&
+        node => node.dataset.morphKey.startsWith('!!Embodiment') &&
                 node.getAnimations().some(anim => anim.playState === 'running' &&
                     anim.effect.getKeyframes().some(frame => frame.transform?.includes('translate')))
     )""")
     page.wait_for_function("document.querySelectorAll('.live-pane').length === 1")
-
+    page.locator("#live-stage").focus()
     page.keyboard.press("f")
     page.wait_for_function("document.fullscreenElement?.id === 'live-presenter'")
     page.get_by_role("button", name="Exit full screen").click()
     page.wait_for_function("!document.fullscreenElement")
     page.emulate_media(reduced_motion="reduce")
     next_step.click()
-    status_prefix("Slide 24 of 35")
+    status_prefix("Slide 23 of 37")
     assert page.locator(".live-pane").count() == 1
     assert page.locator(".live-gif img[src$='.gif']").count() == 0
-    choose(35)
-    assert next_step.is_disabled()
+    choose(37)
     page.set_viewport_size({"width": 320, "height": 568})
     page.add_style_tag(content="html { font-size: 200%; } " + SPACING)
     assert_no_overflow(page)
@@ -309,9 +329,64 @@ def check_live_presentation(browser, url):
     page.close()
 
 
+def check_presentation_remote(browser, url):
+    """Exercise the actual VDO.Ninja service from isolated browser contexts."""
+    host_context = browser.new_context(permissions=["clipboard-read", "clipboard-write"])
+    phone_context = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    try:
+        host = host_context.new_page()
+        phone = phone_context.new_page()
+        host.goto(url + "Academic/presentations/humboldt-viscereality/live/")
+        host.get_by_role("button", name="Send beacon").click()
+        host.locator("#beacon-qr svg").wait_for(timeout=35_000)
+        host.get_by_role("button", name="Copy pairing link").click()
+        invite = host.evaluate("navigator.clipboard.readText()")
+        beacon = host.locator("#beacon-id").inner_text()
+        assert invite.split("#beacon=")[1].split(".")[0] == beacon
+        host.get_by_role("button", name="Close", exact=True).click()
+        host.locator("#live-picker").select_option(label="21")
+        phone.goto(invite)
+        phone.locator("#live-navigation").wait_for()
+        assert "#beacon=" not in phone.url
+        phone.get_by_role("button", name="Scan for beacons").click()
+        phone.get_by_role("option", name=f"Beacon {beacon}").wait_for(state="attached")
+        assert phone.locator("#beacon-list").input_value() == beacon
+        phone.get_by_role("button", name="Connect", exact=True).click()
+        phone.wait_for_function("document.querySelector('#beacon-status').textContent.startsWith('Connected.')",
+                                timeout=35_000)
+
+        def on_slide(page, number):
+            page.wait_for_function(
+                "n => document.querySelector('#live-status').textContent.startsWith(`Slide ${n} of 37`)",
+                arg=number,
+            )
+
+        on_slide(phone, 21)
+        for button, number in [("Next", 22), ("Previous", 21)]:
+            phone.get_by_role("button", name=button, exact=True).click()
+            on_slide(host, number)
+            on_slide(phone, number)
+            phone.wait_for_function("document.querySelectorAll('.live-pane').length === 1")
+
+        host.get_by_role("button", name="Next", exact=True).click()
+        on_slide(phone, 22)
+        phone.wait_for_function("document.querySelector('#beacon-status').dataset.route")
+        route = phone.locator("#beacon-status").get_attribute("data-route")
+        host.get_by_role("button", name="Disconnect remote").click()
+        phone.get_by_role("button", name="Disconnect remote").wait_for(state="hidden")
+        phone.get_by_role("button", name="Next", exact=True).click()
+        on_slide(phone, 23)
+        on_slide(host, 22)
+        print(f"VDO.Ninja route {route}. Scan, pair, forward, back, host update, disconnect and local playback passed.")
+    finally:
+        phone_context.close()
+        host_context.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--screenshots", type=Path)
+    parser.add_argument("--remote", action="store_true", help="Also exercise VDO.Ninja signaling and the live remote")
     args = parser.parse_args()
     with ThreadingHTTPServer(("127.0.0.1", 0), partial(SiteHandler, directory=ROOT)) as server:
         Thread(target=server.serve_forever, daemon=True).start()
@@ -322,6 +397,8 @@ def main():
                 check_site(browser, url, args.screenshots)
                 check_morph_player(browser, url)
                 check_live_presentation(browser, url)
+                if args.remote:
+                    check_presentation_remote(browser, url)
                 print(f"Chromium {browser.version}: {len(VIEWPORTS)} viewport pairs, label fitting, "
                       "200% text and spacing, keyboard navigation, presentations, video playback, live Morph and click cues, and no-JS fallback passed.")
         finally:

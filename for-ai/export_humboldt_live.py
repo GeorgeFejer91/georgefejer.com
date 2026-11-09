@@ -10,42 +10,43 @@ from xml.etree import ElementTree as XML
 from zipfile import ZipFile
 import json
 import shutil
+import subprocess
+from urllib.parse import urlparse
 
 import numpy as np
 from PIL import Image, ImageChops
 import pythoncom
+from pywintypes import com_error
 import win32com.client
 
 
 P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
 A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
-SOURCE_SHA = "39e4f7134549f2ee5756e1456f575dc6c08f27cfe31780894bc639c85dda1d4c"
 CANVAS = (1920, 1080)
 EMU_TO_PIXEL = 2 / 12700
 TITLES = (
-    "Altered States of Viscereality", "Lecture plan", "Immersion and presence", "A visual illusion",
-    "Multisensory perception", "Visual context changes what we hear", "Rubber hand illusion",
-    "Individual differences in response", "Embodiment and the bodily self", "Body ownership",
-    "First-person perspective and self-location", "Experimental manipulation of self-location",
-    "Front stroking shifts felt self-location", "Body ownership and the Barbie-doll illusion",
-    "Front-stroking full-body illusion", "Back-stroking full-body illusion", "The auditory double",
-    "Where does the touch seem to happen?", "The Machine to Be Another",
-    "Respiratory coupling of lung mechanics", "Breathwork and peripersonal space",
-    "Respiratory coupling demonstration", "Respiratory coupling, slide 23",
-    "Respiratory coupling, slide 24", "Respiratory coupling, slide 25",
-    "Respiratory coupling, slide 26", "Respiratory coupling, slide 27",
-    "Three mappings of breath to space", "Measuring peripersonal space with binaural audio",
-    "Resonance Sound SDK", "Viscereality experience", "Experience and physiology on a shared timeline",
-    "Acknowledgments", "Design a test of the felt body boundary", "Selected sources",
+    "Altered States of Viscereality", "1. VR as an Experiential Medium", "Immersion",
+    "Which view feels more real?", "Presence", "First-person perspective",
+    "2. Perceptual Mechanisms", "Sense of a bodily self", "Top-down expectations",
+    "Bottom-up sensory information", "Prediction error", "Instant perceptual learning",
+    "Synchrony detection", "The illusion varies by person", "Dimensions of self-experience",
+    "Narrative self and minimal self", "3. Perspective, Self-Location, and Body Ownership",
+    "Body swap illusions and out-of-body experiences", "Front stroking", "Back stroking",
+    "Dimensions of bodily self-consciousness", "Body ownership", "First-person perspective",
+    "Self-location", "Front-stroking full-body illusion", "Disownership",
+    "Back-stroking full-body illusion", "Front stroking and back stroking",
+    "The Library of Ourselves", "Viscereality in Motion", "4. Altered States of Viscereality",
+    "Peripersonal Space", "Coupling Breath to Virtual Space", "Testing the Felt Boundaries of the Body",
+    "Box-Breathing Entrainment", "Felt Extent of Self", "Thank you for your attention.",
 )
 
 
-def rels(archive, path):
+def rels(archive, path, external=False):
     if path not in archive.namelist():
         return {}
     return {node.attrib["Id"]: node.attrib["Target"] for node in XML.fromstring(archive.read(path))
-            if node.get("TargetMode") != "External"}
+            if (node.get("TargetMode") == "External") == external}
 
 
 def props(node):
@@ -91,6 +92,14 @@ def embedded_gifs(node, assets, parent=(1, 1, 0, 0)):
     }]
 
 
+def has_model_animation(archive, part):
+    with archive.open(part) as stream:
+        header = stream.read(20)
+        if header[:4] != b"glTF" or header[16:20] != b"JSON":
+            return False
+        return bool(json.loads(stream.read(int.from_bytes(header[12:16], "little"))).get("animations"))
+
+
 def read_source(archive):
     package = XML.fromstring(archive.read("ppt/presentation.xml"))
     parent_rels = rels(archive, "ppt/_rels/presentation.xml.rels")
@@ -100,9 +109,12 @@ def read_source(archive):
         directory, name = path.rsplit("/", 1)
         assets = {rid: normpath(join(directory, part))
                   for rid, part in rels(archive, f"{directory}/_rels/{name}.rels").items()}
+        links = rels(archive, f"{directory}/_rels/{name}.rels", external=True)
         slide = XML.fromstring(archive.read(path))
         shapes = {}
         for node in slide.find(f"{P}cSld/{P}spTree"):
+            if node.tag.endswith("}AlternateContent"):
+                node = node[0][0]
             identity = props(node)
             if identity is None:
                 continue
@@ -115,9 +127,20 @@ def read_source(archive):
             videos = [assets.get(e.get(R + "embed"), "") for e in node.iter()
                       if e.tag.rsplit("}", 1)[-1] == "media"]
             video = next((Path(p).name for p in videos if p.endswith(".mp4")), None)
+            audio = next((Path(p).name for p in videos if p.endswith(".wav")), None)
+            model = next((assets[e.get(R + "embed")] for e in node.iter()
+                          if e.tag.endswith("}model3d") and e.get(R + "embed") in assets), None)
+            online = next((links.get(e.get(R + "link"), "") for e in node.iter(A + "videoFile")), "")
+            youtube = urlparse(online)
+            youtube_id = (youtube.path.removeprefix("/embed/") if youtube.hostname == "www.youtube.com"
+                          and youtube.path.startswith("/embed/") else None)
+            link = next((links.get(e.get(R + "id")) for e in node.iter(A + "hlinkClick")
+                         if links.get(e.get(R + "id"), "").startswith("https://")), None)
             shapes[int(identity.get("id"))] = {
                 "key": key, "named": named, "video": video, "label": shape_name,
-                "gifs": embedded_gifs(node, assets),
+                "gifs": embedded_gifs(node, assets), "audio": audio, "model": Path(model).name if model else None,
+                "animated_model": bool(model and has_model_animation(archive, model)),
+                "youtube": youtube_id, "link": link, "text": text,
             }
         for scale in slide.iter(P + "animScale"):
             target = scale.find(f"{P}cBhvr/{P}tgtEl/{P}spTgt")
@@ -137,10 +160,15 @@ def animations(slide, metadata):
     sequence = slide.TimeLine.MainSequence
     for index in range(1, sequence.Count + 1):
         effect = sequence(index)
+        spec = metadata[effect.Shape.Id]
+        if spec.get("model"):
+            continue
         if effect.Timing.TriggerType == 1:
             groups.append([])
         kind = effect.EffectType
-        command = "play" if kind == 83 else "zoom" if kind == 59 else "hide" if effect.Exit else "show"
+        command = ("play" if kind == 83 else "pause" if kind in (84, 85) else
+                   "zoom" if kind == 59 and metadata[effect.Shape.Id].get("zoom") else
+                   "hide" if effect.Exit else "show")
         cue = {
             "id": effect.Shape.Id,
             "action": command,
@@ -210,6 +238,31 @@ def save_sprite(image, output, work):
     return key
 
 
+def extract_sprite(shape, box, empty, isolated, path):
+    """Use the in-place raster when a shape export changes the painted geometry."""
+    try:
+        shape.Export(str(path), 2, 1440, 810, 1)
+        with Image.open(path) as raw:
+            candidate = align_sprite(raw.convert("RGBA"), box, empty, isolated)
+    except com_error:
+        candidate = None
+    if candidate is not None:
+        sprite, bounds = candidate
+        reconstructed = empty.convert("RGBA")
+        reconstructed.alpha_composite(sprite, dest=tuple(bounds[:2]))
+        error = np.asarray(ImageChops.difference(reconstructed.convert("RGB"), isolated)).mean()
+        if error < .18:
+            return candidate
+    delta = ImageChops.difference(empty, isolated).convert("L").point(lambda value: 255 if value else 0)
+    bounds = delta.getbbox()
+    if bounds is None:
+        return candidate
+    sprite = isolated.crop(bounds).convert("RGBA")
+    sprite.putalpha(delta.crop(bounds))
+    x, y, right, bottom = bounds
+    return sprite, [x, y, right - x, bottom - y]
+
+
 def export_slide(slide, index, inventory, output, scratch):
     metadata = inventory[index]
     shapes = [slide.Shapes(i) for i in range(1, slide.Shapes.Count + 1)]
@@ -220,7 +273,8 @@ def export_slide(slide, index, inventory, output, scratch):
     next_keys = {s["key"] for s in inventory[index + 1].values()} if index + 1 < len(inventory) else set()
     neighbors = previous_keys | next_keys
     selected = {sid for sid, data in metadata.items() if (
-        sid in cue_ids or data["video"] or data["gifs"] or (data["key"] and data["key"] in neighbors))}
+        sid in cue_ids or any(data[k] for k in ("video", "audio", "model", "youtube", "gifs"))
+        or (data["key"] and data["key"] in neighbors))}
     for shape in shapes:
         if any(previous.Id in selected and overlaps(geometry[previous.Id], geometry[shape.Id])
                for previous in shapes[:shape.ZOrderPosition - 1]):
@@ -243,13 +297,15 @@ def export_slide(slide, index, inventory, output, scratch):
     for shape in shapes:
         shape.Visible = 0
     empty = slide_png(slide, scratch / "empty.png") if selected else None
-    layers = []
+    layers, links = [], []
     check = background.convert("RGBA")
     for shape in shapes:
         sid = shape.Id
+        spec = metadata.get(sid, {})
+        if spec.get("link") and overlaps(geometry[sid], [0, 0, *CANVAS]):
+            links.append({"box": geometry[sid], "href": spec["link"], "text": spec["text"] or spec["link"]})
         if sid not in selected or not visibility[sid]:
             continue
-        spec = metadata.get(sid, {})
         shape.Visible = -1
         gif_layers = spec.get("gifs", [])
         bare_gif = len(gif_layers) == 1 and gif_layers[0]["id"] == sid
@@ -263,14 +319,19 @@ def export_slide(slide, index, inventory, output, scratch):
             continue
 
         isolated = slide_png(slide, scratch / "isolated.png")
-        shape.Export(str(scratch / "shape.png"), 2, 1440, 810, 1)
-        with Image.open(scratch / "shape.png") as raw:
-            aligned = align_sprite(raw.convert("RGBA"), geometry[sid], empty, isolated)
+        aligned = extract_sprite(shape, geometry[sid], empty, isolated, scratch / "shape.png")
         if not bare_gif:
             for child in nested:
                 child.Visible = -1
         shape.Visible = 0
         if aligned is None:
+            if spec.get("audio") or spec.get("animated_model") or spec.get("youtube"):
+                media = {k: spec[k] for k in ("audio", "youtube") if spec.get(k)}
+                if spec.get("animated_model"):
+                    media["model"] = spec["model"]
+                layers.append({"id": sid, "box": geometry[sid], "mediaBox": geometry[sid],
+                               "label": spec["label"], **media})
+                continue
             if gif_layers:
                 layers.append({"id": sid, "box": geometry[sid], "gifs": gif_layers,
                                **({"key": spec["key"]} if spec.get("key") else {})})
@@ -286,6 +347,13 @@ def export_slide(slide, index, inventory, output, scratch):
             layer["gifs"] = gif_layers
         if spec.get("video"):
             layer.update({"video": spec["video"], "label": spec["label"], "videoBox": geometry[sid]})
+            if spec["video"] == "media6.mp4":
+                layer["loop"] = True
+        for kind in ("audio", "youtube"):
+            if spec.get(kind):
+                layer.update({kind: spec[kind], "mediaBox": geometry[sid], "label": spec["label"]})
+        if spec.get("animated_model"):
+            layer.update({"model": spec["model"], "mediaBox": geometry[sid], "label": spec["label"]})
         if sid in initial_hidden:
             layer["hidden"] = True
         elif not bare_gif and overlaps(box, [0, 0, *CANVAS]):
@@ -297,38 +365,43 @@ def export_slide(slide, index, inventory, output, scratch):
     print(f"Slide {index+1:02}: {len(layers):2} layers, {len(steps):2} cues, "
           f"initial raster difference {error:.2f}/255", flush=True)
     return {"title": TITLES[index], "duration": round(slide.SlideShowTransition.Duration * 1000),
-            "background": background_name, "layers": layers, "steps": steps, "onEnter": enter}
+            "background": background_name, "layers": layers, "steps": steps, "onEnter": enter, "links": links}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--web-media", type=Path, required=True, help="The five extracted, web-ready PowerPoint MP4s")
     args = parser.parse_args()
-    with args.source.open("rb") as deck_file:
-        from hashlib import file_digest
-        if file_digest(deck_file, "sha256").hexdigest() != SOURCE_SHA:
-            raise ValueError("The input is not the verified final Humboldt deck")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    with ZipFile(args.source) as archive:
+    with ZipFile(args.source) as archive, TemporaryDirectory() as scratch:
         inventory = read_source(archive)
+        used = {asset for slide in inventory for spec in slide.values()
+                for asset in [spec["video"], spec["audio"], spec["model"] if spec["animated_model"] else None,
+                              *(gif["src"] for gif in spec["gifs"])] if asset}
         for path in archive.namelist():
-            if path.startswith("ppt/media/") and path.endswith(".gif"):
-                gif = output / Path(path).name
-                gif.write_bytes(archive.read(path))
-                with Image.open(gif) as image:
-                    image.convert("RGBA").save(gif.with_suffix(".webp"), "WEBP", lossless=True)
-    for i in range(1, 6):
-        filename = f"media{i}.mp4"
-        shutil.copyfile(args.web_media / filename, output / filename)
+            filename = Path(path).name
+            if not path.startswith("ppt/media/") or filename not in used:
+                continue
+            target = output / filename
+            if path.endswith(".mp4"):
+                extracted = Path(scratch) / filename
+                extracted.write_bytes(archive.read(path))
+                subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(extracted), "-c", "copy",
+                                "-movflags", "+faststart", str(target)], check=True)
+            else:
+                target.write_bytes(archive.read(path))
+            if path.endswith(".gif"):
+                with Image.open(target) as image:
+                    image.convert("RGBA").save(target.with_suffix(".webp"), "WEBP", lossless=True)
 
     pythoncom.CoInitialize()
     app = win32com.client.DispatchEx("PowerPoint.Application")
     deck = app.Presentations.Open(str(args.source.resolve()), -1, -1, 0)
     try:
         assert deck.Slides.Count == len(inventory) == len(TITLES)
+        assert all(deck.Slides(i + 1).SlideShowTransition.EntryEffect == 3954 for i in range(len(inventory)))
         with TemporaryDirectory() as scratch:
             slides = [export_slide(deck.Slides(i + 1), i, inventory, output, Path(scratch))
                       for i in range(len(inventory))]
